@@ -1,0 +1,26 @@
+# 忽略数据集和视频
+*.parquet
+*.mp4
+*.mkv
+data/
+
+# 忽略模型权重和日志
+*.safetensors
+*.pth
+*.bin
+outputs/
+checkpoints/
+
+# 忽略环境和缓存
+miniconda3/
+venv/
+__pycache__/
+*.pyc
+.ipynb_checkpoints/
+
+cat <<EOT >> .gitignore
+*.pt
+*.zip
+*.tar
+*.gz
+EOT
