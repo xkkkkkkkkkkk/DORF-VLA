@@ -148,6 +148,21 @@ def update_policy(
     train_metrics.update_s = time.perf_counter() - start_time
     return train_metrics, output_dict
 
+def flatten_robot_state(d):
+            """递归扁平化 robot_state 字典并拼接"""
+            tensors = []
+            if isinstance(d, torch.Tensor):
+                return d
+            if isinstance(d, dict):
+                # 按字母顺序排序键名，确保每次运行的特征顺序一致
+                for k in sorted(d.keys()):
+                    val = flatten_robot_state(d[k])
+                    if isinstance(val, torch.Tensor):
+                        # 如果是多维张量，保留 batch 和 sequence，扁平化特征维
+                        if val.dim() > 2:
+                            val = val.flatten(start_dim=2)
+                        tensors.append(val)
+            return torch.cat(tensors, dim=-1) if tensors else None
 
 @parser.wrap()
 def train(cfg: TrainPipelineConfig, accelerator: Accelerator | None = None):
@@ -315,7 +330,10 @@ def train(cfg: TrainPipelineConfig, accelerator: Accelerator | None = None):
     step = 0  # number of policy updates (forward + backward + optim)
 
     if cfg.resume:
-        step, optimizer, lr_scheduler = load_training_state(cfg.checkpoint_path, optimizer, lr_scheduler)
+        if cfg.checkpoint_path is not None:
+            step, optimizer, lr_scheduler = load_training_state(cfg.checkpoint_path, optimizer, lr_scheduler)
+        else:
+            logging.warning(colored("检测到 --resume=True 但未提供 --checkpoint_path。将从新开始训练。", "yellow"))
 
     num_learnable_params = sum(p.numel() for p in policy.parameters() if p.requires_grad)
     num_total_params = sum(p.numel() for p in policy.parameters())
@@ -397,13 +415,25 @@ def train(cfg: TrainPipelineConfig, accelerator: Accelerator | None = None):
             f"Start offline training on a fixed dataset, with effective batch size: {effective_batch_size}"
         )
 
+    # 提取实际的 env，供 Rollout 交互使用
+    if eval_env is None:
+        raise ValueError("DORF fine-tuning requires an active environment! Please pass --env.type in CLI.")
+    suite_name = list(eval_env.keys())[0]
+    task_id = list(eval_env[suite_name].keys())[0]
+    active_env = eval_env[suite_name][task_id]
+
     if is_main_process:
         logging.info("Initializing Vision-DORF RL modules...")
+
+    actual_state_dim = 34
     
-    # 初始化改造后的视觉 DORF 模型
-    critic = VisionCritic(state_dim=policy.config.input_features["observation.state"].shape[0]).to(device)
+    if is_main_process:
+        logging.info(f"--- [DORF 适配] 直接硬编码状态维度为: {actual_state_dim}")
+    
+    # 初始化支持 6 通道视觉输入 (3主视角 + 3手腕视角) 的网络
+    critic = VisionCritic(state_dim=actual_state_dim).to(device)
     dorf_reward = VisionReward(
-        state_dim=policy.config.input_features["observation.state"].shape[0],
+        state_dim=actual_state_dim,
         action_dim=policy.config.output_features["action"].shape[0]
     ).to(device)
     
@@ -421,12 +451,40 @@ def train(cfg: TrainPipelineConfig, accelerator: Accelerator | None = None):
             if is_main_process:
                 logging.info("成功加载断点重续的 DORF 权重！")
 
-    # 提取实际的 env，供 Rollout 交互使用
-    if eval_env is None:
-        raise ValueError("DORF fine-tuning requires an active environment! Please pass --env.type in CLI.")
-    suite_name = list(eval_env.keys())[0]
-    task_id = list(eval_env[suite_name].keys())[0]
-    active_env = eval_env[suite_name][task_id]
+    dummy_obs, _ = active_env.reset()
+    # 手动处理一下 dummy_obs 里的键名，使其对齐 preprocessor 后的结构
+    # 或者直接针对原生结构进行探测
+    if "observation.robot_state" in dummy_obs:
+        test_state_dict = dummy_obs["observation.robot_state"]
+    else:
+        # 如果是 LIBERO 原生环境，通常直接在 top-level 或 info 里
+        test_state_dict = dummy_obs 
+
+    # 调用你刚才定义的扁平化函数
+    with torch.no_grad():
+        # 这里的 dummy_obs 还没有经过 preprocessor，我们需要手动提取
+        # 简单起见，我们直接获取一次 rollout 数据的一帧来测算
+        temp_rollout = rollout(
+            env=active_env,
+            policy=accelerator.unwrap_model(policy),
+            env_preprocessor=env_preprocessor,
+            env_postprocessor=env_postprocessor,
+            preprocessor=preprocessor,
+            postprocessor=postprocessor,
+        )
+        # 从 rollout 结果中提取经过扁平化后的状态
+        actual_test_state = flatten_robot_state(temp_rollout["observation"]["observation.robot_state"])
+        # 这才是我们 DORF 网络真正需要的 state_dim
+        actual_state_dim = actual_test_state.shape[-1] 
+    
+    if is_main_process:
+        logging.info(f"--- [DORF 适配] 探测到实际扁平化后的状态维度为: {actual_state_dim}")
+    # ---------------------------------------------------------
+
+    if hasattr(active_env, "max_episode_steps"):
+        active_env.max_episode_steps = 50 
+    elif hasattr(active_env, "_max_episode_steps"):
+        active_env._max_episode_steps = 50
 
     for _ in range(step, cfg.steps):
         start_time = time.perf_counter()
@@ -445,10 +503,22 @@ def train(cfg: TrainPipelineConfig, accelerator: Accelerator | None = None):
                 postprocessor=postprocessor,
                 return_observations=True, 
             )
+        obs_dict = rollout_data["observation"]
+        if obs_dict is None:
+            raise KeyError("正式采集循环中未能提取到 observation。")
+        # 1. 处理图像：主视角 + 手腕视角 6通道融合 (3+3=6)
+        img_global = obs_dict["observation.images.image"][:, :-1].to(device)
+        img_wrist = obs_dict["observation.images.image2"][:, :-1].to(device)
+        imgs = torch.cat([img_global, img_wrist], dim=2) 
 
-        # 官方 rollout 会包含 done 之后的一帧，所以用 [:, :-1] 对齐长度
-        imgs = rollout_data["observation"]["observation.images.image"][:, :-1].to(device)
-        states = rollout_data["observation"]["observation.state"][:, :-1].to(device)
+        # 2. 处理状态：自动从嵌套字典提取并拼接所有关节/夹持器信息
+        # 这里的 states 将包含 joints, gripper, eef 的所有数值特征
+        states = flatten_robot_state(obs_dict["observation.robot_state"])[:, :-1].to(device)
+        
+        # 探针：观察最终拼接后的维度
+        if is_main_process and step == 0:
+            logging.info(f"--- [DEBUG] 拼接后图像维度: {imgs.shape}")
+            logging.info(f"--- [DEBUG] 拼接后状态维度: {states.shape}")
         actions = rollout_data["action"].to(device)
         dones = rollout_data["done"].to(device)
         true_rewards = rollout_data["reward"].to(device)
@@ -476,6 +546,18 @@ def train(cfg: TrainPipelineConfig, accelerator: Accelerator | None = None):
         total_dorf_loss = dorf_loss + critic_loss
         total_dorf_loss.backward()
         opt_dorf.step()
+
+        del imgs, states, actions, learned_dense_rewards, values
+        import gc
+        gc.collect()
+        torch.cuda.empty_cache() # 释放显存碎片
+
+        print(f"--- 维度核对 ---")
+        print(f"A_learned shape: {A_learned.shape}")
+        print(f"rollout_data['action'] shape: {rollout_data['action'].shape}")
+        print(f"offline batch['action'] shape: {batch['action'].shape}")
+        print(f"offline batch keys: {batch.keys()}")
+        print(f"----------------")
 
         # ---------------------------------------------
         # 阶段 D：VLA 微调更新 (完美对接官方函数)

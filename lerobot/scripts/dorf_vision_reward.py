@@ -7,7 +7,7 @@ class VisionCritic(nn.Module):
         super().__init__()
         # 简单的视觉降维编码器 (你可以根据需要替换为更强的 CNN/ViT)
         self.vision_encoder = nn.Sequential(
-            nn.Conv2d(3, 32, kernel_size=8, stride=4),
+            nn.Conv2d(6, 32, kernel_size=8, stride=4),
             nn.ReLU(),
             nn.Conv2d(32, 64, kernel_size=4, stride=2),
             nn.ReLU(),
@@ -43,7 +43,7 @@ class VisionReward(nn.Module):
         super().__init__()
         # 复用 Critic 的视觉编码器结构 (为了简单起见，这里独立训练)
         self.vision_encoder = nn.Sequential(
-            nn.Conv2d(3, 32, kernel_size=8, stride=4),
+            nn.Conv2d(6, 32, kernel_size=8, stride=4),
             nn.ReLU(),
             nn.Conv2d(32, 64, kernel_size=4, stride=2),
             nn.ReLU(),

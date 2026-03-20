@@ -241,11 +241,16 @@ def rollout(
         "done": torch.stack(all_dones, dim=1),
     }
     if return_observations:
-        stacked_observations = {}
-        for key in all_observations[0]:
-            stacked_observations[key] = torch.stack([obs[key] for obs in all_observations], dim=1)
-        ret[OBS_STR] = stacked_observations
+        def recursive_stack(data_list):
+            """支持嵌套字典的递归堆叠逻辑"""
+            first = data_list[0]
+            if isinstance(first, torch.Tensor):
+                return torch.stack(data_list, dim=1)
+            elif isinstance(first, dict):
+                return {k: recursive_stack([d[k] for d in data_list]) for k in first}
+            return data_list
 
+        ret[OBS_STR] = recursive_stack(all_observations)
     if hasattr(policy, "use_original_modules"):
         policy.use_original_modules()
 
