@@ -451,36 +451,6 @@ def train(cfg: TrainPipelineConfig, accelerator: Accelerator | None = None):
             if is_main_process:
                 logging.info("成功加载断点重续的 DORF 权重！")
 
-    dummy_obs, _ = active_env.reset()
-    # 手动处理一下 dummy_obs 里的键名，使其对齐 preprocessor 后的结构
-    # 或者直接针对原生结构进行探测
-    if "observation.robot_state" in dummy_obs:
-        test_state_dict = dummy_obs["observation.robot_state"]
-    else:
-        # 如果是 LIBERO 原生环境，通常直接在 top-level 或 info 里
-        test_state_dict = dummy_obs 
-
-    # 调用你刚才定义的扁平化函数
-    with torch.no_grad():
-        # 这里的 dummy_obs 还没有经过 preprocessor，我们需要手动提取
-        # 简单起见，我们直接获取一次 rollout 数据的一帧来测算
-        temp_rollout = rollout(
-            env=active_env,
-            policy=accelerator.unwrap_model(policy),
-            env_preprocessor=env_preprocessor,
-            env_postprocessor=env_postprocessor,
-            preprocessor=preprocessor,
-            postprocessor=postprocessor,
-        )
-        # 从 rollout 结果中提取经过扁平化后的状态
-        actual_test_state = flatten_robot_state(temp_rollout["observation"]["observation.robot_state"])
-        # 这才是我们 DORF 网络真正需要的 state_dim
-        actual_state_dim = actual_test_state.shape[-1] 
-    
-    if is_main_process:
-        logging.info(f"--- [DORF 适配] 探测到实际扁平化后的状态维度为: {actual_state_dim}")
-    # ---------------------------------------------------------
-
     if hasattr(active_env, "max_episode_steps"):
         active_env.max_episode_steps = 50 
     elif hasattr(active_env, "_max_episode_steps"):
@@ -503,6 +473,8 @@ def train(cfg: TrainPipelineConfig, accelerator: Accelerator | None = None):
                 postprocessor=postprocessor,
                 return_observations=True, 
             )
+        if "observation" not in rollout_data:
+            raise ValueError(f"致命错误：Rollout 未返回 observation 键。可用键名为: {list(rollout_data.keys())}。请检查 lerobot_eval.py 是否保存。")
         obs_dict = rollout_data["observation"]
         if obs_dict is None:
             raise KeyError("正式采集循环中未能提取到 observation。")
@@ -514,11 +486,7 @@ def train(cfg: TrainPipelineConfig, accelerator: Accelerator | None = None):
         # 2. 处理状态：自动从嵌套字典提取并拼接所有关节/夹持器信息
         # 这里的 states 将包含 joints, gripper, eef 的所有数值特征
         states = flatten_robot_state(obs_dict["observation.robot_state"])[:, :-1].to(device)
-        
-        # 探针：观察最终拼接后的维度
-        if is_main_process and step == 0:
-            logging.info(f"--- [DEBUG] 拼接后图像维度: {imgs.shape}")
-            logging.info(f"--- [DEBUG] 拼接后状态维度: {states.shape}")
+
         actions = rollout_data["action"].to(device)
         dones = rollout_data["done"].to(device)
         true_rewards = rollout_data["reward"].to(device)
