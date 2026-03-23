@@ -156,7 +156,11 @@ def rollout(
     step = 0
     # Keep track of which environments are done.
     done = np.array([False] * env.num_envs)
-    max_steps = env.call("_max_episode_steps")[0]
+    # 兼容性处理：优先读取 env 属性，防止 VectorEnv 包装丢失参数
+    try:
+        max_steps = env.max_episode_steps
+    except AttributeError:
+        max_steps = env.call("_max_episode_steps")[0]
     progbar = trange(
         max_steps,
         desc=f"Running rollout with at most {max_steps} steps",
@@ -167,8 +171,6 @@ def rollout(
     while not np.all(done) and step < max_steps:
         # Numpy array to tensor and changing dictionary keys to LeRobot policy format.
         observation = preprocess_observation(observation)
-        if return_observations:
-            all_observations.append(deepcopy(observation))
 
         # Infer "task" from attributes of environments.
         # TODO: works with SyncVectorEnv but not AsyncVectorEnv
@@ -178,6 +180,9 @@ def rollout(
         observation = env_preprocessor(observation)
 
         observation = preprocessor(observation)
+        if return_observations:
+            all_observations.append(deepcopy(observation))
+
         with torch.inference_mode():
             action = policy.select_action(observation)
         action = postprocessor(action)
@@ -231,6 +236,9 @@ def rollout(
     # Track the final observation.
     if return_observations:
         observation = preprocess_observation(observation)
+        observation = add_envs_task(env, observation)
+        observation = env_preprocessor(observation)
+        observation = preprocessor(observation)
         all_observations.append(deepcopy(observation))
 
     # Stack the sequence along the first dimension so that we have (batch, sequence, *) tensors.

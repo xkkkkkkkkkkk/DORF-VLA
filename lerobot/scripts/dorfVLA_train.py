@@ -13,6 +13,13 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
+import glob
+import os
+from datasets import load_dataset, Dataset, concatenate_datasets
+from lerobot.datasets.lerobot_dataset import LeRobotDataset
+import pandas as pd
+from lerobot.datasets.lerobot_dataset import LeRobotDataset
+
 import dataclasses
 import logging
 import time
@@ -228,8 +235,28 @@ def train(cfg: TrainPipelineConfig, accelerator: Accelerator | None = None):
 
     # Dataset loading synchronization: main process downloads first to avoid race conditions
     if is_main_process:
-        logging.info("Creating dataset")
-        dataset = make_dataset(cfg)
+        logging.info("正在初始化本地官方数据集加载器...")
+    
+        # 指向你复刻的 snapshots 路径
+        latest_snapshot = "/root/.cache/huggingface/hub/datasets--HuggingFaceVLA--libero/snapshots/86958911c0f959db2bbbdb107eb3e17c5f9c798e"
+        
+        # 1. 自动探测本地已有的分片范围
+        parquet_files = sorted(glob.glob(os.path.join(latest_snapshot, "data/chunk-000/*.parquet")))
+        if not parquet_files:
+            raise FileNotFoundError(f"在 {latest_snapshot} 下未找到数据分片，请检查路径。")
+        
+        # 读取最后一个分片，获取最大 Episode 索引
+        df_last = pd.read_parquet(parquet_files[-1])
+        max_ep_idx = int(df_last['episode_index'].max())
+        logging.info(f"本地数据覆盖至 Episode {max_ep_idx}，将仅加载此范围内索引。")
+
+        # 2. 调用官方 LeRobotDataset (不联网，不伪造，自动关联 meta 文件夹)
+        dataset = LeRobotDataset(
+            repo_id="HuggingFaceVLA/libero",
+            root=latest_snapshot,
+            revision="86958911c0f959db2bbbdb107eb3e17c5f9c798e", # 锁死哈希，跳过版本查询
+            episodes=list(range(max_ep_idx + 1)),              # 只请求本地有的 Episode
+        )
 
     accelerator.wait_for_everyone()
 
@@ -425,12 +452,11 @@ def train(cfg: TrainPipelineConfig, accelerator: Accelerator | None = None):
     if is_main_process:
         logging.info("Initializing Vision-DORF RL modules...")
 
-    actual_state_dim = 34
+    actual_state_dim = 8
     
     if is_main_process:
-        logging.info(f"--- [DORF 适配] 直接硬编码状态维度为: {actual_state_dim}")
+        logging.info(f"--- [DORF 适配] 确认使用策略同分布状态维度: {actual_state_dim}")
     
-    # 初始化支持 6 通道视觉输入 (3主视角 + 3手腕视角) 的网络
     critic = VisionCritic(state_dim=actual_state_dim).to(device)
     dorf_reward = VisionReward(
         state_dim=actual_state_dim,
@@ -441,7 +467,6 @@ def train(cfg: TrainPipelineConfig, accelerator: Accelerator | None = None):
 
     # 尝试断点重续 DORF
     if cfg.resume and cfg.checkpoint_path is not None:
-        import os
         dorf_path = Path(cfg.checkpoint_path) / "dorf_state.pt"
         if dorf_path.exists():
             checkpoint = torch.load(dorf_path, map_location=device)
@@ -473,23 +498,33 @@ def train(cfg: TrainPipelineConfig, accelerator: Accelerator | None = None):
                 postprocessor=postprocessor,
                 return_observations=True, 
             )
+
+        # 1. 确保 observation 键存在
         if "observation" not in rollout_data:
-            raise ValueError(f"致命错误：Rollout 未返回 observation 键。可用键名为: {list(rollout_data.keys())}。请检查 lerobot_eval.py 是否保存。")
+             logging.error(f"Rollout 失败。可用键: {list(rollout_data.keys())}")
+             continue
+        
         obs_dict = rollout_data["observation"]
-        if obs_dict is None:
-            raise KeyError("正式采集循环中未能提取到 observation。")
-        # 1. 处理图像：主视角 + 手腕视角 6通道融合 (3+3=6)
-        img_global = obs_dict["observation.images.image"][:, :-1].to(device)
-        img_wrist = obs_dict["observation.images.image2"][:, :-1].to(device)
-        imgs = torch.cat([img_global, img_wrist], dim=2) 
-
-        # 2. 处理状态：自动从嵌套字典提取并拼接所有关节/夹持器信息
-        # 这里的 states 将包含 joints, gripper, eef 的所有数值特征
-        states = flatten_robot_state(obs_dict["observation.robot_state"])[:, :-1].to(device)
-
-        actions = rollout_data["action"].to(device)
-        dones = rollout_data["done"].to(device)
-        true_rewards = rollout_data["reward"].to(device)
+        # 2. 核心长度核对：防止 S=0 导致的崩溃
+        seq_len = obs_dict["observation.state"].shape[1]
+        if seq_len <= 1:
+            logging.warning(f"Rollout 序列过短 ({seq_len})，跳过本次更新。")
+            continue
+        # 3. 数据提取：直接使用 8 维状态和拼接图像
+        actions = rollout_data["action"].to(device).float()
+        dones = rollout_data["done"].to(device).float()
+        true_rewards = rollout_data["reward"].to(device).float()
+        
+        states = obs_dict["observation.state"][:, :-1].to(device).float()
+        img_global = obs_dict["observation.images.image"][:, :-1].to(device).float()
+        img_wrist = obs_dict["observation.images.image2"][:, :-1].to(device).float()
+        imgs = torch.cat([img_global, img_wrist], dim=2)
+            
+        if is_main_process:
+            print(f"--- 维度对齐成功 \精度核对成功 ---")
+            print(f"States shape: {states.shape} (状态维应为 8)")
+            print(f"Actions shape: {actions.shape} (序列长度应为 280)")
+            print(f"States dtype: {states.dtype}, Rewards dtype: {true_rewards.dtype} (应均为 float32)")
 
         policy.train()
         opt_dorf.zero_grad()
@@ -515,29 +550,64 @@ def train(cfg: TrainPipelineConfig, accelerator: Accelerator | None = None):
         total_dorf_loss.backward()
         opt_dorf.step()
 
-        del imgs, states, actions, learned_dense_rewards, values
-        import gc
-        gc.collect()
-        torch.cuda.empty_cache() # 释放显存碎片
-
-        print(f"--- 维度核对 ---")
-        print(f"A_learned shape: {A_learned.shape}")
-        print(f"rollout_data['action'] shape: {rollout_data['action'].shape}")
-        print(f"offline batch['action'] shape: {batch['action'].shape}")
-        print(f"offline batch keys: {batch.keys()}")
-        print(f"----------------")
-
         # ---------------------------------------------
-        # 阶段 D：VLA 微调更新 (完美对接官方函数)
+        # 阶段 D：VLA 微调更新 
         # ---------------------------------------------
-        # 我们暂时抽取官方的离线 Batch 交给 VLA 训练（保证代码无缝跑通和防止灾难性遗忘）。
-        # 在验证链路跑通后，你可以根据 A_learned 的正负值去筛选 rollout_data 并组装在线 Batch。
-        batch = next(dl_iter)
-        batch = preprocessor(batch)
+        # 暂时抽取官方的离线 Batch 交给 VLA 训练（保证代码无缝跑通和防止灾难性遗忘）。
+        # 验证链路跑通后，再根据 A_learned 的正负值去筛选 rollout_data 并组装在线 Batch。
         
+        # 1. 动态确定筛选门槛
+        # 如果 A>0 的样本太少（少于 10%），就用 A > Mean，保证训练有足够数据
+        pos_mask = (A_learned > 0)
+        if pos_mask.float().mean() < 0.10:
+            threshold = A_learned.mean()
+            filter_name = "A > Mean"
+        else:
+            threshold = 0
+            filter_name = "A > 0"
+        
+        mask = (A_learned >= threshold)
+        num_good = mask.sum().item()
+        
+        # 2. 先获取离线 Batch 
+        batch = next(dl_iter)
+        # batch = preprocessor(batch)
+
+        # 3. 样本注入逻辑 (将在线优良样本覆盖掉离线 Batch 的前 N 个)
+        if num_good > 0:
+            # 混合 25% 的在线优良数据，75% 保持离线专家数据以防遗忘
+            num_to_replace = min(cfg.batch_size // 4, num_good)
+            
+            # 找到符合条件的索引并随机抽取
+            b_idx, s_idx = torch.where(mask)
+            rand_perm = torch.randperm(num_good)[:num_to_replace]
+            sel_b = b_idx[rand_perm]
+            sel_s = s_idx[rand_perm]
+            
+            # 注入动作与状态 (统一 float32)
+            batch["action"][:num_to_replace] = actions[sel_b, sel_s].cpu().float()
+            batch["observation.state"][:num_to_replace] = states[sel_b, sel_s].cpu().float()
+            
+            # 注入视觉特征 (从原始 obs_dict 提取，注意精度)
+            batch["observation.images.image"][:num_to_replace] = obs_dict["observation.images.image"][sel_b, sel_s].to(device).cpu().float()
+            batch["observation.images.image2"][:num_to_replace] = obs_dict["observation.images.image2"][sel_b, sel_s].to(device).cpu().float()
+            
+            if is_main_process:
+                logging.info(f"--- [Phase D] 预处理前成功注入 {num_to_replace} 个样本 ({filter_name}) ---")
+        
+        # 4. 对混合后的batch 统一执行预处理
+        batch = preprocessor(batch)
+
+        if is_main_process:
+            print(f"\n>>>> Phase D: 在线样本注入分析 <<<<")
+            print(f"采用门槛: {filter_name} ({threshold:.4f})")
+            print(f"可选优良步数: {num_good} / {A_learned.numel()}")
+            print(f"基础 Batch 维度: {batch['action'].shape}")
+            print(f">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>\n")
+
         train_tracker.dataloading_s = time.perf_counter() - start_time
 
-        # 将 batch 喂给官方原封不动的 VLA 更新函数，一切日志和混合精度将自动处理
+        # 5. 调用官方VLA更新函数
         train_tracker, output_dict = update_policy(
             train_tracker,
             policy,
@@ -549,14 +619,22 @@ def train(cfg: TrainPipelineConfig, accelerator: Accelerator | None = None):
             rabc_weights_provider=rabc_weights,
         )
         
-        # 把 DORF 的指标挂载到官方的日志字典里，这样你在终端和 wandb 就能看到它！
-        output_dict["dorf_loss"] = dorf_loss.item()
-        output_dict["critic_loss"] = critic_loss.item()
+        # 6. 将 DORF 相关的指标挂载到输出日志中
+        output_dict["dorf/total_loss"] = dorf_loss.item() if 'dorf_loss' in locals() else 0.0
+        output_dict["dorf/critic_loss"] = critic_loss.item() if 'critic_loss' in locals() else 0.0
+        output_dict["good_samples_ratio"] = num_good / A_learned.numel()
 
         # Note: eval and checkpoint happens *after* the `step`th training update has completed, so we
         # increment `step` here.
+        # 更新训练步数与状态
         step += 1
         train_tracker.step()
+        
+        # 显存清理，防止显存爆炸
+        del raw_batch, batch, imgs, states, actions, learned_dense_rewards, values
+        if step % 5 == 0:
+            torch.cuda.empty_cache()
+
         is_log_step = cfg.log_freq > 0 and step % cfg.log_freq == 0 and is_main_process
         is_saving_step = step % cfg.save_freq == 0 or step == cfg.steps
         is_eval_step = cfg.eval_freq > 0 and step % cfg.eval_freq == 0

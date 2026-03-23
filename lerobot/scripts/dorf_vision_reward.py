@@ -14,7 +14,7 @@ class VisionCritic(nn.Module):
             nn.Conv2d(64, 64, kernel_size=3, stride=1),
             nn.ReLU(),
             nn.Flatten(),
-            nn.Linear(64 * 44 * 44, visual_feature_dim) # 假设输入是 384x384
+            nn.Linear(50176, visual_feature_dim) # 假设输入是 384x384
         )
         
         # 融合视觉和状态特征计算 Value
@@ -31,7 +31,9 @@ class VisionCritic(nn.Module):
         # 融合 Batch 和 Sequence 维度处理图像
         flat_img = img.view(B * S, C, H, W)
         v_feat = self.vision_encoder(flat_img)
-        v_feat = v_feat.view(B, S, -1)
+        # 使用显式维度而非 -1，防止在 S=0 时出现歧义报错
+        feature_dim = v_feat.shape[-1]
+        v_feat = v_feat.view(B, S, feature_dim)
         
         combined_feat = torch.cat([v_feat, state], dim=-1)
         value = self.value_net(combined_feat)
@@ -50,7 +52,7 @@ class VisionReward(nn.Module):
             nn.Conv2d(64, 64, kernel_size=3, stride=1),
             nn.ReLU(),
             nn.Flatten(),
-            nn.Linear(64 * 44 * 44, visual_feature_dim)
+            nn.Linear(50176, visual_feature_dim)
         )
         
         self.reward_net = nn.Sequential(
@@ -65,7 +67,9 @@ class VisionReward(nn.Module):
         B, S, C, H, W = img.shape
         flat_img = img.view(B * S, C, H, W)
         v_feat = self.vision_encoder(flat_img)
-        v_feat = v_feat.view(B, S, -1)
+        # 使用显式维度而非 -1，防止在 S=0 时出现歧义报错
+        feature_dim = v_feat.shape[-1]
+        v_feat = v_feat.view(B, S, feature_dim)
         
         combined_feat = torch.cat([v_feat, state, action], dim=-1)
         reward = self.reward_net(combined_feat)
