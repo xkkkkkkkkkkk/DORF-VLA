@@ -559,19 +559,16 @@ def train(cfg: TrainPipelineConfig, accelerator: Accelerator | None = None):
         # 1. 动态确定筛选门槛
         # 如果 A>0 的样本太少（少于 10%），就用 A > Mean，保证训练有足够数据
         pos_mask = (A_learned > 0)
-        if pos_mask.float().mean() < 0.10:
-            threshold = A_learned.mean()
-            filter_name = "A > Mean"
-        else:
-            threshold = 0
-            filter_name = "A > 0"
-        
+        threshold = A_learned.mean() if pos_mask.float().mean() < 0.10 else 0
         mask = (A_learned >= threshold)
         num_good = mask.sum().item()
         
         # 2. 先获取离线 Batch 
-        batch = next(dl_iter)
-        # batch = preprocessor(batch)
+        try:
+            batch = next(dl_iter)
+        except (StopIteration, UnboundLocalError, NameError):
+            dl_iter = iter(dataloader)
+            batch = next(dl_iter)
 
         # 3. 样本注入逻辑 (将在线优良样本覆盖掉离线 Batch 的前 N 个)
         if num_good > 0:
@@ -584,29 +581,47 @@ def train(cfg: TrainPipelineConfig, accelerator: Accelerator | None = None):
             sel_b = b_idx[rand_perm]
             sel_s = s_idx[rand_perm]
             
-            # 注入动作与状态 (统一 float32)
-            batch["action"][:num_to_replace] = actions[sel_b, sel_s].cpu().float()
-            batch["observation.state"][:num_to_replace] = states[sel_b, sel_s].cpu().float()
-            
-            # 注入视觉特征 (从原始 obs_dict 提取，注意精度)
-            batch["observation.images.image"][:num_to_replace] = obs_dict["observation.images.image"][sel_b, sel_s].to(device).cpu().float()
-            batch["observation.images.image2"][:num_to_replace] = obs_dict["observation.images.image2"][sel_b, sel_s].to(device).cpu().float()
-            
+            # A. 注入动作与状态 (统一 float32)
+            if batch["action"].ndim == 3:
+                batch["action"][:num_to_replace, 0] = actions[sel_b, sel_s].cpu().float()
+                batch["observation.state"][:num_to_replace, 0] = states[sel_b, sel_s].cpu().float()
+            else:
+                batch["action"][:num_to_replace] = actions[sel_b, sel_s].cpu().float()
+                batch["observation.state"][:num_to_replace] = states[sel_b, sel_s].cpu().float()
+            # B. 图像强制对齐
+            import torch.nn.functional as F
+            for img_key in ["observation.images.image", "observation.images.image2"]:
+                # 获取离线模板的尺寸 [H, W]
+                target_h, target_w = batch[img_key].shape[-2:]
+                # 获取在线原始图像 [N, C, H, W]
+                online_imgs = obs_dict[img_key][sel_b, sel_s].cpu().float()
+                # 强行缩放
+                rescaled_imgs = F.interpolate(online_imgs, size=(target_h, target_w), mode='bilinear')
+                
+                if batch[img_key].ndim == 5:
+                    batch[img_key][:num_to_replace, 0] = rescaled_imgs
+                else:
+                    batch[img_key][:num_to_replace] = rescaled_imgs
+            # C. 任务指令替换
+            current_task = batch["task"][0]
+            if "<image>" not in current_task:
+                current_task = "<image><image> " + current_task
+            batch["task"] = [current_task] * len(batch["task"])
+           
+            # --- D. 【清除缓存】强迫重算 ---
+            keys_to_scrub = ["pixel_values", "pixel_attention_mask", "lang_tokens", 
+                             "attention_mask", "img_masks", "image_grid_thw"]
+            for k in keys_to_scrub:
+                if k in batch:
+                    del batch[k]
+
             if is_main_process:
-                logging.info(f"--- [Phase D] 预处理前成功注入 {num_to_replace} 个样本 ({filter_name}) ---")
+                logging.info(f"--- [Phase D] 占位符已补全: {current_task[:50]}... ---")
         
         # 4. 对混合后的batch 统一执行预处理
         batch = preprocessor(batch)
 
-        if is_main_process:
-            print(f"\n>>>> Phase D: 在线样本注入分析 <<<<")
-            print(f"采用门槛: {filter_name} ({threshold:.4f})")
-            print(f"可选优良步数: {num_good} / {A_learned.numel()}")
-            print(f"基础 Batch 维度: {batch['action'].shape}")
-            print(f">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>\n")
-
         train_tracker.dataloading_s = time.perf_counter() - start_time
-
         # 5. 调用官方VLA更新函数
         train_tracker, output_dict = update_policy(
             train_tracker,
@@ -631,7 +646,7 @@ def train(cfg: TrainPipelineConfig, accelerator: Accelerator | None = None):
         train_tracker.step()
         
         # 显存清理，防止显存爆炸
-        del raw_batch, batch, imgs, states, actions, learned_dense_rewards, values
+        # del raw_batch, batch, imgs, states, actions, learned_dense_rewards, values
         if step % 5 == 0:
             torch.cuda.empty_cache()
 
