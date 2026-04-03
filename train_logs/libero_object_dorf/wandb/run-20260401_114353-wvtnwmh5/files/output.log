@@ -1,0 +1,340 @@
+INFO 2026-04-01 11:43:55 db_utils.py:106 Logs will be synced with wandb.
+INFO 2026-04-01 11:43:55 db_utils.py:107 Track this run --> https://wandb.ai/x-k/dorf-VLA/runs/wvtnwmh5
+INFO 2026-04-01 11:43:55 LA_train.py:241 正在初始化本地官方数据集加载器...
+INFO 2026-04-01 11:43:56 LA_train.py:254 本地数据覆盖至 Episode 13，将仅加载此范围内索引。
+INFO 2026-04-01 11:43:56 LA_train.py:281 Creating env
+[robosuite WARNING] No private macro file found! (__init__.py:7)
+WARNING 2026-04-01 11:43:56 e/__init__.py:7 No private macro file found!
+[robosuite WARNING] It is recommended to use a private macro file (__init__.py:8)
+WARNING 2026-04-01 11:43:56 e/__init__.py:8 It is recommended to use a private macro file
+[robosuite WARNING] To setup, run: python /root/autodl-tmp/miniconda3/envs/lerobot/lib/python3.10/site-packages/robosuite/scripts/setup_macros.py (__init__.py:9)
+WARNING 2026-04-01 11:43:56 e/__init__.py:9 To setup, run: python /root/autodl-tmp/miniconda3/envs/lerobot/lib/python3.10/site-packages/robosuite/scripts/setup_macros.py
+INFO 2026-04-01 11:43:56 tesupport.py:24 No OpenGL_accelerate module loaded: No module named 'OpenGL_accelerate'
+Creating LIBERO envs | suites=['libero_object'] | n_envs(per task)=4 | init_states=True
+[info] using task orders [0, 1, 2, 3, 4, 5, 6, 7, 8, 9]
+Built vec env | suite=libero_object | task_id=0 | n_envs=4
+Built vec env | suite=libero_object | task_id=1 | n_envs=4
+Built vec env | suite=libero_object | task_id=2 | n_envs=4
+Built vec env | suite=libero_object | task_id=3 | n_envs=4
+Built vec env | suite=libero_object | task_id=4 | n_envs=4
+Built vec env | suite=libero_object | task_id=5 | n_envs=4
+Built vec env | suite=libero_object | task_id=6 | n_envs=4
+Built vec env | suite=libero_object | task_id=7 | n_envs=4
+Built vec env | suite=libero_object | task_id=8 | n_envs=4
+Built vec env | suite=libero_object | task_id=9 | n_envs=4
+INFO 2026-04-01 11:45:12 LA_train.py:285 Creating policy
+Loading  HuggingFaceTB/SmolVLM2-500M-Instruct weights ...
+INFO 2026-04-01 11:45:13 _client.py:1025 HTTP Request: HEAD https://hf-mirror.com/HuggingFaceTB/SmolVLM2-500M-Instruct/resolve/main/config.json "HTTP/1.1 307 Temporary Redirect"
+INFO 2026-04-01 11:45:13 _client.py:1025 HTTP Request: HEAD https://hf-mirror.com/HuggingFaceTB/SmolVLM2-500M-Video-Instruct/resolve/main/config.json "HTTP/1.1 307 Temporary Redirect"
+INFO 2026-04-01 11:45:13 _client.py:1025 HTTP Request: HEAD https://hf-mirror.com/api/resolve-cache/models/HuggingFaceTB/SmolVLM2-500M-Video-Instruct/7b375e1b73b11138ff12fe22c8f2822d8fe03467/config.json "HTTP/1.1 200 OK"
+`torch_dtype` is deprecated! Use `dtype` instead!
+INFO 2026-04-01 11:45:15 _client.py:1025 HTTP Request: HEAD https://hf-mirror.com/HuggingFaceTB/SmolVLM2-500M-Instruct/resolve/main/generation_config.json "HTTP/1.1 307 Temporary Redirect"
+INFO 2026-04-01 11:45:15 _client.py:1025 HTTP Request: HEAD https://hf-mirror.com/HuggingFaceTB/SmolVLM2-500M-Video-Instruct/resolve/main/generation_config.json "HTTP/1.1 307 Temporary Redirect"
+INFO 2026-04-01 11:45:15 _client.py:1025 HTTP Request: HEAD https://hf-mirror.com/api/resolve-cache/models/HuggingFaceTB/SmolVLM2-500M-Video-Instruct/7b375e1b73b11138ff12fe22c8f2822d8fe03467/generation_config.json "HTTP/1.1 200 OK"
+INFO 2026-04-01 11:45:16 _client.py:1025 HTTP Request: HEAD https://hf-mirror.com/HuggingFaceTB/SmolVLM2-500M-Instruct/resolve/main/processor_config.json "HTTP/1.1 307 Temporary Redirect"
+INFO 2026-04-01 11:45:16 _client.py:1025 HTTP Request: HEAD https://hf-mirror.com/HuggingFaceTB/SmolVLM2-500M-Video-Instruct/resolve/main/processor_config.json "HTTP/1.1 307 Temporary Redirect"
+INFO 2026-04-01 11:45:17 _client.py:1025 HTTP Request: HEAD https://hf-mirror.com/api/resolve-cache/models/HuggingFaceTB/SmolVLM2-500M-Video-Instruct/7b375e1b73b11138ff12fe22c8f2822d8fe03467/processor_config.json "HTTP/1.1 200 OK"
+INFO 2026-04-01 11:45:17 _client.py:1025 HTTP Request: GET https://hf-mirror.com/api/models/HuggingFaceTB/SmolVLM2-500M-Instruct/tree/main/additional_chat_templates?recursive=false&expand=false "HTTP/1.1 307 Temporary Redirect"
+INFO 2026-04-01 11:45:17 _client.py:1025 HTTP Request: GET https://hf-mirror.com/api/models/HuggingFaceTB/SmolVLM2-500M-Video-Instruct/tree/main/additional_chat_templates?recursive=false&expand=false "HTTP/1.1 404 Not Found"
+INFO 2026-04-01 11:45:18 _client.py:1025 HTTP Request: HEAD https://hf-mirror.com/HuggingFaceTB/SmolVLM2-500M-Instruct/resolve/main/processor_config.json "HTTP/1.1 307 Temporary Redirect"
+INFO 2026-04-01 11:45:18 _client.py:1025 HTTP Request: HEAD https://hf-mirror.com/HuggingFaceTB/SmolVLM2-500M-Video-Instruct/resolve/main/processor_config.json "HTTP/1.1 307 Temporary Redirect"
+INFO 2026-04-01 11:45:18 _client.py:1025 HTTP Request: HEAD https://hf-mirror.com/api/resolve-cache/models/HuggingFaceTB/SmolVLM2-500M-Video-Instruct/7b375e1b73b11138ff12fe22c8f2822d8fe03467/processor_config.json "HTTP/1.1 200 OK"
+INFO 2026-04-01 11:45:19 _client.py:1025 HTTP Request: HEAD https://hf-mirror.com/HuggingFaceTB/SmolVLM2-500M-Instruct/resolve/main/chat_template.json "HTTP/1.1 307 Temporary Redirect"
+INFO 2026-04-01 11:45:19 _client.py:1025 HTTP Request: HEAD https://hf-mirror.com/HuggingFaceTB/SmolVLM2-500M-Video-Instruct/resolve/main/chat_template.json "HTTP/1.1 307 Temporary Redirect"
+INFO 2026-04-01 11:45:19 _client.py:1025 HTTP Request: HEAD https://hf-mirror.com/api/resolve-cache/models/HuggingFaceTB/SmolVLM2-500M-Video-Instruct/7b375e1b73b11138ff12fe22c8f2822d8fe03467/chat_template.json "HTTP/1.1 200 OK"
+INFO 2026-04-01 11:45:19 _client.py:1025 HTTP Request: HEAD https://hf-mirror.com/HuggingFaceTB/SmolVLM2-500M-Instruct/resolve/main/chat_template.jinja "HTTP/1.1 307 Temporary Redirect"
+INFO 2026-04-01 11:45:20 _client.py:1025 HTTP Request: HEAD https://hf-mirror.com/HuggingFaceTB/SmolVLM2-500M-Video-Instruct/resolve/main/chat_template.jinja "HTTP/1.1 404 Not Found"
+INFO 2026-04-01 11:45:20 _client.py:1025 HTTP Request: HEAD https://hf-mirror.com/HuggingFaceTB/SmolVLM2-500M-Instruct/resolve/main/audio_tokenizer_config.json "HTTP/1.1 307 Temporary Redirect"
+INFO 2026-04-01 11:45:21 _client.py:1025 HTTP Request: HEAD https://hf-mirror.com/HuggingFaceTB/SmolVLM2-500M-Video-Instruct/resolve/main/audio_tokenizer_config.json "HTTP/1.1 404 Not Found"
+INFO 2026-04-01 11:45:21 _client.py:1025 HTTP Request: GET https://hf-mirror.com/api/models/HuggingFaceTB/SmolVLM2-500M-Instruct/tree/main/additional_chat_templates?recursive=false&expand=false "HTTP/1.1 307 Temporary Redirect"
+INFO 2026-04-01 11:45:21 _client.py:1025 HTTP Request: GET https://hf-mirror.com/api/models/HuggingFaceTB/SmolVLM2-500M-Video-Instruct/tree/main/additional_chat_templates?recursive=false&expand=false "HTTP/1.1 404 Not Found"
+INFO 2026-04-01 11:45:21 _client.py:1025 HTTP Request: HEAD https://hf-mirror.com/HuggingFaceTB/SmolVLM2-500M-Instruct/resolve/main/processor_config.json "HTTP/1.1 307 Temporary Redirect"
+INFO 2026-04-01 11:45:22 _client.py:1025 HTTP Request: HEAD https://hf-mirror.com/HuggingFaceTB/SmolVLM2-500M-Video-Instruct/resolve/main/processor_config.json "HTTP/1.1 307 Temporary Redirect"
+INFO 2026-04-01 11:45:22 _client.py:1025 HTTP Request: HEAD https://hf-mirror.com/api/resolve-cache/models/HuggingFaceTB/SmolVLM2-500M-Video-Instruct/7b375e1b73b11138ff12fe22c8f2822d8fe03467/processor_config.json "HTTP/1.1 200 OK"
+INFO 2026-04-01 11:45:22 _client.py:1025 HTTP Request: HEAD https://hf-mirror.com/HuggingFaceTB/SmolVLM2-500M-Instruct/resolve/main/chat_template.json "HTTP/1.1 307 Temporary Redirect"
+INFO 2026-04-01 11:45:22 _client.py:1025 HTTP Request: HEAD https://hf-mirror.com/HuggingFaceTB/SmolVLM2-500M-Video-Instruct/resolve/main/chat_template.json "HTTP/1.1 307 Temporary Redirect"
+INFO 2026-04-01 11:45:23 _client.py:1025 HTTP Request: HEAD https://hf-mirror.com/api/resolve-cache/models/HuggingFaceTB/SmolVLM2-500M-Video-Instruct/7b375e1b73b11138ff12fe22c8f2822d8fe03467/chat_template.json "HTTP/1.1 200 OK"
+INFO 2026-04-01 11:45:23 _client.py:1025 HTTP Request: HEAD https://hf-mirror.com/HuggingFaceTB/SmolVLM2-500M-Instruct/resolve/main/chat_template.jinja "HTTP/1.1 307 Temporary Redirect"
+INFO 2026-04-01 11:45:24 _client.py:1025 HTTP Request: HEAD https://hf-mirror.com/HuggingFaceTB/SmolVLM2-500M-Video-Instruct/resolve/main/chat_template.jinja "HTTP/1.1 404 Not Found"
+INFO 2026-04-01 11:45:24 _client.py:1025 HTTP Request: HEAD https://hf-mirror.com/HuggingFaceTB/SmolVLM2-500M-Instruct/resolve/main/audio_tokenizer_config.json "HTTP/1.1 307 Temporary Redirect"
+INFO 2026-04-01 11:45:24 _client.py:1025 HTTP Request: HEAD https://hf-mirror.com/HuggingFaceTB/SmolVLM2-500M-Video-Instruct/resolve/main/audio_tokenizer_config.json "HTTP/1.1 404 Not Found"
+INFO 2026-04-01 11:45:24 _client.py:1025 HTTP Request: HEAD https://hf-mirror.com/HuggingFaceTB/SmolVLM2-500M-Instruct/resolve/main/processor_config.json "HTTP/1.1 307 Temporary Redirect"
+INFO 2026-04-01 11:45:25 _client.py:1025 HTTP Request: HEAD https://hf-mirror.com/HuggingFaceTB/SmolVLM2-500M-Video-Instruct/resolve/main/processor_config.json "HTTP/1.1 307 Temporary Redirect"
+INFO 2026-04-01 11:45:25 _client.py:1025 HTTP Request: HEAD https://hf-mirror.com/api/resolve-cache/models/HuggingFaceTB/SmolVLM2-500M-Video-Instruct/7b375e1b73b11138ff12fe22c8f2822d8fe03467/processor_config.json "HTTP/1.1 200 OK"
+INFO 2026-04-01 11:45:25 _client.py:1025 HTTP Request: HEAD https://hf-mirror.com/HuggingFaceTB/SmolVLM2-500M-Instruct/resolve/main/preprocessor_config.json "HTTP/1.1 307 Temporary Redirect"
+INFO 2026-04-01 11:45:26 _client.py:1025 HTTP Request: HEAD https://hf-mirror.com/HuggingFaceTB/SmolVLM2-500M-Video-Instruct/resolve/main/preprocessor_config.json "HTTP/1.1 307 Temporary Redirect"
+INFO 2026-04-01 11:45:26 _client.py:1025 HTTP Request: HEAD https://hf-mirror.com/api/resolve-cache/models/HuggingFaceTB/SmolVLM2-500M-Video-Instruct/7b375e1b73b11138ff12fe22c8f2822d8fe03467/preprocessor_config.json "HTTP/1.1 200 OK"
+INFO 2026-04-01 11:45:26 _client.py:1025 HTTP Request: HEAD https://hf-mirror.com/HuggingFaceTB/SmolVLM2-500M-Instruct/resolve/main/processor_config.json "HTTP/1.1 307 Temporary Redirect"
+INFO 2026-04-01 11:45:27 _client.py:1025 HTTP Request: HEAD https://hf-mirror.com/HuggingFaceTB/SmolVLM2-500M-Video-Instruct/resolve/main/processor_config.json "HTTP/1.1 307 Temporary Redirect"
+INFO 2026-04-01 11:45:27 _client.py:1025 HTTP Request: HEAD https://hf-mirror.com/api/resolve-cache/models/HuggingFaceTB/SmolVLM2-500M-Video-Instruct/7b375e1b73b11138ff12fe22c8f2822d8fe03467/processor_config.json "HTTP/1.1 200 OK"
+INFO 2026-04-01 11:45:27 _client.py:1025 HTTP Request: HEAD https://hf-mirror.com/HuggingFaceTB/SmolVLM2-500M-Instruct/resolve/main/preprocessor_config.json "HTTP/1.1 307 Temporary Redirect"
+INFO 2026-04-01 11:45:28 _client.py:1025 HTTP Request: HEAD https://hf-mirror.com/HuggingFaceTB/SmolVLM2-500M-Video-Instruct/resolve/main/preprocessor_config.json "HTTP/1.1 307 Temporary Redirect"
+INFO 2026-04-01 11:45:28 _client.py:1025 HTTP Request: HEAD https://hf-mirror.com/api/resolve-cache/models/HuggingFaceTB/SmolVLM2-500M-Video-Instruct/7b375e1b73b11138ff12fe22c8f2822d8fe03467/preprocessor_config.json "HTTP/1.1 200 OK"
+INFO 2026-04-01 11:45:28 _client.py:1025 HTTP Request: HEAD https://hf-mirror.com/HuggingFaceTB/SmolVLM2-500M-Instruct/resolve/main/config.json "HTTP/1.1 307 Temporary Redirect"
+INFO 2026-04-01 11:45:29 _client.py:1025 HTTP Request: HEAD https://hf-mirror.com/HuggingFaceTB/SmolVLM2-500M-Video-Instruct/resolve/main/config.json "HTTP/1.1 307 Temporary Redirect"
+INFO 2026-04-01 11:45:29 _client.py:1025 HTTP Request: HEAD https://hf-mirror.com/api/resolve-cache/models/HuggingFaceTB/SmolVLM2-500M-Video-Instruct/7b375e1b73b11138ff12fe22c8f2822d8fe03467/config.json "HTTP/1.1 200 OK"
+INFO 2026-04-01 11:45:29 _client.py:1025 HTTP Request: HEAD https://hf-mirror.com/HuggingFaceTB/SmolVLM2-500M-Instruct/resolve/main/tokenizer_config.json "HTTP/1.1 307 Temporary Redirect"
+INFO 2026-04-01 11:45:30 _client.py:1025 HTTP Request: HEAD https://hf-mirror.com/HuggingFaceTB/SmolVLM2-500M-Video-Instruct/resolve/main/tokenizer_config.json "HTTP/1.1 307 Temporary Redirect"
+INFO 2026-04-01 11:45:30 _client.py:1025 HTTP Request: HEAD https://hf-mirror.com/api/resolve-cache/models/HuggingFaceTB/SmolVLM2-500M-Video-Instruct/7b375e1b73b11138ff12fe22c8f2822d8fe03467/tokenizer_config.json "HTTP/1.1 200 OK"
+INFO 2026-04-01 11:45:30 _client.py:1025 HTTP Request: HEAD https://hf-mirror.com/HuggingFaceTB/SmolVLM2-500M-Instruct/resolve/main/tokenizer_config.json "HTTP/1.1 307 Temporary Redirect"
+INFO 2026-04-01 11:45:31 _client.py:1025 HTTP Request: HEAD https://hf-mirror.com/HuggingFaceTB/SmolVLM2-500M-Video-Instruct/resolve/main/tokenizer_config.json "HTTP/1.1 307 Temporary Redirect"
+INFO 2026-04-01 11:45:31 _client.py:1025 HTTP Request: HEAD https://hf-mirror.com/api/resolve-cache/models/HuggingFaceTB/SmolVLM2-500M-Video-Instruct/7b375e1b73b11138ff12fe22c8f2822d8fe03467/tokenizer_config.json "HTTP/1.1 200 OK"
+INFO 2026-04-01 11:45:31 _client.py:1025 HTTP Request: GET https://hf-mirror.com/api/models/HuggingFaceTB/SmolVLM2-500M-Instruct/tree/main/additional_chat_templates?recursive=false&expand=false "HTTP/1.1 307 Temporary Redirect"
+INFO 2026-04-01 11:45:31 _client.py:1025 HTTP Request: GET https://hf-mirror.com/api/models/HuggingFaceTB/SmolVLM2-500M-Video-Instruct/tree/main/additional_chat_templates?recursive=false&expand=false "HTTP/1.1 404 Not Found"
+INFO 2026-04-01 11:45:31 _client.py:1025 HTTP Request: GET https://hf-mirror.com/api/models/HuggingFaceTB/SmolVLM2-500M-Instruct/tree/main?recursive=true&expand=false "HTTP/1.1 307 Temporary Redirect"
+INFO 2026-04-01 11:45:32 _client.py:1025 HTTP Request: GET https://hf-mirror.com/api/models/HuggingFaceTB/SmolVLM2-500M-Video-Instruct/tree/main?recursive=true&expand=false "HTTP/1.1 200 OK"
+INFO 2026-04-01 11:45:32 _client.py:1025 HTTP Request: HEAD https://hf-mirror.com/HuggingFaceTB/SmolVLM2-500M-Instruct/resolve/main/processor_config.json "HTTP/1.1 307 Temporary Redirect"
+INFO 2026-04-01 11:45:33 _client.py:1025 HTTP Request: HEAD https://hf-mirror.com/HuggingFaceTB/SmolVLM2-500M-Video-Instruct/resolve/main/processor_config.json "HTTP/1.1 307 Temporary Redirect"
+INFO 2026-04-01 11:45:33 _client.py:1025 HTTP Request: HEAD https://hf-mirror.com/api/resolve-cache/models/HuggingFaceTB/SmolVLM2-500M-Video-Instruct/7b375e1b73b11138ff12fe22c8f2822d8fe03467/processor_config.json "HTTP/1.1 200 OK"
+INFO 2026-04-01 11:45:33 _client.py:1025 HTTP Request: HEAD https://hf-mirror.com/HuggingFaceTB/SmolVLM2-500M-Instruct/resolve/main/video_preprocessor_config.json "HTTP/1.1 307 Temporary Redirect"
+INFO 2026-04-01 11:45:33 _client.py:1025 HTTP Request: HEAD https://hf-mirror.com/HuggingFaceTB/SmolVLM2-500M-Video-Instruct/resolve/main/video_preprocessor_config.json "HTTP/1.1 404 Not Found"
+INFO 2026-04-01 11:45:34 _client.py:1025 HTTP Request: HEAD https://hf-mirror.com/HuggingFaceTB/SmolVLM2-500M-Instruct/resolve/main/preprocessor_config.json "HTTP/1.1 307 Temporary Redirect"
+INFO 2026-04-01 11:45:34 _client.py:1025 HTTP Request: HEAD https://hf-mirror.com/HuggingFaceTB/SmolVLM2-500M-Video-Instruct/resolve/main/preprocessor_config.json "HTTP/1.1 307 Temporary Redirect"
+INFO 2026-04-01 11:45:34 _client.py:1025 HTTP Request: HEAD https://hf-mirror.com/api/resolve-cache/models/HuggingFaceTB/SmolVLM2-500M-Video-Instruct/7b375e1b73b11138ff12fe22c8f2822d8fe03467/preprocessor_config.json "HTTP/1.1 200 OK"
+INFO 2026-04-01 11:45:35 _client.py:1025 HTTP Request: HEAD https://hf-mirror.com/HuggingFaceTB/SmolVLM2-500M-Instruct/resolve/main/processor_config.json "HTTP/1.1 307 Temporary Redirect"
+INFO 2026-04-01 11:45:35 _client.py:1025 HTTP Request: HEAD https://hf-mirror.com/HuggingFaceTB/SmolVLM2-500M-Video-Instruct/resolve/main/processor_config.json "HTTP/1.1 307 Temporary Redirect"
+INFO 2026-04-01 11:45:35 _client.py:1025 HTTP Request: HEAD https://hf-mirror.com/api/resolve-cache/models/HuggingFaceTB/SmolVLM2-500M-Video-Instruct/7b375e1b73b11138ff12fe22c8f2822d8fe03467/processor_config.json "HTTP/1.1 200 OK"
+INFO 2026-04-01 11:45:36 _client.py:1025 HTTP Request: HEAD https://hf-mirror.com/HuggingFaceTB/SmolVLM2-500M-Instruct/resolve/main/video_preprocessor_config.json "HTTP/1.1 307 Temporary Redirect"
+INFO 2026-04-01 11:45:36 _client.py:1025 HTTP Request: HEAD https://hf-mirror.com/HuggingFaceTB/SmolVLM2-500M-Video-Instruct/resolve/main/video_preprocessor_config.json "HTTP/1.1 404 Not Found"
+INFO 2026-04-01 11:45:36 _client.py:1025 HTTP Request: HEAD https://hf-mirror.com/HuggingFaceTB/SmolVLM2-500M-Instruct/resolve/main/preprocessor_config.json "HTTP/1.1 307 Temporary Redirect"
+INFO 2026-04-01 11:45:37 _client.py:1025 HTTP Request: HEAD https://hf-mirror.com/HuggingFaceTB/SmolVLM2-500M-Video-Instruct/resolve/main/preprocessor_config.json "HTTP/1.1 307 Temporary Redirect"
+INFO 2026-04-01 11:45:37 _client.py:1025 HTTP Request: HEAD https://hf-mirror.com/api/resolve-cache/models/HuggingFaceTB/SmolVLM2-500M-Video-Instruct/7b375e1b73b11138ff12fe22c8f2822d8fe03467/preprocessor_config.json "HTTP/1.1 200 OK"
+INFO 2026-04-01 11:45:41 _client.py:1025 HTTP Request: HEAD https://hf-mirror.com/HuggingFaceVLA/smolvla_libero/resolve/main/model.safetensors "HTTP/1.1 302 Found"
+INFO 2026-04-01 11:45:42 _client.py:1025 HTTP Request: HEAD https://hf-mirror.com/HuggingFaceVLA/smolvla_libero/resolve/main/policy_preprocessor.json "HTTP/1.1 307 Temporary Redirect"
+INFO 2026-04-01 11:45:42 _client.py:1025 HTTP Request: HEAD https://hf-mirror.com/api/resolve-cache/models/HuggingFaceVLA/smolvla_libero/6721902bc4d61e50a3bfdb11dfb4cb626f05d102/policy_preprocessor.json "HTTP/1.1 200 OK"
+INFO 2026-04-01 11:45:43 _client.py:1025 HTTP Request: HEAD https://hf-mirror.com/HuggingFaceTB/SmolVLM2-500M-Instruct/resolve/main/config.json "HTTP/1.1 307 Temporary Redirect"
+INFO 2026-04-01 11:45:43 _client.py:1025 HTTP Request: HEAD https://hf-mirror.com/HuggingFaceTB/SmolVLM2-500M-Video-Instruct/resolve/main/config.json "HTTP/1.1 307 Temporary Redirect"
+INFO 2026-04-01 11:45:44 _client.py:1025 HTTP Request: HEAD https://hf-mirror.com/api/resolve-cache/models/HuggingFaceTB/SmolVLM2-500M-Video-Instruct/7b375e1b73b11138ff12fe22c8f2822d8fe03467/config.json "HTTP/1.1 200 OK"
+INFO 2026-04-01 11:45:44 _client.py:1025 HTTP Request: HEAD https://hf-mirror.com/HuggingFaceTB/SmolVLM2-500M-Instruct/resolve/main/tokenizer_config.json "HTTP/1.1 307 Temporary Redirect"
+INFO 2026-04-01 11:45:44 _client.py:1025 HTTP Request: HEAD https://hf-mirror.com/HuggingFaceTB/SmolVLM2-500M-Video-Instruct/resolve/main/tokenizer_config.json "HTTP/1.1 307 Temporary Redirect"
+INFO 2026-04-01 11:45:45 _client.py:1025 HTTP Request: HEAD https://hf-mirror.com/api/resolve-cache/models/HuggingFaceTB/SmolVLM2-500M-Video-Instruct/7b375e1b73b11138ff12fe22c8f2822d8fe03467/tokenizer_config.json "HTTP/1.1 200 OK"
+INFO 2026-04-01 11:45:45 _client.py:1025 HTTP Request: HEAD https://hf-mirror.com/HuggingFaceTB/SmolVLM2-500M-Instruct/resolve/main/tokenizer_config.json "HTTP/1.1 307 Temporary Redirect"
+INFO 2026-04-01 11:45:45 _client.py:1025 HTTP Request: HEAD https://hf-mirror.com/HuggingFaceTB/SmolVLM2-500M-Video-Instruct/resolve/main/tokenizer_config.json "HTTP/1.1 307 Temporary Redirect"
+INFO 2026-04-01 11:45:46 _client.py:1025 HTTP Request: HEAD https://hf-mirror.com/api/resolve-cache/models/HuggingFaceTB/SmolVLM2-500M-Video-Instruct/7b375e1b73b11138ff12fe22c8f2822d8fe03467/tokenizer_config.json "HTTP/1.1 200 OK"
+INFO 2026-04-01 11:45:46 _client.py:1025 HTTP Request: GET https://hf-mirror.com/api/models/HuggingFaceTB/SmolVLM2-500M-Instruct/tree/main/additional_chat_templates?recursive=false&expand=false "HTTP/1.1 307 Temporary Redirect"
+INFO 2026-04-01 11:45:46 _client.py:1025 HTTP Request: GET https://hf-mirror.com/api/models/HuggingFaceTB/SmolVLM2-500M-Video-Instruct/tree/main/additional_chat_templates?recursive=false&expand=false "HTTP/1.1 404 Not Found"
+INFO 2026-04-01 11:45:46 _client.py:1025 HTTP Request: GET https://hf-mirror.com/api/models/HuggingFaceTB/SmolVLM2-500M-Instruct/tree/main?recursive=true&expand=false "HTTP/1.1 307 Temporary Redirect"
+INFO 2026-04-01 11:45:46 _client.py:1025 HTTP Request: GET https://hf-mirror.com/api/models/HuggingFaceTB/SmolVLM2-500M-Video-Instruct/tree/main?recursive=true&expand=false "HTTP/1.1 200 OK"
+INFO 2026-04-01 11:45:47 _client.py:1025 HTTP Request: HEAD https://hf-mirror.com/HuggingFaceVLA/smolvla_libero/resolve/main/policy_postprocessor.json "HTTP/1.1 307 Temporary Redirect"
+INFO 2026-04-01 11:45:48 _client.py:1025 HTTP Request: HEAD https://hf-mirror.com/api/resolve-cache/models/HuggingFaceVLA/smolvla_libero/6721902bc4d61e50a3bfdb11dfb4cb626f05d102/policy_postprocessor.json "HTTP/1.1 200 OK"
+INFO 2026-04-01 11:45:48 LA_train.py:340 Creating optimizer and scheduler
+WARNING 2026-04-01 11:45:48 LA_train.py:372 检测到 --resume=True 但未提供 --checkpoint_path。将从新开始训练。
+INFO 2026-04-01 11:45:48 LA_train.py:378 Output dir: train_logs/libero_object_dorf
+INFO 2026-04-01 11:45:48 LA_train.py:380 cfg.env.task='libero_object'
+INFO 2026-04-01 11:45:48 LA_train.py:381 Creating environment processors
+INFO 2026-04-01 11:45:48 LA_train.py:385 cfg.steps=500 (500)
+INFO 2026-04-01 11:45:48 LA_train.py:386 dataset.num_frames=273465 (273K)
+INFO 2026-04-01 11:45:48 LA_train.py:387 dataset.num_episodes=1693
+INFO 2026-04-01 11:45:48 LA_train.py:390 Effective batch size: 8 x 1 = 8
+INFO 2026-04-01 11:45:48 LA_train.py:391 num_learnable_params=97451872 (97M)
+INFO 2026-04-01 11:45:48 LA_train.py:392 num_total_params=604934176 (605M)
+INFO 2026-04-01 11:45:48 LA_train.py:411 DEBUG: DataLoader 实际使用 Workers 数量: 4
+INFO 2026-04-01 11:45:48 LA_train.py:524 Start offline training on a fixed dataset, with effective batch size: 8
+INFO 2026-04-01 11:45:48 LA_train.py:536 Initializing Vision-DORF RL modules...
+INFO 2026-04-01 11:45:48 LA_train.py:541 --- [DORF 适配] 确认使用策略同分布状态维度: 8
+INFO 2026-04-01 11:47:57 LA_train.py:717 --- [Phase D] 预热状态 (Step 0/50): 仅更新奖励模型 ---                                 
+INFO 2026-04-01 11:47:57 LA_train.py:756 step:1 smpl:8 ep:0 epch:0.00 loss:0.085 dorf_loss:0.004 critic_loss:0.024 grdn:0.479 lr:1.0e-05 updt_s:0.392 data_s:129.064
+WARNING 2026-04-01 11:47:57 db_utils.py:170 WandB logging of key "losses_after_forward" was ignored as its type "<class 'torch.Tensor'>" is not handled by this wrapper.
+WARNING 2026-04-01 11:47:57 db_utils.py:170 WandB logging of key "losses_after_rm_padding" was ignored as its type "<class 'torch.Tensor'>" is not handled by this wrapper.
+INFO 2026-04-01 11:49:17 LA_train.py:756 step:2 smpl:16 ep:0 epch:0.00 loss:0.073 dorf_loss:-0.082 critic_loss:0.041 grdn:0.526 lr:1.0e-05 updt_s:0.236 data_s:79.325
+WARNING 2026-04-01 11:49:17 db_utils.py:170 WandB logging of key "losses_after_forward" was ignored as its type "<class 'torch.Tensor'>" is not handled by this wrapper.
+WARNING 2026-04-01 11:49:17 db_utils.py:170 WandB logging of key "losses_after_rm_padding" was ignored as its type "<class 'torch.Tensor'>" is not handled by this wrapper.
+INFO 2026-04-01 11:51:12 LA_train.py:756 step:3 smpl:24 ep:0 epch:0.00 loss:0.079 dorf_loss:0.058 critic_loss:0.017 grdn:0.494 lr:1.0e-05 updt_s:0.199 data_s:115.099
+WARNING 2026-04-01 11:51:12 db_utils.py:170 WandB logging of key "losses_after_forward" was ignored as its type "<class 'torch.Tensor'>" is not handled by this wrapper.
+WARNING 2026-04-01 11:51:12 db_utils.py:170 WandB logging of key "losses_after_rm_padding" was ignored as its type "<class 'torch.Tensor'>" is not handled by this wrapper.
+INFO 2026-04-01 11:52:26 LA_train.py:756 step:4 smpl:32 ep:0 epch:0.00 loss:0.082 dorf_loss:-0.160 critic_loss:0.034 grdn:0.473 lr:1.0e-05 updt_s:0.238 data_s:73.428
+WARNING 2026-04-01 11:52:26 db_utils.py:170 WandB logging of key "losses_after_forward" was ignored as its type "<class 'torch.Tensor'>" is not handled by this wrapper.
+WARNING 2026-04-01 11:52:26 db_utils.py:170 WandB logging of key "losses_after_rm_padding" was ignored as its type "<class 'torch.Tensor'>" is not handled by this wrapper.
+INFO 2026-04-01 11:53:56 LA_train.py:756 step:5 smpl:40 ep:0 epch:0.00 loss:0.108 dorf_loss:-0.040 critic_loss:0.029 grdn:0.808 lr:1.0e-05 updt_s:0.234 data_s:89.300
+WARNING 2026-04-01 11:53:56 db_utils.py:170 WandB logging of key "losses_after_forward" was ignored as its type "<class 'torch.Tensor'>" is not handled by this wrapper.
+WARNING 2026-04-01 11:53:56 db_utils.py:170 WandB logging of key "losses_after_rm_padding" was ignored as its type "<class 'torch.Tensor'>" is not handled by this wrapper.
+INFO 2026-04-01 11:55:55 LA_train.py:756 step:6 smpl:48 ep:0 epch:0.00 loss:0.088 dorf_loss:0.174 critic_loss:0.039 grdn:0.453 lr:1.0e-05 updt_s:0.213 data_s:118.819
+WARNING 2026-04-01 11:55:55 db_utils.py:170 WandB logging of key "losses_after_forward" was ignored as its type "<class 'torch.Tensor'>" is not handled by this wrapper.
+WARNING 2026-04-01 11:55:55 db_utils.py:170 WandB logging of key "losses_after_rm_padding" was ignored as its type "<class 'torch.Tensor'>" is not handled by this wrapper.
+INFO 2026-04-01 11:57:54 LA_train.py:756 step:7 smpl:56 ep:0 epch:0.00 loss:0.063 dorf_loss:0.028 critic_loss:0.027 grdn:0.451 lr:1.0e-05 updt_s:0.223 data_s:119.566
+WARNING 2026-04-01 11:57:54 db_utils.py:170 WandB logging of key "losses_after_forward" was ignored as its type "<class 'torch.Tensor'>" is not handled by this wrapper.
+WARNING 2026-04-01 11:57:54 db_utils.py:170 WandB logging of key "losses_after_rm_padding" was ignored as its type "<class 'torch.Tensor'>" is not handled by this wrapper.
+INFO 2026-04-01 11:59:09 LA_train.py:756 step:8 smpl:64 ep:0 epch:0.00 loss:0.075 dorf_loss:-0.409 critic_loss:0.035 grdn:0.436 lr:1.0e-05 updt_s:0.254 data_s:73.912
+WARNING 2026-04-01 11:59:09 db_utils.py:170 WandB logging of key "losses_after_forward" was ignored as its type "<class 'torch.Tensor'>" is not handled by this wrapper.
+WARNING 2026-04-01 11:59:09 db_utils.py:170 WandB logging of key "losses_after_rm_padding" was ignored as its type "<class 'torch.Tensor'>" is not handled by this wrapper.
+INFO 2026-04-01 12:00:22 LA_train.py:756 step:9 smpl:72 ep:0 epch:0.00 loss:0.090 dorf_loss:-0.534 critic_loss:0.036 grdn:0.402 lr:1.0e-05 updt_s:0.230 data_s:72.934
+WARNING 2026-04-01 12:00:22 db_utils.py:170 WandB logging of key "losses_after_forward" was ignored as its type "<class 'torch.Tensor'>" is not handled by this wrapper.
+WARNING 2026-04-01 12:00:22 db_utils.py:170 WandB logging of key "losses_after_rm_padding" was ignored as its type "<class 'torch.Tensor'>" is not handled by this wrapper.
+INFO 2026-04-01 12:02:21 LA_train.py:756 step:10 smpl:80 ep:0 epch:0.00 loss:0.107 dorf_loss:-0.108 critic_loss:0.019 grdn:0.556 lr:1.0e-05 updt_s:0.206 data_s:118.529
+WARNING 2026-04-01 12:02:21 db_utils.py:170 WandB logging of key "losses_after_forward" was ignored as its type "<class 'torch.Tensor'>" is not handled by this wrapper.
+WARNING 2026-04-01 12:02:21 db_utils.py:170 WandB logging of key "losses_after_rm_padding" was ignored as its type "<class 'torch.Tensor'>" is not handled by this wrapper.
+INFO 2026-04-01 12:04:20 LA_train.py:717 --- [Phase D] 预热状态 (Step 10/50): 仅更新奖励模型 ---                                
+INFO 2026-04-01 12:04:20 LA_train.py:756 step:11 smpl:88 ep:1 epch:0.00 loss:0.079 dorf_loss:-0.092 critic_loss:0.023 grdn:0.490 lr:1.0e-05 updt_s:0.239 data_s:119.565
+WARNING 2026-04-01 12:04:20 db_utils.py:170 WandB logging of key "losses_after_forward" was ignored as its type "<class 'torch.Tensor'>" is not handled by this wrapper.
+WARNING 2026-04-01 12:04:20 db_utils.py:170 WandB logging of key "losses_after_rm_padding" was ignored as its type "<class 'torch.Tensor'>" is not handled by this wrapper.
+INFO 2026-04-01 12:05:43 LA_train.py:756 step:12 smpl:96 ep:1 epch:0.00 loss:0.114 dorf_loss:-0.612 critic_loss:0.024 grdn:0.863 lr:1.0e-05 updt_s:0.234 data_s:82.190
+WARNING 2026-04-01 12:05:43 db_utils.py:170 WandB logging of key "losses_after_forward" was ignored as its type "<class 'torch.Tensor'>" is not handled by this wrapper.
+WARNING 2026-04-01 12:05:43 db_utils.py:170 WandB logging of key "losses_after_rm_padding" was ignored as its type "<class 'torch.Tensor'>" is not handled by this wrapper.
+INFO 2026-04-01 12:07:03 LA_train.py:756 step:13 smpl:104 ep:1 epch:0.00 loss:0.090 dorf_loss:-0.700 critic_loss:0.023 grdn:0.391 lr:1.0e-05 updt_s:0.244 data_s:79.577
+WARNING 2026-04-01 12:07:03 db_utils.py:170 WandB logging of key "losses_after_forward" was ignored as its type "<class 'torch.Tensor'>" is not handled by this wrapper.
+WARNING 2026-04-01 12:07:03 db_utils.py:170 WandB logging of key "losses_after_rm_padding" was ignored as its type "<class 'torch.Tensor'>" is not handled by this wrapper.
+INFO 2026-04-01 12:09:01 LA_train.py:756 step:14 smpl:112 ep:1 epch:0.00 loss:0.085 dorf_loss:0.437 critic_loss:0.034 grdn:0.546 lr:1.0e-05 updt_s:0.197 data_s:118.307
+WARNING 2026-04-01 12:09:01 db_utils.py:170 WandB logging of key "losses_after_forward" was ignored as its type "<class 'torch.Tensor'>" is not handled by this wrapper.
+WARNING 2026-04-01 12:09:01 db_utils.py:170 WandB logging of key "losses_after_rm_padding" was ignored as its type "<class 'torch.Tensor'>" is not handled by this wrapper.
+INFO 2026-04-01 12:25:34 LA_train.py:756 step:15 smpl:120 ep:1 epch:0.00 loss:0.082 dorf_loss:-0.596 critic_loss:0.021 grdn:0.528 lr:1.0e-05 updt_s:0.231 data_s:992.230
+WARNING 2026-04-01 12:25:34 db_utils.py:170 WandB logging of key "losses_after_forward" was ignored as its type "<class 'torch.Tensor'>" is not handled by this wrapper.
+WARNING 2026-04-01 12:25:34 db_utils.py:170 WandB logging of key "losses_after_rm_padding" was ignored as its type "<class 'torch.Tensor'>" is not handled by this wrapper.
+INFO 2026-04-01 12:27:00 LA_train.py:756 step:16 smpl:128 ep:1 epch:0.00 loss:0.089 dorf_loss:-0.374 critic_loss:0.019 grdn:0.414 lr:1.0e-05 updt_s:0.235 data_s:85.514
+WARNING 2026-04-01 12:27:00 db_utils.py:170 WandB logging of key "losses_after_forward" was ignored as its type "<class 'torch.Tensor'>" is not handled by this wrapper.
+WARNING 2026-04-01 12:27:00 db_utils.py:170 WandB logging of key "losses_after_rm_padding" was ignored as its type "<class 'torch.Tensor'>" is not handled by this wrapper.
+INFO 2026-04-01 12:28:18 LA_train.py:756 step:17 smpl:136 ep:1 epch:0.00 loss:0.080 dorf_loss:-0.754 critic_loss:0.018 grdn:0.454 lr:1.0e-05 updt_s:0.247 data_s:78.564
+WARNING 2026-04-01 12:28:18 db_utils.py:170 WandB logging of key "losses_after_forward" was ignored as its type "<class 'torch.Tensor'>" is not handled by this wrapper.
+WARNING 2026-04-01 12:28:18 db_utils.py:170 WandB logging of key "losses_after_rm_padding" was ignored as its type "<class 'torch.Tensor'>" is not handled by this wrapper.
+INFO 2026-04-01 12:30:17 LA_train.py:756 step:18 smpl:144 ep:1 epch:0.00 loss:0.079 dorf_loss:1.109 critic_loss:0.037 grdn:0.429 lr:1.0e-05 updt_s:0.194 data_s:118.766
+WARNING 2026-04-01 12:30:17 db_utils.py:170 WandB logging of key "losses_after_forward" was ignored as its type "<class 'torch.Tensor'>" is not handled by this wrapper.
+WARNING 2026-04-01 12:30:17 db_utils.py:170 WandB logging of key "losses_after_rm_padding" was ignored as its type "<class 'torch.Tensor'>" is not handled by this wrapper.
+INFO 2026-04-01 12:31:46 LA_train.py:756 step:19 smpl:152 ep:1 epch:0.00 loss:0.087 dorf_loss:-1.247 critic_loss:0.015 grdn:0.362 lr:1.0e-05 updt_s:0.226 data_s:87.946
+WARNING 2026-04-01 12:31:46 db_utils.py:170 WandB logging of key "losses_after_forward" was ignored as its type "<class 'torch.Tensor'>" is not handled by this wrapper.
+WARNING 2026-04-01 12:31:46 db_utils.py:170 WandB logging of key "losses_after_rm_padding" was ignored as its type "<class 'torch.Tensor'>" is not handled by this wrapper.
+INFO 2026-04-01 12:33:02 LA_train.py:756 step:20 smpl:160 ep:1 epch:0.00 loss:0.087 dorf_loss:-3.749 critic_loss:0.016 grdn:0.558 lr:1.0e-05 updt_s:0.231 data_s:75.875
+WARNING 2026-04-01 12:33:02 db_utils.py:170 WandB logging of key "losses_after_forward" was ignored as its type "<class 'torch.Tensor'>" is not handled by this wrapper.
+WARNING 2026-04-01 12:33:02 db_utils.py:170 WandB logging of key "losses_after_rm_padding" was ignored as its type "<class 'torch.Tensor'>" is not handled by this wrapper.
+INFO 2026-04-01 12:34:32 LA_train.py:717 --- [Phase D] 预热状态 (Step 20/50): 仅更新奖励模型 ---                                 
+INFO 2026-04-01 12:34:32 LA_train.py:756 step:21 smpl:168 ep:1 epch:0.00 loss:0.077 dorf_loss:-2.508 critic_loss:0.016 grdn:0.488 lr:1.0e-05 updt_s:0.222 data_s:90.259
+WARNING 2026-04-01 12:34:32 db_utils.py:170 WandB logging of key "losses_after_forward" was ignored as its type "<class 'torch.Tensor'>" is not handled by this wrapper.
+WARNING 2026-04-01 12:34:32 db_utils.py:170 WandB logging of key "losses_after_rm_padding" was ignored as its type "<class 'torch.Tensor'>" is not handled by this wrapper.
+INFO 2026-04-01 12:35:52 LA_train.py:756 step:22 smpl:176 ep:1 epch:0.00 loss:0.066 dorf_loss:-2.665 critic_loss:0.012 grdn:0.446 lr:1.0e-05 updt_s:0.232 data_s:79.816
+WARNING 2026-04-01 12:35:52 db_utils.py:170 WandB logging of key "losses_after_forward" was ignored as its type "<class 'torch.Tensor'>" is not handled by this wrapper.
+WARNING 2026-04-01 12:35:52 db_utils.py:170 WandB logging of key "losses_after_rm_padding" was ignored as its type "<class 'torch.Tensor'>" is not handled by this wrapper.
+INFO 2026-04-01 12:37:37 LA_train.py:756 step:23 smpl:184 ep:1 epch:0.00 loss:0.103 dorf_loss:1.411 critic_loss:0.025 grdn:0.448 lr:1.0e-05 updt_s:0.209 data_s:104.935
+WARNING 2026-04-01 12:37:37 db_utils.py:170 WandB logging of key "losses_after_forward" was ignored as its type "<class 'torch.Tensor'>" is not handled by this wrapper.
+WARNING 2026-04-01 12:37:37 db_utils.py:170 WandB logging of key "losses_after_rm_padding" was ignored as its type "<class 'torch.Tensor'>" is not handled by this wrapper.
+INFO 2026-04-01 12:39:06 LA_train.py:756 step:24 smpl:192 ep:1 epch:0.00 loss:0.105 dorf_loss:-0.022 critic_loss:0.013 grdn:1.465 lr:1.0e-05 updt_s:0.198 data_s:88.653
+WARNING 2026-04-01 12:39:06 db_utils.py:170 WandB logging of key "losses_after_forward" was ignored as its type "<class 'torch.Tensor'>" is not handled by this wrapper.
+WARNING 2026-04-01 12:39:06 db_utils.py:170 WandB logging of key "losses_after_rm_padding" was ignored as its type "<class 'torch.Tensor'>" is not handled by this wrapper.
+INFO 2026-04-01 12:41:07 LA_train.py:756 step:25 smpl:200 ep:1 epch:0.00 loss:0.060 dorf_loss:2.738 critic_loss:0.028 grdn:0.487 lr:1.0e-05 updt_s:0.222 data_s:120.042
+WARNING 2026-04-01 12:41:07 db_utils.py:170 WandB logging of key "losses_after_forward" was ignored as its type "<class 'torch.Tensor'>" is not handled by this wrapper.
+WARNING 2026-04-01 12:41:07 db_utils.py:170 WandB logging of key "losses_after_rm_padding" was ignored as its type "<class 'torch.Tensor'>" is not handled by this wrapper.
+INFO 2026-04-01 12:41:07 LA_train.py:776 Checkpoint policy after step 25
+INFO 2026-04-01 12:41:09 LA_train.py:797 DORF 状态已保存至: train_logs/libero_object_dorf/checkpoints/000025/dorf_state.pt
+/root/autodl-tmp/miniconda3/envs/lerobot/lib/python3.10/site-packages/wandb/analytics/sentry.py:279: DeprecationWarning: The `Scope.user` setter is deprecated in favor of `Scope.set_user()`.
+  self.scope.user = {"email": email}
+INFO 2026-04-01 12:43:17 LA_train.py:756 step:26 smpl:208 ep:1 epch:0.00 loss:0.094 dorf_loss:-4.594 critic_loss:0.018 grdn:0.524 lr:1.0e-05 updt_s:0.234 data_s:122.494
+WARNING 2026-04-01 12:43:17 db_utils.py:170 WandB logging of key "losses_after_forward" was ignored as its type "<class 'torch.Tensor'>" is not handled by this wrapper.
+WARNING 2026-04-01 12:43:17 db_utils.py:170 WandB logging of key "losses_after_rm_padding" was ignored as its type "<class 'torch.Tensor'>" is not handled by this wrapper.
+INFO 2026-04-01 12:44:47 LA_train.py:756 step:27 smpl:216 ep:1 epch:0.00 loss:0.090 dorf_loss:-20.142 critic_loss:0.019 grdn:0.421 lr:1.0e-05 updt_s:0.222 data_s:90.131
+WARNING 2026-04-01 12:44:47 db_utils.py:170 WandB logging of key "losses_after_forward" was ignored as its type "<class 'torch.Tensor'>" is not handled by this wrapper.
+WARNING 2026-04-01 12:44:47 db_utils.py:170 WandB logging of key "losses_after_rm_padding" was ignored as its type "<class 'torch.Tensor'>" is not handled by this wrapper.
+INFO 2026-04-01 12:46:46 LA_train.py:756 step:28 smpl:224 ep:1 epch:0.00 loss:0.058 dorf_loss:-14.329 critic_loss:0.016 grdn:0.394 lr:1.0e-05 updt_s:0.242 data_s:118.822
+WARNING 2026-04-01 12:46:46 db_utils.py:170 WandB logging of key "losses_after_forward" was ignored as its type "<class 'torch.Tensor'>" is not handled by this wrapper.
+WARNING 2026-04-01 12:46:46 db_utils.py:170 WandB logging of key "losses_after_rm_padding" was ignored as its type "<class 'torch.Tensor'>" is not handled by this wrapper.
+INFO 2026-04-01 12:48:39 LA_train.py:756 step:29 smpl:232 ep:1 epch:0.00 loss:0.088 dorf_loss:-19.879 critic_loss:0.012 grdn:0.563 lr:1.0e-05 updt_s:0.231 data_s:112.266
+WARNING 2026-04-01 12:48:39 db_utils.py:170 WandB logging of key "losses_after_forward" was ignored as its type "<class 'torch.Tensor'>" is not handled by this wrapper.
+WARNING 2026-04-01 12:48:39 db_utils.py:170 WandB logging of key "losses_after_rm_padding" was ignored as its type "<class 'torch.Tensor'>" is not handled by this wrapper.
+INFO 2026-04-01 12:50:10 LA_train.py:756 step:30 smpl:240 ep:1 epch:0.00 loss:0.072 dorf_loss:-18.828 critic_loss:0.008 grdn:0.544 lr:1.0e-05 updt_s:0.231 data_s:90.564
+WARNING 2026-04-01 12:50:10 db_utils.py:170 WandB logging of key "losses_after_forward" was ignored as its type "<class 'torch.Tensor'>" is not handled by this wrapper.
+WARNING 2026-04-01 12:50:10 db_utils.py:170 WandB logging of key "losses_after_rm_padding" was ignored as its type "<class 'torch.Tensor'>" is not handled by this wrapper.
+INFO 2026-04-01 12:51:22 LA_train.py:717 --- [Phase D] 预热状态 (Step 30/50): 仅更新奖励模型 ---                                 
+INFO 2026-04-01 12:51:22 LA_train.py:756 step:31 smpl:248 ep:2 epch:0.00 loss:0.082 dorf_loss:-16.408 critic_loss:0.006 grdn:0.486 lr:1.0e-05 updt_s:0.211 data_s:71.992
+WARNING 2026-04-01 12:51:22 db_utils.py:170 WandB logging of key "losses_after_forward" was ignored as its type "<class 'torch.Tensor'>" is not handled by this wrapper.
+WARNING 2026-04-01 12:51:22 db_utils.py:170 WandB logging of key "losses_after_rm_padding" was ignored as its type "<class 'torch.Tensor'>" is not handled by this wrapper.
+INFO 2026-04-01 12:53:21 LA_train.py:756 step:32 smpl:256 ep:2 epch:0.00 loss:0.085 dorf_loss:44.042 critic_loss:0.110 grdn:0.424 lr:1.0e-05 updt_s:0.224 data_s:118.748
+WARNING 2026-04-01 12:53:21 db_utils.py:170 WandB logging of key "losses_after_forward" was ignored as its type "<class 'torch.Tensor'>" is not handled by this wrapper.
+WARNING 2026-04-01 12:53:21 db_utils.py:170 WandB logging of key "losses_after_rm_padding" was ignored as its type "<class 'torch.Tensor'>" is not handled by this wrapper.
+INFO 2026-04-01 12:54:49 LA_train.py:756 step:33 smpl:264 ep:2 epch:0.00 loss:0.082 dorf_loss:16.616 critic_loss:0.014 grdn:0.436 lr:1.0e-05 updt_s:0.217 data_s:87.522
+WARNING 2026-04-01 12:54:49 db_utils.py:170 WandB logging of key "losses_after_forward" was ignored as its type "<class 'torch.Tensor'>" is not handled by this wrapper.
+WARNING 2026-04-01 12:54:49 db_utils.py:170 WandB logging of key "losses_after_rm_padding" was ignored as its type "<class 'torch.Tensor'>" is not handled by this wrapper.
+INFO 2026-04-01 12:56:47 LA_train.py:756 step:34 smpl:272 ep:2 epch:0.00 loss:0.085 dorf_loss:15.637 critic_loss:0.041 grdn:0.446 lr:1.0e-05 updt_s:0.192 data_s:117.685
+WARNING 2026-04-01 12:56:47 db_utils.py:170 WandB logging of key "losses_after_forward" was ignored as its type "<class 'torch.Tensor'>" is not handled by this wrapper.
+WARNING 2026-04-01 12:56:47 db_utils.py:170 WandB logging of key "losses_after_rm_padding" was ignored as its type "<class 'torch.Tensor'>" is not handled by this wrapper.
+INFO 2026-04-01 12:58:02 LA_train.py:756 step:35 smpl:280 ep:2 epch:0.00 loss:0.062 dorf_loss:-42.477 critic_loss:0.009 grdn:0.552 lr:1.0e-05 updt_s:0.264 data_s:75.061
+WARNING 2026-04-01 12:58:02 db_utils.py:170 WandB logging of key "losses_after_forward" was ignored as its type "<class 'torch.Tensor'>" is not handled by this wrapper.
+WARNING 2026-04-01 12:58:02 db_utils.py:170 WandB logging of key "losses_after_rm_padding" was ignored as its type "<class 'torch.Tensor'>" is not handled by this wrapper.
+INFO 2026-04-01 12:59:24 LA_train.py:756 step:36 smpl:288 ep:2 epch:0.00 loss:0.067 dorf_loss:-40.909 critic_loss:0.010 grdn:0.503 lr:1.0e-05 updt_s:0.222 data_s:82.107
+WARNING 2026-04-01 12:59:24 db_utils.py:170 WandB logging of key "losses_after_forward" was ignored as its type "<class 'torch.Tensor'>" is not handled by this wrapper.
+WARNING 2026-04-01 12:59:24 db_utils.py:170 WandB logging of key "losses_after_rm_padding" was ignored as its type "<class 'torch.Tensor'>" is not handled by this wrapper.
+INFO 2026-04-01 13:01:23 LA_train.py:756 step:37 smpl:296 ep:2 epch:0.00 loss:0.071 dorf_loss:-23.267 critic_loss:0.020 grdn:0.516 lr:1.0e-05 updt_s:0.231 data_s:118.265
+WARNING 2026-04-01 13:01:23 db_utils.py:170 WandB logging of key "losses_after_forward" was ignored as its type "<class 'torch.Tensor'>" is not handled by this wrapper.
+WARNING 2026-04-01 13:01:23 db_utils.py:170 WandB logging of key "losses_after_rm_padding" was ignored as its type "<class 'torch.Tensor'>" is not handled by this wrapper.
+INFO 2026-04-01 13:02:37 LA_train.py:756 step:38 smpl:304 ep:2 epch:0.00 loss:0.110 dorf_loss:-93.098 critic_loss:0.016 grdn:0.619 lr:1.0e-05 updt_s:0.226 data_s:73.950
+WARNING 2026-04-01 13:02:37 db_utils.py:170 WandB logging of key "losses_after_forward" was ignored as its type "<class 'torch.Tensor'>" is not handled by this wrapper.
+WARNING 2026-04-01 13:02:37 db_utils.py:170 WandB logging of key "losses_after_rm_padding" was ignored as its type "<class 'torch.Tensor'>" is not handled by this wrapper.
+INFO 2026-04-01 13:04:23 LA_train.py:756 step:39 smpl:312 ep:2 epch:0.00 loss:0.072 dorf_loss:-54.496 critic_loss:0.013 grdn:0.426 lr:1.0e-05 updt_s:0.277 data_s:105.654
+WARNING 2026-04-01 13:04:23 db_utils.py:170 WandB logging of key "losses_after_forward" was ignored as its type "<class 'torch.Tensor'>" is not handled by this wrapper.
+WARNING 2026-04-01 13:04:23 db_utils.py:170 WandB logging of key "losses_after_rm_padding" was ignored as its type "<class 'torch.Tensor'>" is not handled by this wrapper.
+INFO 2026-04-01 13:06:22 LA_train.py:756 step:40 smpl:320 ep:2 epch:0.00 loss:0.050 dorf_loss:-38.413 critic_loss:0.016 grdn:0.389 lr:1.0e-05 updt_s:0.217 data_s:118.403
+WARNING 2026-04-01 13:06:22 db_utils.py:170 WandB logging of key "losses_after_forward" was ignored as its type "<class 'torch.Tensor'>" is not handled by this wrapper.
+WARNING 2026-04-01 13:06:22 db_utils.py:170 WandB logging of key "losses_after_rm_padding" was ignored as its type "<class 'torch.Tensor'>" is not handled by this wrapper.
+INFO 2026-04-01 13:07:36 LA_train.py:717 --- [Phase D] 预热状态 (Step 40/50): 仅更新奖励模型 ---                                 
+INFO 2026-04-01 13:07:36 LA_train.py:756 step:41 smpl:328 ep:2 epch:0.00 loss:0.072 dorf_loss:-139.430 critic_loss:0.012 grdn:0.424 lr:1.0e-05 updt_s:0.245 data_s:74.069
+WARNING 2026-04-01 13:07:36 db_utils.py:170 WandB logging of key "losses_after_forward" was ignored as its type "<class 'torch.Tensor'>" is not handled by this wrapper.
+WARNING 2026-04-01 13:07:36 db_utils.py:170 WandB logging of key "losses_after_rm_padding" was ignored as its type "<class 'torch.Tensor'>" is not handled by this wrapper.
+INFO 2026-04-01 13:08:48 LA_train.py:756 step:42 smpl:336 ep:2 epch:0.00 loss:0.108 dorf_loss:-160.036 critic_loss:0.011 grdn:0.525 lr:1.0e-05 updt_s:0.278 data_s:71.751
+WARNING 2026-04-01 13:08:48 db_utils.py:170 WandB logging of key "losses_after_forward" was ignored as its type "<class 'torch.Tensor'>" is not handled by this wrapper.
+WARNING 2026-04-01 13:08:48 db_utils.py:170 WandB logging of key "losses_after_rm_padding" was ignored as its type "<class 'torch.Tensor'>" is not handled by this wrapper.
+INFO 2026-04-01 13:10:00 LA_train.py:756 step:43 smpl:344 ep:2 epch:0.00 loss:0.074 dorf_loss:-162.203 critic_loss:0.009 grdn:0.659 lr:1.0e-05 updt_s:0.191 data_s:71.378
+WARNING 2026-04-01 13:10:00 db_utils.py:170 WandB logging of key "losses_after_forward" was ignored as its type "<class 'torch.Tensor'>" is not handled by this wrapper.
+WARNING 2026-04-01 13:10:00 db_utils.py:170 WandB logging of key "losses_after_rm_padding" was ignored as its type "<class 'torch.Tensor'>" is not handled by this wrapper.
+INFO 2026-04-01 13:11:59 LA_train.py:756 step:44 smpl:352 ep:2 epch:0.00 loss:0.087 dorf_loss:65.693 critic_loss:0.046 grdn:0.700 lr:1.0e-05 updt_s:0.228 data_s:119.299
+WARNING 2026-04-01 13:11:59 db_utils.py:170 WandB logging of key "losses_after_forward" was ignored as its type "<class 'torch.Tensor'>" is not handled by this wrapper.
+WARNING 2026-04-01 13:11:59 db_utils.py:170 WandB logging of key "losses_after_rm_padding" was ignored as its type "<class 'torch.Tensor'>" is not handled by this wrapper.
+INFO 2026-04-01 13:13:15 LA_train.py:756 step:45 smpl:360 ep:2 epch:0.00 loss:0.063 dorf_loss:-79.323 critic_loss:0.007 grdn:0.425 lr:1.0e-05 updt_s:0.225 data_s:74.961
+WARNING 2026-04-01 13:13:15 db_utils.py:170 WandB logging of key "losses_after_forward" was ignored as its type "<class 'torch.Tensor'>" is not handled by this wrapper.
+WARNING 2026-04-01 13:13:15 db_utils.py:170 WandB logging of key "losses_after_rm_padding" was ignored as its type "<class 'torch.Tensor'>" is not handled by this wrapper.
+INFO 2026-04-01 13:14:27 LA_train.py:756 step:46 smpl:368 ep:2 epch:0.00 loss:0.097 dorf_loss:-37.772 critic_loss:0.005 grdn:0.333 lr:1.0e-05 updt_s:0.266 data_s:72.467
+WARNING 2026-04-01 13:14:27 db_utils.py:170 WandB logging of key "losses_after_forward" was ignored as its type "<class 'torch.Tensor'>" is not handled by this wrapper.
+WARNING 2026-04-01 13:14:27 db_utils.py:170 WandB logging of key "losses_after_rm_padding" was ignored as its type "<class 'torch.Tensor'>" is not handled by this wrapper.
+INFO 2026-04-01 13:16:27 LA_train.py:756 step:47 smpl:376 ep:2 epch:0.00 loss:0.076 dorf_loss:239.980 critic_loss:0.068 grdn:0.425 lr:1.0e-05 updt_s:0.233 data_s:119.336
+WARNING 2026-04-01 13:16:27 db_utils.py:170 WandB logging of key "losses_after_forward" was ignored as its type "<class 'torch.Tensor'>" is not handled by this wrapper.
+WARNING 2026-04-01 13:16:27 db_utils.py:170 WandB logging of key "losses_after_rm_padding" was ignored as its type "<class 'torch.Tensor'>" is not handled by this wrapper.
+INFO 2026-04-01 13:17:40 LA_train.py:756 step:48 smpl:384 ep:2 epch:0.00 loss:0.112 dorf_loss:-150.606 critic_loss:0.007 grdn:0.725 lr:1.0e-05 updt_s:0.221 data_s:72.344
+WARNING 2026-04-01 13:17:40 db_utils.py:170 WandB logging of key "losses_after_forward" was ignored as its type "<class 'torch.Tensor'>" is not handled by this wrapper.
+WARNING 2026-04-01 13:17:40 db_utils.py:170 WandB logging of key "losses_after_rm_padding" was ignored as its type "<class 'torch.Tensor'>" is not handled by this wrapper.
+INFO 2026-04-01 15:32:48 LA_train.py:756 step:49 smpl:392 ep:2 epch:0.00 loss:0.078 dorf_loss:-115.605 critic_loss:0.007 grdn:0.352 lr:1.0e-05 updt_s:0.227 data_s:8107.868
+WARNING 2026-04-01 15:32:48 db_utils.py:170 WandB logging of key "losses_after_forward" was ignored as its type "<class 'torch.Tensor'>" is not handled by this wrapper.
+WARNING 2026-04-01 15:32:48 db_utils.py:170 WandB logging of key "losses_after_rm_padding" was ignored as its type "<class 'torch.Tensor'>" is not handled by this wrapper.
+INFO 2026-04-01 15:34:10 LA_train.py:756 step:50 smpl:400 ep:2 epch:0.00 loss:0.074 dorf_loss:-201.891 critic_loss:0.007 grdn:0.486 lr:1.0e-05 updt_s:0.260 data_s:82.036
+WARNING 2026-04-01 15:34:10 db_utils.py:170 WandB logging of key "losses_after_forward" was ignored as its type "<class 'torch.Tensor'>" is not handled by this wrapper.
+WARNING 2026-04-01 15:34:10 db_utils.py:170 WandB logging of key "losses_after_rm_padding" was ignored as its type "<class 'torch.Tensor'>" is not handled by this wrapper.
+INFO 2026-04-01 15:34:10 LA_train.py:776 Checkpoint policy after step 50
+INFO 2026-04-01 15:34:13 LA_train.py:797 DORF 状态已保存至: train_logs/libero_object_dorf/checkpoints/000050/dorf_state.pt
+INFO 2026-04-01 15:35:33 LA_train.py:717 --- [Phase D] 预热状态 (Step 50/50): 仅更新奖励模型 ---                                 
+INFO 2026-04-01 15:35:33 LA_train.py:756 step:51 smpl:408 ep:3 epch:0.00 loss:0.076 dorf_loss:-351.219 critic_loss:0.006 grdn:0.425 lr:1.0e-05 updt_s:0.253 data_s:75.228
+WARNING 2026-04-01 15:35:33 db_utils.py:170 WandB logging of key "losses_after_forward" was ignored as its type "<class 'torch.Tensor'>" is not handled by this wrapper.
+WARNING 2026-04-01 15:35:33 db_utils.py:170 WandB logging of key "losses_after_rm_padding" was ignored as its type "<class 'torch.Tensor'>" is not handled by this wrapper.
+INFO 2026-04-01 15:37:35 LA_train.py:713 --- [Phase D] 占位符已补全: <image><image> put both the alphabet soup and the ... ---
+INFO 2026-04-01 15:37:35 LA_train.py:756 step:52 smpl:416 ep:3 epch:0.00 loss:0.154 dorf_loss:111.455 critic_loss:0.067 grdn:0.783 lr:1.0e-05 updt_s:0.226 data_s:121.608
+WARNING 2026-04-01 15:37:35 db_utils.py:170 WandB logging of key "losses_after_forward" was ignored as its type "<class 'torch.Tensor'>" is not handled by this wrapper.
+WARNING 2026-04-01 15:37:35 db_utils.py:170 WandB logging of key "losses_after_rm_padding" was ignored as its type "<class 'torch.Tensor'>" is not handled by this wrapper.
+INFO 2026-04-01 15:38:45 LA_train.py:713 --- [Phase D] 占位符已补全: <image><image> turn on the stove and put the moka ... ---
+INFO 2026-04-01 15:38:46 LA_train.py:756 step:53 smpl:424 ep:3 epch:0.00 loss:0.199 dorf_loss:-604.586 critic_loss:0.007 grdn:0.931 lr:1.0e-05 updt_s:0.229 data_s:70.610
+WARNING 2026-04-01 15:38:46 db_utils.py:170 WandB logging of key "losses_after_forward" was ignored as its type "<class 'torch.Tensor'>" is not handled by this wrapper.
+WARNING 2026-04-01 15:38:46 db_utils.py:170 WandB logging of key "losses_after_rm_padding" was ignored as its type "<class 'torch.Tensor'>" is not handled by this wrapper.
+INFO 2026-04-01 15:40:00 LA_train.py:713 --- [Phase D] 占位符已补全: <image><image> put the white mug on the plate and ... ---
+INFO 2026-04-01 15:40:00 LA_train.py:756 step:54 smpl:432 ep:3 epch:0.00 loss:0.159 dorf_loss:-774.963 critic_loss:0.007 grdn:1.060 lr:1.0e-05 updt_s:0.234 data_s:73.893
+WARNING 2026-04-01 15:40:00 db_utils.py:170 WandB logging of key "losses_after_forward" was ignored as its type "<class 'torch.Tensor'>" is not handled by this wrapper.
+WARNING 2026-04-01 15:40:00 db_utils.py:170 WandB logging of key "losses_after_rm_padding" was ignored as its type "<class 'torch.Tensor'>" is not handled by this wrapper.
+INFO 2026-04-01 15:41:13 LA_train.py:713 --- [Phase D] 占位符已补全: <image><image> put the white mug on the left plate... ---
+INFO 2026-04-01 15:41:13 LA_train.py:756 step:55 smpl:440 ep:3 epch:0.00 loss:0.135 dorf_loss:-896.926 critic_loss:0.007 grdn:0.755 lr:1.0e-05 updt_s:0.241 data_s:72.775
+WARNING 2026-04-01 15:41:13 db_utils.py:170 WandB logging of key "losses_after_forward" was ignored as its type "<class 'torch.Tensor'>" is not handled by this wrapper.
+WARNING 2026-04-01 15:41:13 db_utils.py:170 WandB logging of key "losses_after_rm_padding" was ignored as its type "<class 'torch.Tensor'>" is not handled by this wrapper.
+INFO 2026-04-01 15:43:12 LA_train.py:713 --- [Phase D] 占位符已补全: <image><image> put both the alphabet soup and the ... ---
+INFO 2026-04-01 15:43:12 LA_train.py:756 step:56 smpl:448 ep:3 epch:0.00 loss:0.115 dorf_loss:102.878 critic_loss:0.057 grdn:0.892 lr:1.0e-05 updt_s:0.266 data_s:118.819
+WARNING 2026-04-01 15:43:12 db_utils.py:170 WandB logging of key "losses_after_forward" was ignored as its type "<class 'torch.Tensor'>" is not handled by this wrapper.
+WARNING 2026-04-01 15:43:12 db_utils.py:170 WandB logging of key "losses_after_rm_padding" was ignored as its type "<class 'torch.Tensor'>" is not handled by this wrapper.
+INFO 2026-04-01 15:44:38 LA_train.py:713 --- [Phase D] 占位符已补全: <image><image> put both the cream cheese box and t... ---
+INFO 2026-04-01 15:44:38 LA_train.py:756 step:57 smpl:456 ep:3 epch:0.00 loss:0.251 dorf_loss:-706.985 critic_loss:0.008 grdn:1.359 lr:1.0e-05 updt_s:0.232 data_s:86.050
+WARNING 2026-04-01 15:44:38 db_utils.py:170 WandB logging of key "losses_after_forward" was ignored as its type "<class 'torch.Tensor'>" is not handled by this wrapper.
+WARNING 2026-04-01 15:44:38 db_utils.py:170 WandB logging of key "losses_after_rm_padding" was ignored as its type "<class 'torch.Tensor'>" is not handled by this wrapper.
+INFO 2026-04-01 15:46:37 LA_train.py:713 --- [Phase D] 占位符已补全: <image><image> put the white mug on the plate and ... ---
+INFO 2026-04-01 15:46:38 LA_train.py:756 step:58 smpl:464 ep:3 epch:0.00 loss:0.111 dorf_loss:616.319 critic_loss:0.039 grdn:0.690 lr:1.0e-05 updt_s:0.192 data_s:119.049
+WARNING 2026-04-01 15:46:38 db_utils.py:170 WandB logging of key "losses_after_forward" was ignored as its type "<class 'torch.Tensor'>" is not handled by this wrapper.
+WARNING 2026-04-01 15:46:38 db_utils.py:170 WandB logging of key "losses_after_rm_padding" was ignored as its type "<class 'torch.Tensor'>" is not handled by this wrapper.
+INFO 2026-04-01 15:47:52 LA_train.py:713 --- [Phase D] 占位符已补全: <image><image> turn on the stove and put the moka ... ---
+INFO 2026-04-01 15:47:52 LA_train.py:756 step:59 smpl:472 ep:3 epch:0.00 loss:0.178 dorf_loss:-1765.037 critic_loss:0.007 grdn:0.964 lr:1.0e-05 updt_s:0.212 data_s:74.063
+WARNING 2026-04-01 15:47:52 db_utils.py:170 WandB logging of key "losses_after_forward" was ignored as its type "<class 'torch.Tensor'>" is not handled by this wrapper.
+WARNING 2026-04-01 15:47:52 db_utils.py:170 WandB logging of key "losses_after_rm_padding" was ignored as its type "<class 'torch.Tensor'>" is not handled by this wrapper.
+INFO 2026-04-01 15:49:47 LA_train.py:713 --- [Phase D] 占位符已补全: <image><image> put both the alphabet soup and the ... ---
+INFO 2026-04-01 15:49:48 LA_train.py:756 step:60 smpl:480 ep:3 epch:0.00 loss:0.159 dorf_loss:1050.626 critic_loss:0.012 grdn:1.085 lr:1.0e-05 updt_s:0.222 data_s:115.399
+WARNING 2026-04-01 15:49:48 db_utils.py:170 WandB logging of key "losses_after_forward" was ignored as its type "<class 'torch.Tensor'>" is not handled by this wrapper.
+WARNING 2026-04-01 15:49:48 db_utils.py:170 WandB logging of key "losses_after_rm_padding" was ignored as its type "<class 'torch.Tensor'>" is not handled by this wrapper.
+INFO 2026-04-01 15:51:12 LA_train.py:713 --- [Phase D] 占位符已补全: <image><image> put both the cream cheese box and t... ---
+INFO 2026-04-01 15:51:12 LA_train.py:756 step:61 smpl:488 ep:3 epch:0.00 loss:0.153 dorf_loss:-1568.674 critic_loss:0.006 grdn:1.451 lr:1.0e-05 updt_s:0.232 data_s:84.605
+WARNING 2026-04-01 15:51:12 db_utils.py:170 WandB logging of key "losses_after_forward" was ignored as its type "<class 'torch.Tensor'>" is not handled by this wrapper.
+WARNING 2026-04-01 15:51:12 db_utils.py:170 WandB logging of key "losses_after_rm_padding" was ignored as its type "<class 'torch.Tensor'>" is not handled by this wrapper.
+Running rollout with at most 280 steps:  53%|█████▎    | 149/280 [00:56<01:44,  1.26it/s, running_success_rate=25.0%]

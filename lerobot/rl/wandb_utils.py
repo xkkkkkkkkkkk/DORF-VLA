@@ -69,14 +69,18 @@ class WandBLogger:
         # Set up WandB.
         os.environ["WANDB_SILENT"] = "True"
         import wandb
-
-        wandb_run_id = (
-            cfg.wandb.run_id
-            if cfg.wandb.run_id
-            else get_wandb_run_id_from_filesystem(self.log_dir)
-            if cfg.resume
-            else None
-        )
+        try:
+            wandb_run_id = (
+                cfg.wandb.run_id
+                if cfg.wandb.run_id
+                else get_wandb_run_id_from_filesystem(self.log_dir)
+                if cfg.resume
+                else None
+            )
+        except Exception as e:
+            # 如果 filesystem 找不到 ID，不再抛出错误，而是新开一个 Run
+            logging.warning(f"警告：无法从本地文件获取旧的 WandB Run ID ({e})。虽然开启了 resume=True，但 WandB 将开启一个新的实验记录。")
+            wandb_run_id = None
         wandb.init(
             id=wandb_run_id,
             project=self.cfg.project,
@@ -90,7 +94,7 @@ class WandBLogger:
             save_code=False,
             # TODO(rcadene): split train and eval, and run async eval with job_type="eval"
             job_type="train_eval",
-            resume="must" if cfg.resume else None,
+            resume="allow" if cfg.resume else None, # must ——> allow
             mode=self.cfg.mode if self.cfg.mode in ["online", "offline", "disabled"] else "online",
         )
         run_id = wandb.run.id

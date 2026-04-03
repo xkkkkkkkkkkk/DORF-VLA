@@ -502,6 +502,18 @@ class StreamingLeRobotDataset(torch.utils.data.IterableDataset):
 
             # Stack frames and add to results
             if target_frames:
+                '''3.27 修复PIL图像导致stack崩溃''' 
+                import PIL.Image
+                import torchvision.transforms.functional as TF
+                
+                # 兼容性修复 1: 确保列表中没有 None (兜底防御)
+                valid_frame = next((f for f in target_frames if f is not None), None)
+                if valid_frame is not None:
+                    target_frames = [f if f is not None else valid_frame for f in target_frames]
+                
+                # 兼容性修复 2: 如果是 PIL 图像，先转换为 PyTorch Tensor 再 stack
+                if target_frames and isinstance(target_frames[0], PIL.Image.Image):
+                    target_frames = [TF.to_tensor(img) for img in target_frames]
                 query_result[key] = torch.stack(target_frames)
                 padding[f"{key}_is_pad"] = torch.BoolTensor(is_pad)
 

@@ -88,5 +88,9 @@ def compute_gae(rewards, values, next_value, dones, gamma=0.99, lam=0.95):
         next_non_terminal = 1.0 - dones[:, t].float()
         delta = rewards[:, t] + gamma * next_values[:, t] * next_non_terminal - values[:, t]
         advantages[:, t] = last_gae_lam = delta + gamma * lam * next_non_terminal * last_gae_lam
+    # 标准化
+    if advantages.numel() > 1:
+        # 减均值，除以标准差
+        advantages = (advantages - advantages.mean()) / (advantages.std() + 1e-8)
         
     return advantages
