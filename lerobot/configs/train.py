@@ -76,12 +76,24 @@ class TrainPipelineConfig(HubMixin):
 
     # Rename map for the observation to override the image and state keys
     rename_map: dict[str, str] = field(default_factory=dict)
-    checkpoint_path: Path | None = field(init=False, default=None)
+    ''' 4.8修改，解除init = False限制，允许命令直接传入续训模型路径
+    checkpoint_path: Path | None = field(init=False, default=None)'''
+    checkpoint_path: str | None = None
 
     def validate(self) -> None:
         # HACK: We parse again the cli args here to get the pretrained paths if there was some.
         policy_path = parser.get_path_arg("policy")
-        if policy_path:
+        # 4.8修改 断点重续模式优先级最高，防止被 base policy 覆盖权重路径
+        if self.resume and self.checkpoint_path is not None:
+            self.checkpoint_path = Path(self.checkpoint_path)
+            # 加载 baseline 的网络架构配置
+            if policy_path and self.policy is None:
+                cli_overrides = parser.get_cli_overrides("policy")
+                self.policy = PreTrainedConfig.from_pretrained(policy_path, cli_overrides=cli_overrides)
+            # 强制将权重挂载路径指向 checkpoint 目录
+            if self.policy is not None:
+                self.policy.pretrained_path = self.checkpoint_path / "pretrained_model"
+        elif policy_path:
             # Only load the policy config
             cli_overrides = parser.get_cli_overrides("policy")
             self.policy = PreTrainedConfig.from_pretrained(policy_path, cli_overrides=cli_overrides)

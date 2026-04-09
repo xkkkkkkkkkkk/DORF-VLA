@@ -23,6 +23,7 @@ import pandas as pd
 import dataclasses
 import logging
 import time
+import torch.nn.functional as F
 
 from contextlib import nullcontext
 from pprint import pformat
@@ -504,7 +505,7 @@ def train(cfg: TrainPipelineConfig, accelerator: Accelerator | None = None):
         "dorf_loss": AverageMeter("dorf_loss", ":.3f"),   # 自加
         "critic_loss": AverageMeter("critic_loss", ":.3f"), # 自加
         "grad_norm": AverageMeter("grdn", ":.3f"),
-        "lr": AverageMeter("lr", ":0.1e"),
+        "lr": AverageMeter("lr", ":0.1e"),                 # VLA 学习率
         "update_s": AverageMeter("updt_s", ":.3f"),
         "dataloading_s": AverageMeter("data_s", ":.3f"),
     }
@@ -546,7 +547,7 @@ def train(cfg: TrainPipelineConfig, accelerator: Accelerator | None = None):
         action_dim=policy.config.output_features["action"].shape[0]
     ).to(device)
     
-    opt_dorf = torch.optim.Adam(list(critic.parameters()) + list(dorf_reward.parameters()), lr=2e-5)
+    opt_dorf = torch.optim.Adam(list(critic.parameters()) + list(dorf_reward.parameters()), lr=2e-5)# RL学习率
 
     # 尝试断点重续 DORF
     if cfg.resume and cfg.checkpoint_path is not None:
@@ -559,10 +560,6 @@ def train(cfg: TrainPipelineConfig, accelerator: Accelerator | None = None):
             if is_main_process:
                 logging.info("成功加载断点重续的 DORF 权重！")
 
-    if hasattr(active_env, "max_episode_steps"):
-        active_env.max_episode_steps = 50 
-    elif hasattr(active_env, "_max_episode_steps"):
-        active_env._max_episode_steps = 50
 
     for _ in range(step, cfg.steps):
         start_time = time.perf_counter()
@@ -604,6 +601,8 @@ def train(cfg: TrainPipelineConfig, accelerator: Accelerator | None = None):
         actions = rollout_data["action"].to(device).float()
         dones = rollout_data["done"].to(device).float()
         true_rewards = rollout_data["reward"].to(device).float()
+        if is_main_process:
+            print(f"--- [Step {step}] Rollout True Reward Sum: {true_rewards.sum().item():.2f} (Active Envs: {true_rewards.shape[0]})")
         
         states = obs_dict["observation.state"][:, :-1].to(device).float()
         img_global = obs_dict["observation.images.image"][:, :-1].to(device).float()
@@ -623,14 +622,15 @@ def train(cfg: TrainPipelineConfig, accelerator: Accelerator | None = None):
 
         # 2. 计算 Advantage
         A_learned = compute_gae(learned_dense_rewards, values, next_value, dones)
+        A_learned_normalized = (A_learned - A_learned.mean()) / (A_learned.std() + 1e-8)
         A_true = compute_gae(true_rewards, values.detach(), next_value, dones)
 
         # 3. 计算损失并反向传播更新 DORF 的视神经
         returns_true = A_true.detach() + values.detach()
         critic_loss = torch.nn.functional.mse_loss(values, returns_true)
-        dorf_loss = - torch.mean(A_true.detach() * A_learned)
+        dorf_loss = torch.nn.functional.mse_loss(A_learned, A_true.detach())
         
-        total_dorf_loss = dorf_loss + critic_loss
+        total_dorf_loss = dorf_loss + 0.5 * critic_loss
         total_dorf_loss.backward()
         opt_dorf.step()
         train_tracker.dorf_loss = dorf_loss.item()
@@ -643,19 +643,18 @@ def train(cfg: TrainPipelineConfig, accelerator: Accelerator | None = None):
         
         # 1. 动态确定筛选门槛
         # 如果 A>0 的样本太少（少于 10%），就用 A > Mean，保证训练有足够数据
-        pos_mask = (A_learned > 0)
-        threshold = A_learned.mean() if pos_mask.float().mean() < 0.10 else 0
-        mask = (A_learned >= threshold)
+        pos_mask = (A_learned_normalized > 0)
+        threshold = A_learned_normalized.mean() if pos_mask.float().mean() < 0.10 else 0
+        mask = (A_learned_normalized >= threshold)
         num_good = mask.sum().item()
-        
+        warmup_steps = 50 # 50步预热
         # 调试代码
         if is_main_process:
-            print(f"\n[诊断] A_learned: min={A_learned.min().item():.4f}, "
-                  f"max={A_learned.max().item():.4f}, "
-                  f"mean={A_learned.mean().item():.4f}, "
-                  f"std={A_learned.std().item():.4f} | "
-                  f"Threshold: {threshold:.4f}", flush=True)
-
+            print(f"\n--- [Step {step}] 筛选状态 ---")
+            print(f"    Advantage 范围: [{A_learned_normalized.min().item():.3f}, {A_learned_normalized.max().item():.3f}]")
+            print(f"    当前阈值: {threshold:.4f} | 选出样本数: {num_good}")
+            if step <= warmup_steps:
+                print(colored(f"    [状态] 预热期 ({step}/50)，仅训练 DORF，VLA 数据注入未开启", "blue"))
         # 2. 先获取离线 Batch 
         try:
             batch = next(dl_iter)
@@ -664,8 +663,6 @@ def train(cfg: TrainPipelineConfig, accelerator: Accelerator | None = None):
             batch = next(dl_iter)
 
         # 3. 样本注入逻辑 (将在线优良样本覆盖掉离线 Batch 的前 N 个)
-        warmup_steps = 50 # 50步预热
-
         if num_good > 0 and step > warmup_steps:
             # 混合 25% 的在线优良数据，75% 保持离线专家数据以防遗忘
             num_to_replace = min(cfg.batch_size // 4, num_good)
@@ -677,11 +674,27 @@ def train(cfg: TrainPipelineConfig, accelerator: Accelerator | None = None):
             sel_s = s_idx[rand_perm]
             
             chunk_size = policy.config.chunk_size
+            chunk_size = batch["action"].shape[1] # 获取模型需要的序列长度 (280)
+            sel_start_s = torch.clamp(sel_s - (chunk_size // 2), min=0, max=actions.shape[1] - chunk_size)
+            # 检验代码
+            if is_main_process:
+                # 随机取一个被选中的样本进行索引核对
+                test_idx = 0
+                original_s = sel_s[test_idx].item()
+                actual_start = sel_start_s[test_idx].item()
+                
+                print(colored(f"--- [对齐检查] 第 {step} 轮注入详情 ---", "green"))
+                print(f"    样本采样点: {original_s} -> 窗口对齐起点: {actual_start}")
             # A. 注入动作与状态 (统一 float32)
-            if batch["action"].ndim == 3:
-                # 将在线选出的优质动作覆盖到离线 Batch 的第 0 步
-                batch["action"][:num_to_replace, 0] = actions[sel_b, sel_s].cpu().float()
-                batch["observation.state"][:num_to_replace, 0] = states[sel_b, sel_s].cpu().float()
+            for i in range(num_to_replace):
+                b, s = sel_b[i], sel_s[i]
+                # 确保切片不越界：如果当前 s 后面不够 280 帧，则向前推
+                start_s = max(0, min(s, actions.shape[1] - chunk_size))
+                end_s = start_s + chunk_size
+                
+                # 注入一整段物理连续的在线动作和状态
+                batch["action"][i] = actions[b, start_s:end_s].cpu().float()
+                batch["observation.state"][i,0] = states[b, start_s].cpu().float()
                 
                 # 为了防止 42 Token 报错，这里必须确保 batch["action"].shape[1] == 50
                 # 如果你已经改了上面的 LeRobotDataset 初始化，这里就已经是 50 了。
@@ -691,12 +704,11 @@ def train(cfg: TrainPipelineConfig, accelerator: Accelerator | None = None):
                     batch["action"] = torch.nn.functional.pad(batch["action"], (0, 0, 0, padding_len))
                     batch["observation.state"] = torch.nn.functional.pad(batch["observation.state"], (0, 0, 0, padding_len))
             # B. 图像强制对齐
-            import torch.nn.functional as F
             for img_key in ["observation.images.image", "observation.images.image2"]:
                 # 获取离线模板的尺寸 [H, W]
                 target_h, target_w = batch[img_key].shape[-2:]
                 # 获取在线原始图像 [N, C, H, W]
-                online_imgs = obs_dict[img_key][sel_b, sel_s].cpu().float()
+                online_imgs = obs_dict[img_key][sel_b, sel_start_s].cpu().float()
                 # 强行缩放
                 rescaled_imgs = F.interpolate(online_imgs, size=(target_h, target_w), mode='bilinear')
                 
@@ -751,6 +763,7 @@ def train(cfg: TrainPipelineConfig, accelerator: Accelerator | None = None):
         output_dict["dorf/total_loss"] = dorf_loss.item() if 'dorf_loss' in locals() else 0.0
         output_dict["dorf/critic_loss"] = critic_loss.item() if 'critic_loss' in locals() else 0.0
         output_dict["good_samples_ratio"] = num_good / A_learned.numel()
+        output_dict["rollout/true_reward_sum"] = true_rewards.sum().item()
 
         # Note: eval and checkpoint happens *after* the `step`th training update has completed, so we
         # increment `step` here.
