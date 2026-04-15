@@ -642,17 +642,19 @@ def train(cfg: TrainPipelineConfig, accelerator: Accelerator | None = None):
         # 验证链路跑通后，再根据 A_learned 的正负值去筛选 rollout_data 并组装在线 Batch。
         
         # 1. 动态确定筛选门槛
-        # 如果 A>0 的样本太少（少于 10%），就用 A > Mean，保证训练有足够数据
+        # 4.9 取消动态筛选门槛，防止滥竽充数
+        '''# 如果 A>0 的样本太少（少于 10%），就用 A > Mean，保证训练有足够数据
         pos_mask = (A_learned_normalized > 0)
         threshold = A_learned_normalized.mean() if pos_mask.float().mean() < 0.10 else 0
-        mask = (A_learned_normalized >= threshold)
+        mask = (A_learned_normalized >= threshold)'''
+        mask = (A_learned> 0)
         num_good = mask.sum().item()
         warmup_steps = 50 # 50步预热
         # 调试代码
         if is_main_process:
             print(f"\n--- [Step {step}] 筛选状态 ---")
             print(f"    Advantage 范围: [{A_learned_normalized.min().item():.3f}, {A_learned_normalized.max().item():.3f}]")
-            print(f"    当前阈值: {threshold:.4f} | 选出样本数: {num_good}")
+            print(f"    选出样本数: {num_good}")
             if step <= warmup_steps:
                 print(colored(f"    [状态] 预热期 ({step}/50)，仅训练 DORF，VLA 数据注入未开启", "blue"))
         # 2. 先获取离线 Batch 
@@ -661,7 +663,25 @@ def train(cfg: TrainPipelineConfig, accelerator: Accelerator | None = None):
         except (StopIteration, UnboundLocalError, NameError):
             dl_iter = iter(dataloader)
             batch = next(dl_iter)
+        # 检验代码，评估critic 网络是否训练成功
+        with torch.no_grad():
+            # 1. 在线数据表现（来自阶段 B/C）
+            online_avg = A_learned.mean().item()
+            correlation = torch.cosine_similarity(A_learned.flatten(), A_true.flatten(), dim=0).item()
+            
+            # 2. 离线专家数据对比（此时 batch 还没被注入，全是专家数据）
+            # 获取图像并拼接（对应你 Phase B 的处理逻辑）
+            e_img_global = batch["observation.images.image"].to(device).float()
+            e_img_wrist = batch["observation.images.image2"].to(device).float()
+            e_imgs = torch.cat([e_img_global, e_img_wrist], dim=2)
+            e_states = batch["observation.state"].to(device).float()
+            e_actions = batch["action"][:, 0:1].to(device).float() 
+            
+            # 让 dorf_reward（VisionReward 实例）给专家数据打分
+            expert_scores = dorf_reward(e_imgs, e_states, e_actions)
+            expert_avg = expert_scores.mean().item()
 
+            print(f"📊 Step {step} | CosSim: {correlation:.4f} | Online_Avg: {online_avg:.4f} | Expert_Avg: {expert_avg:.4f}")
         # 3. 样本注入逻辑 (将在线优良样本覆盖掉离线 Batch 的前 N 个)
         if num_good > 0 and step > warmup_steps:
             # 混合 25% 的在线优良数据，75% 保持离线专家数据以防遗忘
