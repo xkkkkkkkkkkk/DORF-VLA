@@ -502,7 +502,8 @@ def train(cfg: TrainPipelineConfig, accelerator: Accelerator | None = None):
 
     train_metrics = {
         "loss": AverageMeter("loss", ":.3f"),
-        "dorf_loss": AverageMeter("dorf_loss", ":.3f"),   # 自加
+        "expert_dorf_loss": AverageMeter("expert_dorf_loss", ":.3f"),   # 自加
+        "online_dorf_loss": AverageMeter("online_dorf_loss", ":.3f"),   # 自加
         "critic_loss": AverageMeter("critic_loss", ":.3f"), # 自加
         "grad_norm": AverageMeter("grdn", ":.3f"),
         "lr": AverageMeter("lr", ":0.1e"),                 # VLA 学习率
@@ -612,6 +613,13 @@ def train(cfg: TrainPipelineConfig, accelerator: Accelerator | None = None):
         policy.train()
         opt_dorf.zero_grad()
 
+        # 先获取离线 Batch 
+        try:
+            batch = next(dl_iter)
+        except (StopIteration, UnboundLocalError, NameError):
+            dl_iter = iter(dataloader)
+            batch = next(dl_iter)
+
         # ---------------------------------------------
         # 阶段 B & C：DORF 评分与网络更新
         # ---------------------------------------------
@@ -622,18 +630,34 @@ def train(cfg: TrainPipelineConfig, accelerator: Accelerator | None = None):
 
         # 2. 计算 Advantage
         A_learned = compute_gae(learned_dense_rewards, values, next_value, dones)
-        A_learned_normalized = (A_learned - A_learned.mean()) / (A_learned.std() + 1e-8)
+        A_learned_norm = (A_learned - A_learned.mean()) / (A_learned.std() + 1e-8)
         A_true = compute_gae(true_rewards, values.detach(), next_value, dones)
-
-        # 3. 计算损失并反向传播更新 DORF 的视神经
+        A_true_norm = (A_true - A_true.mean()) / (A_true.std() + 1e-8)
         returns_true = A_true.detach() + values.detach()
-        critic_loss = torch.nn.functional.mse_loss(values, returns_true)
-        dorf_loss = torch.nn.functional.mse_loss(A_learned, A_true.detach())
-        
-        total_dorf_loss = dorf_loss + 0.5 * critic_loss
+        returns_norm = (returns_true - returns_true.mean()) / (returns_true.std() + 1e-8)
+        values_norm = (values - values.mean()) / (values.std() + 1e-8)
+        # 3. [DORF核心修复] 计算损失（在线拟合 + 专家锚定）
+        # A. 在线部分：让 A_learned 拟合环境真实反馈 A_true
+        # online_dorf_loss = torch.nn.functional.mse_loss(A_learned, A_true.detach())
+        online_dorf_loss = torch.nn.functional.mse_loss(A_learned_norm, A_true_norm.detach())
+        # B. 专家部分：强制让价值网络认出专家动作是满分 1.0
+        with torch.no_grad():
+            e_img_global = batch["observation.images.image"].to(device).float()
+            e_img_wrist = batch["observation.images.image2"].to(device).float()
+            e_imgs = torch.cat([e_img_global, e_img_wrist], dim=2)
+            e_states = batch["observation.state"].to(device).float()
+            e_actions = batch["action"][:, 0:1].to(device).float() # 对齐点对点评分
+        e_A_learned = dorf_reward(e_imgs, e_states, e_actions)
+        # 强制锚定：专家动作的优势得分必须趋向 1.0
+        expert_dorf_loss = torch.nn.functional.mse_loss(e_A_learned, torch.ones_like(e_A_learned) * 1.0)
+        critic_loss = torch.nn.functional.mse_loss(values_norm, returns_norm.detach())
+        total_dorf_loss = online_dorf_loss +  expert_dorf_loss + critic_loss
+
         total_dorf_loss.backward()
         opt_dorf.step()
-        train_tracker.dorf_loss = dorf_loss.item()
+
+        train_tracker.expert_dorf_loss = expert_dorf_loss.item()
+        train_tracker.online_dorf_loss = online_dorf_loss.item()
         train_tracker.critic_loss = critic_loss.item()
         # ---------------------------------------------
         # 阶段 D：VLA 微调更新 
@@ -643,46 +667,18 @@ def train(cfg: TrainPipelineConfig, accelerator: Accelerator | None = None):
         
         # 1. 动态确定筛选门槛
         # 4.9 取消动态筛选门槛，防止滥竽充数
-        '''# 如果 A>0 的样本太少（少于 10%），就用 A > Mean，保证训练有足够数据
-        pos_mask = (A_learned_normalized > 0)
-        threshold = A_learned_normalized.mean() if pos_mask.float().mean() < 0.10 else 0
-        mask = (A_learned_normalized >= threshold)'''
-        mask = (A_learned> 0)
+        mask = (A_learned_norm> 0)
         num_good = mask.sum().item()
         warmup_steps = 50 # 50步预热
         # 调试代码
         if is_main_process:
             print(f"\n--- [Step {step}] 筛选状态 ---")
-            print(f"    Advantage 范围: [{A_learned_normalized.min().item():.3f}, {A_learned_normalized.max().item():.3f}]")
+            print(f"    Advantage 范围: [{A_learned_norm.min().item():.3f}, {A_learned_norm.max().item():.3f}]")
             print(f"    选出样本数: {num_good}")
             if step <= warmup_steps:
                 print(colored(f"    [状态] 预热期 ({step}/50)，仅训练 DORF，VLA 数据注入未开启", "blue"))
-        # 2. 先获取离线 Batch 
-        try:
-            batch = next(dl_iter)
-        except (StopIteration, UnboundLocalError, NameError):
-            dl_iter = iter(dataloader)
-            batch = next(dl_iter)
-        # 检验代码，评估critic 网络是否训练成功
-        with torch.no_grad():
-            # 1. 在线数据表现（来自阶段 B/C）
-            online_avg = A_learned.mean().item()
-            correlation = torch.cosine_similarity(A_learned.flatten(), A_true.flatten(), dim=0).item()
-            
-            # 2. 离线专家数据对比（此时 batch 还没被注入，全是专家数据）
-            # 获取图像并拼接（对应你 Phase B 的处理逻辑）
-            e_img_global = batch["observation.images.image"].to(device).float()
-            e_img_wrist = batch["observation.images.image2"].to(device).float()
-            e_imgs = torch.cat([e_img_global, e_img_wrist], dim=2)
-            e_states = batch["observation.state"].to(device).float()
-            e_actions = batch["action"][:, 0:1].to(device).float() 
-            
-            # 让 dorf_reward（VisionReward 实例）给专家数据打分
-            expert_scores = dorf_reward(e_imgs, e_states, e_actions)
-            expert_avg = expert_scores.mean().item()
 
-            print(f"📊 Step {step} | CosSim: {correlation:.4f} | Online_Avg: {online_avg:.4f} | Expert_Avg: {expert_avg:.4f}")
-        # 3. 样本注入逻辑 (将在线优良样本覆盖掉离线 Batch 的前 N 个)
+        # 2. 样本注入逻辑 (将在线优良样本覆盖掉离线 Batch 的前 N 个)
         if num_good > 0 and step > warmup_steps:
             # 混合 25% 的在线优良数据，75% 保持离线专家数据以防遗忘
             num_to_replace = min(cfg.batch_size // 4, num_good)
@@ -763,11 +759,11 @@ def train(cfg: TrainPipelineConfig, accelerator: Accelerator | None = None):
             if step % 10 == 0:
                 logging.info(f"--- [Phase D] 预热状态 (Step {step}/{warmup_steps}): 仅更新奖励模型 ---")
 
-        # 4. 对混合后的batch 统一执行预处理
+        # 3. 对混合后的batch 统一执行预处理
         batch = preprocessor(batch)
 
         train_tracker.dataloading_s = time.perf_counter() - start_time
-        # 5. 调用官方VLA更新函数
+        # 4. 调用官方VLA更新函数
         train_tracker, output_dict = update_policy(
             train_tracker,
             policy,
@@ -779,7 +775,7 @@ def train(cfg: TrainPipelineConfig, accelerator: Accelerator | None = None):
             rabc_weights_provider=rabc_weights,
         )
         
-        # 6. 将 DORF 相关的指标挂载到输出日志中
+        # 5. 将 DORF 相关的指标挂载到输出日志中
         output_dict["dorf/total_loss"] = dorf_loss.item() if 'dorf_loss' in locals() else 0.0
         output_dict["dorf/critic_loss"] = critic_loss.item() if 'critic_loss' in locals() else 0.0
         output_dict["good_samples_ratio"] = num_good / A_learned.numel()
