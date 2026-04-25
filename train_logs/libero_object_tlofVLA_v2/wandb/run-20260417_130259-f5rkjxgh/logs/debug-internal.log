@@ -1,0 +1,8 @@
+{"time":"2026-04-17T13:02:59.451307746+08:00","level":"INFO","msg":"stream: starting","core version":"0.24.2"}
+{"time":"2026-04-17T13:03:00.575723866+08:00","level":"INFO","msg":"stream: created new stream","id":"f5rkjxgh"}
+{"time":"2026-04-17T13:03:00.575823064+08:00","level":"INFO","msg":"handler: started","stream_id":"f5rkjxgh"}
+{"time":"2026-04-17T13:03:00.575974675+08:00","level":"INFO","msg":"stream: started","id":"f5rkjxgh"}
+{"time":"2026-04-17T13:03:00.576000537+08:00","level":"INFO","msg":"sender: started","stream_id":"f5rkjxgh"}
+{"time":"2026-04-17T13:03:00.576012748+08:00","level":"INFO","msg":"writer: started","stream_id":"f5rkjxgh"}
+{"time":"2026-04-17T13:07:23.112530483+08:00","level":"INFO","msg":"api: retrying HTTP error","status":500,"url":"https://api.wandb.ai/files/x-k/tlof-VLA-v2/f5rkjxgh/file_stream","body":"{\"error\":\"context deadline exceeded\"}"}
+{"time":"2026-04-17T13:07:25.922523676+08:00","level":"INFO","msg":"stream: closing","id":"f5rkjxgh"}

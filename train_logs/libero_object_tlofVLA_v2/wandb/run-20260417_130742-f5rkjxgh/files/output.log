@@ -1,0 +1,751 @@
+INFO 2026-04-17 13:07:44 db_utils.py:106 Logs will be synced with wandb.
+INFO 2026-04-17 13:07:44 db_utils.py:107 Track this run --> https://wandb.ai/x-k/tlof-VLA-v2/runs/f5rkjxgh
+INFO 2026-04-17 13:07:44 rain（v3）.py:206 正在初始化本地官方数据集加载器...
+INFO 2026-04-17 13:07:45 rain（v3）.py:219 本地数据覆盖至 Episode 19，将仅加载此范围内索引。
+INFO 2026-04-17 13:07:45 rain（v3）.py:246 Creating env
+[robosuite WARNING] No private macro file found! (__init__.py:7)
+WARNING 2026-04-17 13:07:45 e/__init__.py:7 No private macro file found!
+[robosuite WARNING] It is recommended to use a private macro file (__init__.py:8)
+WARNING 2026-04-17 13:07:45 e/__init__.py:8 It is recommended to use a private macro file
+[robosuite WARNING] To setup, run: python /root/autodl-tmp/miniconda3/envs/lerobot/lib/python3.10/site-packages/robosuite/scripts/setup_macros.py (__init__.py:9)
+WARNING 2026-04-17 13:07:45 e/__init__.py:9 To setup, run: python /root/autodl-tmp/miniconda3/envs/lerobot/lib/python3.10/site-packages/robosuite/scripts/setup_macros.py
+INFO 2026-04-17 13:07:45 tesupport.py:24 No OpenGL_accelerate module loaded: No module named 'OpenGL_accelerate'
+Creating LIBERO envs | suites=['libero_object'] | n_envs(per task)=4 | init_states=True
+[info] using task orders [0, 1, 2, 3, 4, 5, 6, 7, 8, 9]
+Built vec env | suite=libero_object | task_id=0 | n_envs=4
+Built vec env | suite=libero_object | task_id=1 | n_envs=4
+Built vec env | suite=libero_object | task_id=2 | n_envs=4
+Built vec env | suite=libero_object | task_id=3 | n_envs=4
+Built vec env | suite=libero_object | task_id=4 | n_envs=4
+Built vec env | suite=libero_object | task_id=5 | n_envs=4
+Built vec env | suite=libero_object | task_id=6 | n_envs=4
+Built vec env | suite=libero_object | task_id=7 | n_envs=4
+Built vec env | suite=libero_object | task_id=8 | n_envs=4
+Built vec env | suite=libero_object | task_id=9 | n_envs=4
+INFO 2026-04-17 13:09:06 rain（v3）.py:250 Creating policy
+Loading  HuggingFaceTB/SmolVLM2-500M-Instruct weights ...
+INFO 2026-04-17 13:09:07 _client.py:1025 HTTP Request: HEAD https://hf-mirror.com/HuggingFaceTB/SmolVLM2-500M-Instruct/resolve/main/config.json "HTTP/1.1 307 Temporary Redirect"
+INFO 2026-04-17 13:09:07 _client.py:1025 HTTP Request: HEAD https://hf-mirror.com/HuggingFaceTB/SmolVLM2-500M-Video-Instruct/resolve/main/config.json "HTTP/1.1 307 Temporary Redirect"
+INFO 2026-04-17 13:09:07 _client.py:1025 HTTP Request: HEAD https://hf-mirror.com/api/resolve-cache/models/HuggingFaceTB/SmolVLM2-500M-Video-Instruct/7b375e1b73b11138ff12fe22c8f2822d8fe03467/config.json "HTTP/1.1 200 OK"
+`torch_dtype` is deprecated! Use `dtype` instead!
+INFO 2026-04-17 13:09:09 _client.py:1025 HTTP Request: HEAD https://hf-mirror.com/HuggingFaceTB/SmolVLM2-500M-Instruct/resolve/main/generation_config.json "HTTP/1.1 307 Temporary Redirect"
+INFO 2026-04-17 13:09:09 _client.py:1025 HTTP Request: HEAD https://hf-mirror.com/HuggingFaceTB/SmolVLM2-500M-Video-Instruct/resolve/main/generation_config.json "HTTP/1.1 307 Temporary Redirect"
+INFO 2026-04-17 13:09:09 _client.py:1025 HTTP Request: HEAD https://hf-mirror.com/api/resolve-cache/models/HuggingFaceTB/SmolVLM2-500M-Video-Instruct/7b375e1b73b11138ff12fe22c8f2822d8fe03467/generation_config.json "HTTP/1.1 200 OK"
+INFO 2026-04-17 13:09:09 _client.py:1025 HTTP Request: HEAD https://hf-mirror.com/HuggingFaceTB/SmolVLM2-500M-Instruct/resolve/main/processor_config.json "HTTP/1.1 307 Temporary Redirect"
+INFO 2026-04-17 13:09:10 _client.py:1025 HTTP Request: HEAD https://hf-mirror.com/HuggingFaceTB/SmolVLM2-500M-Video-Instruct/resolve/main/processor_config.json "HTTP/1.1 307 Temporary Redirect"
+INFO 2026-04-17 13:09:10 _client.py:1025 HTTP Request: HEAD https://hf-mirror.com/api/resolve-cache/models/HuggingFaceTB/SmolVLM2-500M-Video-Instruct/7b375e1b73b11138ff12fe22c8f2822d8fe03467/processor_config.json "HTTP/1.1 200 OK"
+INFO 2026-04-17 13:09:10 _client.py:1025 HTTP Request: GET https://hf-mirror.com/api/models/HuggingFaceTB/SmolVLM2-500M-Instruct/tree/main/additional_chat_templates?recursive=false&expand=false "HTTP/1.1 307 Temporary Redirect"
+INFO 2026-04-17 13:09:10 _client.py:1025 HTTP Request: GET https://hf-mirror.com/api/models/HuggingFaceTB/SmolVLM2-500M-Video-Instruct/tree/main/additional_chat_templates?recursive=false&expand=false "HTTP/1.1 404 Not Found"
+INFO 2026-04-17 13:09:11 _client.py:1025 HTTP Request: HEAD https://hf-mirror.com/HuggingFaceTB/SmolVLM2-500M-Instruct/resolve/main/processor_config.json "HTTP/1.1 307 Temporary Redirect"
+INFO 2026-04-17 13:09:11 _client.py:1025 HTTP Request: HEAD https://hf-mirror.com/HuggingFaceTB/SmolVLM2-500M-Video-Instruct/resolve/main/processor_config.json "HTTP/1.1 307 Temporary Redirect"
+INFO 2026-04-17 13:09:11 _client.py:1025 HTTP Request: HEAD https://hf-mirror.com/api/resolve-cache/models/HuggingFaceTB/SmolVLM2-500M-Video-Instruct/7b375e1b73b11138ff12fe22c8f2822d8fe03467/processor_config.json "HTTP/1.1 200 OK"
+INFO 2026-04-17 13:09:12 _client.py:1025 HTTP Request: HEAD https://hf-mirror.com/HuggingFaceTB/SmolVLM2-500M-Instruct/resolve/main/chat_template.json "HTTP/1.1 307 Temporary Redirect"
+INFO 2026-04-17 13:09:12 _client.py:1025 HTTP Request: HEAD https://hf-mirror.com/HuggingFaceTB/SmolVLM2-500M-Video-Instruct/resolve/main/chat_template.json "HTTP/1.1 307 Temporary Redirect"
+INFO 2026-04-17 13:09:12 _client.py:1025 HTTP Request: HEAD https://hf-mirror.com/api/resolve-cache/models/HuggingFaceTB/SmolVLM2-500M-Video-Instruct/7b375e1b73b11138ff12fe22c8f2822d8fe03467/chat_template.json "HTTP/1.1 200 OK"
+INFO 2026-04-17 13:09:12 _client.py:1025 HTTP Request: HEAD https://hf-mirror.com/HuggingFaceTB/SmolVLM2-500M-Instruct/resolve/main/chat_template.jinja "HTTP/1.1 307 Temporary Redirect"
+INFO 2026-04-17 13:09:13 _client.py:1025 HTTP Request: HEAD https://hf-mirror.com/HuggingFaceTB/SmolVLM2-500M-Video-Instruct/resolve/main/chat_template.jinja "HTTP/1.1 404 Not Found"
+INFO 2026-04-17 13:09:13 _client.py:1025 HTTP Request: HEAD https://hf-mirror.com/HuggingFaceTB/SmolVLM2-500M-Instruct/resolve/main/audio_tokenizer_config.json "HTTP/1.1 307 Temporary Redirect"
+INFO 2026-04-17 13:09:13 _client.py:1025 HTTP Request: HEAD https://hf-mirror.com/HuggingFaceTB/SmolVLM2-500M-Video-Instruct/resolve/main/audio_tokenizer_config.json "HTTP/1.1 404 Not Found"
+INFO 2026-04-17 13:09:14 _client.py:1025 HTTP Request: GET https://hf-mirror.com/api/models/HuggingFaceTB/SmolVLM2-500M-Instruct/tree/main/additional_chat_templates?recursive=false&expand=false "HTTP/1.1 307 Temporary Redirect"
+INFO 2026-04-17 13:09:14 _client.py:1025 HTTP Request: GET https://hf-mirror.com/api/models/HuggingFaceTB/SmolVLM2-500M-Video-Instruct/tree/main/additional_chat_templates?recursive=false&expand=false "HTTP/1.1 404 Not Found"
+INFO 2026-04-17 13:09:14 _client.py:1025 HTTP Request: HEAD https://hf-mirror.com/HuggingFaceTB/SmolVLM2-500M-Instruct/resolve/main/processor_config.json "HTTP/1.1 307 Temporary Redirect"
+INFO 2026-04-17 13:09:14 _client.py:1025 HTTP Request: HEAD https://hf-mirror.com/HuggingFaceTB/SmolVLM2-500M-Video-Instruct/resolve/main/processor_config.json "HTTP/1.1 307 Temporary Redirect"
+INFO 2026-04-17 13:09:15 _client.py:1025 HTTP Request: HEAD https://hf-mirror.com/api/resolve-cache/models/HuggingFaceTB/SmolVLM2-500M-Video-Instruct/7b375e1b73b11138ff12fe22c8f2822d8fe03467/processor_config.json "HTTP/1.1 200 OK"
+INFO 2026-04-17 13:09:15 _client.py:1025 HTTP Request: HEAD https://hf-mirror.com/HuggingFaceTB/SmolVLM2-500M-Instruct/resolve/main/chat_template.json "HTTP/1.1 307 Temporary Redirect"
+INFO 2026-04-17 13:09:15 _client.py:1025 HTTP Request: HEAD https://hf-mirror.com/HuggingFaceTB/SmolVLM2-500M-Video-Instruct/resolve/main/chat_template.json "HTTP/1.1 307 Temporary Redirect"
+INFO 2026-04-17 13:09:15 _client.py:1025 HTTP Request: HEAD https://hf-mirror.com/api/resolve-cache/models/HuggingFaceTB/SmolVLM2-500M-Video-Instruct/7b375e1b73b11138ff12fe22c8f2822d8fe03467/chat_template.json "HTTP/1.1 200 OK"
+INFO 2026-04-17 13:09:16 _client.py:1025 HTTP Request: HEAD https://hf-mirror.com/HuggingFaceTB/SmolVLM2-500M-Instruct/resolve/main/chat_template.jinja "HTTP/1.1 307 Temporary Redirect"
+INFO 2026-04-17 13:09:16 _client.py:1025 HTTP Request: HEAD https://hf-mirror.com/HuggingFaceTB/SmolVLM2-500M-Video-Instruct/resolve/main/chat_template.jinja "HTTP/1.1 404 Not Found"
+INFO 2026-04-17 13:09:16 _client.py:1025 HTTP Request: HEAD https://hf-mirror.com/HuggingFaceTB/SmolVLM2-500M-Instruct/resolve/main/audio_tokenizer_config.json "HTTP/1.1 307 Temporary Redirect"
+INFO 2026-04-17 13:09:17 _client.py:1025 HTTP Request: HEAD https://hf-mirror.com/HuggingFaceTB/SmolVLM2-500M-Video-Instruct/resolve/main/audio_tokenizer_config.json "HTTP/1.1 404 Not Found"
+INFO 2026-04-17 13:09:17 _client.py:1025 HTTP Request: HEAD https://hf-mirror.com/HuggingFaceTB/SmolVLM2-500M-Instruct/resolve/main/processor_config.json "HTTP/1.1 307 Temporary Redirect"
+INFO 2026-04-17 13:09:17 _client.py:1025 HTTP Request: HEAD https://hf-mirror.com/HuggingFaceTB/SmolVLM2-500M-Video-Instruct/resolve/main/processor_config.json "HTTP/1.1 307 Temporary Redirect"
+INFO 2026-04-17 13:09:18 _client.py:1025 HTTP Request: HEAD https://hf-mirror.com/api/resolve-cache/models/HuggingFaceTB/SmolVLM2-500M-Video-Instruct/7b375e1b73b11138ff12fe22c8f2822d8fe03467/processor_config.json "HTTP/1.1 200 OK"
+INFO 2026-04-17 13:09:18 _client.py:1025 HTTP Request: HEAD https://hf-mirror.com/HuggingFaceTB/SmolVLM2-500M-Instruct/resolve/main/preprocessor_config.json "HTTP/1.1 307 Temporary Redirect"
+INFO 2026-04-17 13:09:18 _client.py:1025 HTTP Request: HEAD https://hf-mirror.com/HuggingFaceTB/SmolVLM2-500M-Video-Instruct/resolve/main/preprocessor_config.json "HTTP/1.1 307 Temporary Redirect"
+INFO 2026-04-17 13:09:19 _client.py:1025 HTTP Request: HEAD https://hf-mirror.com/api/resolve-cache/models/HuggingFaceTB/SmolVLM2-500M-Video-Instruct/7b375e1b73b11138ff12fe22c8f2822d8fe03467/preprocessor_config.json "HTTP/1.1 200 OK"
+INFO 2026-04-17 13:09:19 _client.py:1025 HTTP Request: HEAD https://hf-mirror.com/HuggingFaceTB/SmolVLM2-500M-Instruct/resolve/main/processor_config.json "HTTP/1.1 307 Temporary Redirect"
+INFO 2026-04-17 13:09:19 _client.py:1025 HTTP Request: HEAD https://hf-mirror.com/HuggingFaceTB/SmolVLM2-500M-Video-Instruct/resolve/main/processor_config.json "HTTP/1.1 307 Temporary Redirect"
+INFO 2026-04-17 13:09:19 _client.py:1025 HTTP Request: HEAD https://hf-mirror.com/api/resolve-cache/models/HuggingFaceTB/SmolVLM2-500M-Video-Instruct/7b375e1b73b11138ff12fe22c8f2822d8fe03467/processor_config.json "HTTP/1.1 200 OK"
+INFO 2026-04-17 13:09:20 _client.py:1025 HTTP Request: HEAD https://hf-mirror.com/HuggingFaceTB/SmolVLM2-500M-Instruct/resolve/main/preprocessor_config.json "HTTP/1.1 307 Temporary Redirect"
+INFO 2026-04-17 13:09:20 _client.py:1025 HTTP Request: HEAD https://hf-mirror.com/HuggingFaceTB/SmolVLM2-500M-Video-Instruct/resolve/main/preprocessor_config.json "HTTP/1.1 307 Temporary Redirect"
+INFO 2026-04-17 13:09:20 _client.py:1025 HTTP Request: HEAD https://hf-mirror.com/api/resolve-cache/models/HuggingFaceTB/SmolVLM2-500M-Video-Instruct/7b375e1b73b11138ff12fe22c8f2822d8fe03467/preprocessor_config.json "HTTP/1.1 200 OK"
+INFO 2026-04-17 13:09:21 _client.py:1025 HTTP Request: HEAD https://hf-mirror.com/HuggingFaceTB/SmolVLM2-500M-Instruct/resolve/main/config.json "HTTP/1.1 307 Temporary Redirect"
+INFO 2026-04-17 13:09:21 _client.py:1025 HTTP Request: HEAD https://hf-mirror.com/HuggingFaceTB/SmolVLM2-500M-Video-Instruct/resolve/main/config.json "HTTP/1.1 307 Temporary Redirect"
+INFO 2026-04-17 13:09:21 _client.py:1025 HTTP Request: HEAD https://hf-mirror.com/api/resolve-cache/models/HuggingFaceTB/SmolVLM2-500M-Video-Instruct/7b375e1b73b11138ff12fe22c8f2822d8fe03467/config.json "HTTP/1.1 200 OK"
+INFO 2026-04-17 13:09:22 _client.py:1025 HTTP Request: HEAD https://hf-mirror.com/HuggingFaceTB/SmolVLM2-500M-Instruct/resolve/main/tokenizer_config.json "HTTP/1.1 307 Temporary Redirect"
+INFO 2026-04-17 13:09:22 _client.py:1025 HTTP Request: HEAD https://hf-mirror.com/HuggingFaceTB/SmolVLM2-500M-Video-Instruct/resolve/main/tokenizer_config.json "HTTP/1.1 307 Temporary Redirect"
+INFO 2026-04-17 13:09:22 _client.py:1025 HTTP Request: HEAD https://hf-mirror.com/api/resolve-cache/models/HuggingFaceTB/SmolVLM2-500M-Video-Instruct/7b375e1b73b11138ff12fe22c8f2822d8fe03467/tokenizer_config.json "HTTP/1.1 200 OK"
+INFO 2026-04-17 13:09:22 _client.py:1025 HTTP Request: HEAD https://hf-mirror.com/HuggingFaceTB/SmolVLM2-500M-Instruct/resolve/main/tokenizer_config.json "HTTP/1.1 307 Temporary Redirect"
+INFO 2026-04-17 13:09:23 _client.py:1025 HTTP Request: HEAD https://hf-mirror.com/HuggingFaceTB/SmolVLM2-500M-Video-Instruct/resolve/main/tokenizer_config.json "HTTP/1.1 307 Temporary Redirect"
+INFO 2026-04-17 13:09:23 _client.py:1025 HTTP Request: HEAD https://hf-mirror.com/api/resolve-cache/models/HuggingFaceTB/SmolVLM2-500M-Video-Instruct/7b375e1b73b11138ff12fe22c8f2822d8fe03467/tokenizer_config.json "HTTP/1.1 200 OK"
+INFO 2026-04-17 13:09:23 _client.py:1025 HTTP Request: GET https://hf-mirror.com/api/models/HuggingFaceTB/SmolVLM2-500M-Instruct/tree/main/additional_chat_templates?recursive=false&expand=false "HTTP/1.1 307 Temporary Redirect"
+INFO 2026-04-17 13:09:23 _client.py:1025 HTTP Request: GET https://hf-mirror.com/api/models/HuggingFaceTB/SmolVLM2-500M-Video-Instruct/tree/main/additional_chat_templates?recursive=false&expand=false "HTTP/1.1 404 Not Found"
+INFO 2026-04-17 13:09:23 _client.py:1025 HTTP Request: GET https://hf-mirror.com/api/models/HuggingFaceTB/SmolVLM2-500M-Instruct/tree/main?recursive=true&expand=false "HTTP/1.1 307 Temporary Redirect"
+INFO 2026-04-17 13:09:24 _client.py:1025 HTTP Request: GET https://hf-mirror.com/api/models/HuggingFaceTB/SmolVLM2-500M-Video-Instruct/tree/main?recursive=true&expand=false "HTTP/1.1 200 OK"
+INFO 2026-04-17 13:09:24 _client.py:1025 HTTP Request: HEAD https://hf-mirror.com/HuggingFaceTB/SmolVLM2-500M-Instruct/resolve/main/processor_config.json "HTTP/1.1 307 Temporary Redirect"
+INFO 2026-04-17 13:09:24 _client.py:1025 HTTP Request: HEAD https://hf-mirror.com/HuggingFaceTB/SmolVLM2-500M-Video-Instruct/resolve/main/processor_config.json "HTTP/1.1 307 Temporary Redirect"
+INFO 2026-04-17 13:09:25 _client.py:1025 HTTP Request: HEAD https://hf-mirror.com/api/resolve-cache/models/HuggingFaceTB/SmolVLM2-500M-Video-Instruct/7b375e1b73b11138ff12fe22c8f2822d8fe03467/processor_config.json "HTTP/1.1 200 OK"
+INFO 2026-04-17 13:09:25 _client.py:1025 HTTP Request: HEAD https://hf-mirror.com/HuggingFaceTB/SmolVLM2-500M-Instruct/resolve/main/video_preprocessor_config.json "HTTP/1.1 307 Temporary Redirect"
+INFO 2026-04-17 13:09:25 _client.py:1025 HTTP Request: HEAD https://hf-mirror.com/HuggingFaceTB/SmolVLM2-500M-Video-Instruct/resolve/main/video_preprocessor_config.json "HTTP/1.1 404 Not Found"
+INFO 2026-04-17 13:09:26 _client.py:1025 HTTP Request: HEAD https://hf-mirror.com/HuggingFaceTB/SmolVLM2-500M-Instruct/resolve/main/preprocessor_config.json "HTTP/1.1 307 Temporary Redirect"
+INFO 2026-04-17 13:09:26 _client.py:1025 HTTP Request: HEAD https://hf-mirror.com/HuggingFaceTB/SmolVLM2-500M-Video-Instruct/resolve/main/preprocessor_config.json "HTTP/1.1 307 Temporary Redirect"
+INFO 2026-04-17 13:09:26 _client.py:1025 HTTP Request: HEAD https://hf-mirror.com/api/resolve-cache/models/HuggingFaceTB/SmolVLM2-500M-Video-Instruct/7b375e1b73b11138ff12fe22c8f2822d8fe03467/preprocessor_config.json "HTTP/1.1 200 OK"
+INFO 2026-04-17 13:09:27 _client.py:1025 HTTP Request: HEAD https://hf-mirror.com/HuggingFaceTB/SmolVLM2-500M-Instruct/resolve/main/processor_config.json "HTTP/1.1 307 Temporary Redirect"
+INFO 2026-04-17 13:09:27 _client.py:1025 HTTP Request: HEAD https://hf-mirror.com/HuggingFaceTB/SmolVLM2-500M-Video-Instruct/resolve/main/processor_config.json "HTTP/1.1 307 Temporary Redirect"
+INFO 2026-04-17 13:09:27 _client.py:1025 HTTP Request: HEAD https://hf-mirror.com/api/resolve-cache/models/HuggingFaceTB/SmolVLM2-500M-Video-Instruct/7b375e1b73b11138ff12fe22c8f2822d8fe03467/processor_config.json "HTTP/1.1 200 OK"
+INFO 2026-04-17 13:09:27 _client.py:1025 HTTP Request: HEAD https://hf-mirror.com/HuggingFaceTB/SmolVLM2-500M-Instruct/resolve/main/video_preprocessor_config.json "HTTP/1.1 307 Temporary Redirect"
+INFO 2026-04-17 13:09:28 _client.py:1025 HTTP Request: HEAD https://hf-mirror.com/HuggingFaceTB/SmolVLM2-500M-Video-Instruct/resolve/main/video_preprocessor_config.json "HTTP/1.1 404 Not Found"
+INFO 2026-04-17 13:09:28 _client.py:1025 HTTP Request: HEAD https://hf-mirror.com/HuggingFaceTB/SmolVLM2-500M-Instruct/resolve/main/preprocessor_config.json "HTTP/1.1 307 Temporary Redirect"
+INFO 2026-04-17 13:09:29 _client.py:1025 HTTP Request: HEAD https://hf-mirror.com/HuggingFaceTB/SmolVLM2-500M-Video-Instruct/resolve/main/preprocessor_config.json "HTTP/1.1 307 Temporary Redirect"
+INFO 2026-04-17 13:09:29 _client.py:1025 HTTP Request: HEAD https://hf-mirror.com/api/resolve-cache/models/HuggingFaceTB/SmolVLM2-500M-Video-Instruct/7b375e1b73b11138ff12fe22c8f2822d8fe03467/preprocessor_config.json "HTTP/1.1 200 OK"
+INFO 2026-04-17 13:09:33 _client.py:1025 HTTP Request: HEAD https://hf-mirror.com/HuggingFaceVLA/smolvla_libero/resolve/main/model.safetensors "HTTP/1.1 302 Found"
+INFO 2026-04-17 13:09:34 _client.py:1025 HTTP Request: HEAD https://hf-mirror.com/HuggingFaceVLA/smolvla_libero/resolve/main/policy_preprocessor.json "HTTP/1.1 307 Temporary Redirect"
+INFO 2026-04-17 13:09:34 _client.py:1025 HTTP Request: HEAD https://hf-mirror.com/api/resolve-cache/models/HuggingFaceVLA/smolvla_libero/6721902bc4d61e50a3bfdb11dfb4cb626f05d102/policy_preprocessor.json "HTTP/1.1 200 OK"
+INFO 2026-04-17 13:09:35 _client.py:1025 HTTP Request: HEAD https://hf-mirror.com/HuggingFaceTB/SmolVLM2-500M-Instruct/resolve/main/config.json "HTTP/1.1 307 Temporary Redirect"
+INFO 2026-04-17 13:09:35 _client.py:1025 HTTP Request: HEAD https://hf-mirror.com/HuggingFaceTB/SmolVLM2-500M-Video-Instruct/resolve/main/config.json "HTTP/1.1 307 Temporary Redirect"
+INFO 2026-04-17 13:09:35 _client.py:1025 HTTP Request: HEAD https://hf-mirror.com/api/resolve-cache/models/HuggingFaceTB/SmolVLM2-500M-Video-Instruct/7b375e1b73b11138ff12fe22c8f2822d8fe03467/config.json "HTTP/1.1 200 OK"
+INFO 2026-04-17 13:09:35 _client.py:1025 HTTP Request: HEAD https://hf-mirror.com/HuggingFaceTB/SmolVLM2-500M-Instruct/resolve/main/tokenizer_config.json "HTTP/1.1 307 Temporary Redirect"
+INFO 2026-04-17 13:09:36 _client.py:1025 HTTP Request: HEAD https://hf-mirror.com/HuggingFaceTB/SmolVLM2-500M-Video-Instruct/resolve/main/tokenizer_config.json "HTTP/1.1 307 Temporary Redirect"
+INFO 2026-04-17 13:09:36 _client.py:1025 HTTP Request: HEAD https://hf-mirror.com/api/resolve-cache/models/HuggingFaceTB/SmolVLM2-500M-Video-Instruct/7b375e1b73b11138ff12fe22c8f2822d8fe03467/tokenizer_config.json "HTTP/1.1 200 OK"
+INFO 2026-04-17 13:09:37 _client.py:1025 HTTP Request: HEAD https://hf-mirror.com/HuggingFaceTB/SmolVLM2-500M-Instruct/resolve/main/tokenizer_config.json "HTTP/1.1 307 Temporary Redirect"
+INFO 2026-04-17 13:09:37 _client.py:1025 HTTP Request: HEAD https://hf-mirror.com/HuggingFaceTB/SmolVLM2-500M-Video-Instruct/resolve/main/tokenizer_config.json "HTTP/1.1 307 Temporary Redirect"
+INFO 2026-04-17 13:09:37 _client.py:1025 HTTP Request: HEAD https://hf-mirror.com/api/resolve-cache/models/HuggingFaceTB/SmolVLM2-500M-Video-Instruct/7b375e1b73b11138ff12fe22c8f2822d8fe03467/tokenizer_config.json "HTTP/1.1 200 OK"
+INFO 2026-04-17 13:09:38 _client.py:1025 HTTP Request: GET https://hf-mirror.com/api/models/HuggingFaceTB/SmolVLM2-500M-Instruct/tree/main/additional_chat_templates?recursive=false&expand=false "HTTP/1.1 307 Temporary Redirect"
+INFO 2026-04-17 13:09:38 _client.py:1025 HTTP Request: GET https://hf-mirror.com/api/models/HuggingFaceTB/SmolVLM2-500M-Video-Instruct/tree/main/additional_chat_templates?recursive=false&expand=false "HTTP/1.1 404 Not Found"
+INFO 2026-04-17 13:09:38 _client.py:1025 HTTP Request: GET https://hf-mirror.com/api/models/HuggingFaceTB/SmolVLM2-500M-Instruct/tree/main?recursive=true&expand=false "HTTP/1.1 307 Temporary Redirect"
+INFO 2026-04-17 13:09:39 _client.py:1025 HTTP Request: GET https://hf-mirror.com/api/models/HuggingFaceTB/SmolVLM2-500M-Video-Instruct/tree/main?recursive=true&expand=false "HTTP/1.1 200 OK"
+INFO 2026-04-17 13:09:39 _client.py:1025 HTTP Request: HEAD https://hf-mirror.com/HuggingFaceVLA/smolvla_libero/resolve/main/policy_postprocessor.json "HTTP/1.1 307 Temporary Redirect"
+INFO 2026-04-17 13:09:39 _client.py:1025 HTTP Request: HEAD https://hf-mirror.com/api/resolve-cache/models/HuggingFaceVLA/smolvla_libero/6721902bc4d61e50a3bfdb11dfb4cb626f05d102/policy_postprocessor.json "HTTP/1.1 200 OK"
+INFO 2026-04-17 13:09:39 rain（v3）.py:305 Creating optimizer and scheduler
+WARNING 2026-04-17 13:09:39 rain（v3）.py:337 检测到 --resume=True 但未提供 --checkpoint_path。将从新开始训练。
+INFO 2026-04-17 13:09:39 rain（v3）.py:343 Output dir: train_logs/libero_object_tlofVLA_v2
+INFO 2026-04-17 13:09:39 rain（v3）.py:345 cfg.env.task='libero_object'
+INFO 2026-04-17 13:09:39 rain（v3）.py:346 Creating environment processors
+INFO 2026-04-17 13:09:39 rain（v3）.py:350 cfg.steps=1000 (1K)
+INFO 2026-04-17 13:09:39 rain（v3）.py:351 dataset.num_frames=273465 (273K)
+INFO 2026-04-17 13:09:39 rain（v3）.py:352 dataset.num_episodes=1693
+INFO 2026-04-17 13:09:39 rain（v3）.py:355 Effective batch size: 4 x 1 = 4
+INFO 2026-04-17 13:09:39 rain（v3）.py:356 num_learnable_params=97451872 (97M)
+INFO 2026-04-17 13:09:39 rain（v3）.py:357 num_total_params=604934176 (605M)
+INFO 2026-04-17 13:09:39 rain（v3）.py:376 DEBUG: DataLoader 实际使用 Workers 数量: 2
+INFO 2026-04-17 13:09:39 rain（v3）.py:491 Start offline training on a fixed dataset, with effective batch size: 4
+INFO 2026-04-17 13:09:39 rain（v3）.py:503 Initializing Vision-DORF RL modules...
+INFO 2026-04-17 13:09:39 rain（v3）.py:508 --- [DORF 适配] 确认使用策略同分布状态维度: 8
+INFO 2026-04-17 13:11:55 rain（v3）.py:755 step:1 smpl:4 ep:0 epch:0.00 loss:0.067 expert_dorf_loss:1.037 online_dorf_loss:1.511 critic_loss:2.954 grdn:0.690 good:612.0 lr:1.0e-05 updt_s:0.302 data_s:134.818
+--- [Step 0] Rollout True Reward Sum: 3.00 (Active Envs: 4)
+WARNING 2026-04-17 13:11:55 db_utils.py:170 WandB logging of key "losses_after_forward" was ignored as its type "<class 'torch.Tensor'>" is not handled by this wrapper.
+WARNING 2026-04-17 13:11:55 db_utils.py:170 WandB logging of key "losses_after_rm_padding" was ignored as its type "<class 'torch.Tensor'>" is not handled by this wrapper.
+INFO 2026-04-17 13:14:00 rain（v3）.py:755 step:2 smpl:8 ep:0 epch:0.00 loss:0.050 expert_dorf_loss:1.006 online_dorf_loss:1.182 critic_loss:0.825 grdn:0.414 good:617.0 lr:1.0e-05 updt_s:0.191 data_s:124.665
+--- [Step 1] Rollout True Reward Sum: 3.00 (Active Envs: 4)
+WARNING 2026-04-17 13:14:00 db_utils.py:170 WandB logging of key "losses_after_forward" was ignored as its type "<class 'torch.Tensor'>" is not handled by this wrapper.
+WARNING 2026-04-17 13:14:00 db_utils.py:170 WandB logging of key "losses_after_rm_padding" was ignored as its type "<class 'torch.Tensor'>" is not handled by this wrapper.
+INFO 2026-04-17 13:15:19 rain（v3）.py:755 step:3 smpl:12 ep:0 epch:0.00 loss:0.060 expert_dorf_loss:0.961 online_dorf_loss:1.159 critic_loss:0.429 grdn:0.718 good:296.0 lr:1.0e-05 updt_s:0.192 data_s:78.834
+--- [Step 2] Rollout True Reward Sum: 4.00 (Active Envs: 4)
+WARNING 2026-04-17 13:15:19 db_utils.py:170 WandB logging of key "losses_after_forward" was ignored as its type "<class 'torch.Tensor'>" is not handled by this wrapper.
+WARNING 2026-04-17 13:15:19 db_utils.py:170 WandB logging of key "losses_after_rm_padding" was ignored as its type "<class 'torch.Tensor'>" is not handled by this wrapper.
+INFO 2026-04-17 13:16:56 rain（v3）.py:755 step:4 smpl:16 ep:0 epch:0.00 loss:0.105 expert_dorf_loss:0.981 online_dorf_loss:1.024 critic_loss:0.533 grdn:0.737 good:423.0 lr:1.0e-05 updt_s:0.212 data_s:97.373
+--- [Step 3] Rollout True Reward Sum: 4.00 (Active Envs: 4)
+WARNING 2026-04-17 13:16:56 db_utils.py:170 WandB logging of key "losses_after_forward" was ignored as its type "<class 'torch.Tensor'>" is not handled by this wrapper.
+WARNING 2026-04-17 13:16:56 db_utils.py:170 WandB logging of key "losses_after_rm_padding" was ignored as its type "<class 'torch.Tensor'>" is not handled by this wrapper.
+INFO 2026-04-17 13:19:02 rain（v3）.py:755 step:5 smpl:20 ep:0 epch:0.00 loss:0.095 expert_dorf_loss:0.992 online_dorf_loss:1.170 critic_loss:0.668 grdn:1.021 good:567.0 lr:1.0e-05 updt_s:0.215 data_s:125.617
+--- [Step 4] Rollout True Reward Sum: 3.00 (Active Envs: 4)
+WARNING 2026-04-17 13:19:02 db_utils.py:170 WandB logging of key "losses_after_forward" was ignored as its type "<class 'torch.Tensor'>" is not handled by this wrapper.
+WARNING 2026-04-17 13:19:02 db_utils.py:170 WandB logging of key "losses_after_rm_padding" was ignored as its type "<class 'torch.Tensor'>" is not handled by this wrapper.
+INFO 2026-04-17 13:21:06 rain（v3）.py:755 step:6 smpl:24 ep:0 epch:0.00 loss:0.081 expert_dorf_loss:0.983 online_dorf_loss:1.153 critic_loss:0.641 grdn:0.579 good:558.0 lr:1.0e-05 updt_s:0.208 data_s:123.321
+--- [Step 5] Rollout True Reward Sum: 3.00 (Active Envs: 4)
+WARNING 2026-04-17 13:21:06 db_utils.py:170 WandB logging of key "losses_after_forward" was ignored as its type "<class 'torch.Tensor'>" is not handled by this wrapper.
+WARNING 2026-04-17 13:21:06 db_utils.py:170 WandB logging of key "losses_after_rm_padding" was ignored as its type "<class 'torch.Tensor'>" is not handled by this wrapper.
+INFO 2026-04-17 13:22:36 rain（v3）.py:755 step:7 smpl:28 ep:0 epch:0.00 loss:0.065 expert_dorf_loss:0.974 online_dorf_loss:0.903 critic_loss:0.489 grdn:0.681 good:349.0 lr:1.0e-05 updt_s:0.210 data_s:89.719
+--- [Step 6] Rollout True Reward Sum: 4.00 (Active Envs: 4)
+WARNING 2026-04-17 13:22:36 db_utils.py:170 WandB logging of key "losses_after_forward" was ignored as its type "<class 'torch.Tensor'>" is not handled by this wrapper.
+WARNING 2026-04-17 13:22:36 db_utils.py:170 WandB logging of key "losses_after_rm_padding" was ignored as its type "<class 'torch.Tensor'>" is not handled by this wrapper.
+INFO 2026-04-17 13:24:01 rain（v3）.py:755 step:8 smpl:32 ep:0 epch:0.00 loss:0.105 expert_dorf_loss:0.968 online_dorf_loss:0.778 critic_loss:0.451 grdn:0.923 good:313.0 lr:1.0e-05 updt_s:0.203 data_s:85.344
+--- [Step 7] Rollout True Reward Sum: 4.00 (Active Envs: 4)
+WARNING 2026-04-17 13:24:01 db_utils.py:170 WandB logging of key "losses_after_forward" was ignored as its type "<class 'torch.Tensor'>" is not handled by this wrapper.
+WARNING 2026-04-17 13:24:01 db_utils.py:170 WandB logging of key "losses_after_rm_padding" was ignored as its type "<class 'torch.Tensor'>" is not handled by this wrapper.
+INFO 2026-04-17 13:25:21 rain（v3）.py:755 step:9 smpl:36 ep:0 epch:0.00 loss:0.121 expert_dorf_loss:0.959 online_dorf_loss:0.711 critic_loss:0.353 grdn:1.134 good:285.0 lr:1.0e-05 updt_s:0.226 data_s:79.503
+--- [Step 8] Rollout True Reward Sum: 4.00 (Active Envs: 4)
+WARNING 2026-04-17 13:25:21 db_utils.py:170 WandB logging of key "losses_after_forward" was ignored as its type "<class 'torch.Tensor'>" is not handled by this wrapper.
+WARNING 2026-04-17 13:25:21 db_utils.py:170 WandB logging of key "losses_after_rm_padding" was ignored as its type "<class 'torch.Tensor'>" is not handled by this wrapper.
+INFO 2026-04-17 13:26:36 rain（v3）.py:755 step:10 smpl:40 ep:0 epch:0.00 loss:0.076 expert_dorf_loss:0.956 online_dorf_loss:0.556 critic_loss:0.281 grdn:0.545 good:244.0 lr:1.0e-05 updt_s:0.230 data_s:75.210
+--- [Step 9] Rollout True Reward Sum: 4.00 (Active Envs: 4)
+WARNING 2026-04-17 13:26:36 db_utils.py:170 WandB logging of key "losses_after_forward" was ignored as its type "<class 'torch.Tensor'>" is not handled by this wrapper.
+WARNING 2026-04-17 13:26:36 db_utils.py:170 WandB logging of key "losses_after_rm_padding" was ignored as its type "<class 'torch.Tensor'>" is not handled by this wrapper.
+INFO 2026-04-17 13:28:00 rain（v3）.py:755 step:11 smpl:44 ep:0 epch:0.00 loss:0.077 expert_dorf_loss:0.952 online_dorf_loss:0.691 critic_loss:0.334 grdn:0.573 good:277.0 lr:1.0e-05 updt_s:0.202 data_s:83.635
+--- [Step 10] Rollout True Reward Sum: 4.00 (Active Envs: 4)
+WARNING 2026-04-17 13:28:00 db_utils.py:170 WandB logging of key "losses_after_forward" was ignored as its type "<class 'torch.Tensor'>" is not handled by this wrapper.
+WARNING 2026-04-17 13:28:00 db_utils.py:170 WandB logging of key "losses_after_rm_padding" was ignored as its type "<class 'torch.Tensor'>" is not handled by this wrapper.
+INFO 2026-04-17 13:30:06 rain（v3）.py:755 step:12 smpl:48 ep:0 epch:0.00 loss:0.082 expert_dorf_loss:0.939 online_dorf_loss:1.089 critic_loss:0.454 grdn:0.689 good:524.0 lr:1.0e-05 updt_s:0.195 data_s:125.650
+--- [Step 11] Rollout True Reward Sum: 3.00 (Active Envs: 4)
+WARNING 2026-04-17 13:30:06 db_utils.py:170 WandB logging of key "losses_after_forward" was ignored as its type "<class 'torch.Tensor'>" is not handled by this wrapper.
+WARNING 2026-04-17 13:30:06 db_utils.py:170 WandB logging of key "losses_after_rm_padding" was ignored as its type "<class 'torch.Tensor'>" is not handled by this wrapper.
+INFO 2026-04-17 13:31:35 rain（v3）.py:755 step:13 smpl:52 ep:0 epch:0.00 loss:0.071 expert_dorf_loss:0.929 online_dorf_loss:0.783 critic_loss:0.496 grdn:1.011 good:310.0 lr:1.0e-05 updt_s:0.199 data_s:88.296
+--- [Step 12] Rollout True Reward Sum: 4.00 (Active Envs: 4)
+WARNING 2026-04-17 13:31:35 db_utils.py:170 WandB logging of key "losses_after_forward" was ignored as its type "<class 'torch.Tensor'>" is not handled by this wrapper.
+WARNING 2026-04-17 13:31:35 db_utils.py:170 WandB logging of key "losses_after_rm_padding" was ignored as its type "<class 'torch.Tensor'>" is not handled by this wrapper.
+INFO 2026-04-17 13:33:02 rain（v3）.py:755 step:14 smpl:56 ep:0 epch:0.00 loss:0.101 expert_dorf_loss:0.921 online_dorf_loss:0.745 critic_loss:0.436 grdn:0.653 good:290.0 lr:1.0e-05 updt_s:0.228 data_s:87.349
+--- [Step 13] Rollout True Reward Sum: 4.00 (Active Envs: 4)
+WARNING 2026-04-17 13:33:02 db_utils.py:170 WandB logging of key "losses_after_forward" was ignored as its type "<class 'torch.Tensor'>" is not handled by this wrapper.
+WARNING 2026-04-17 13:33:02 db_utils.py:170 WandB logging of key "losses_after_rm_padding" was ignored as its type "<class 'torch.Tensor'>" is not handled by this wrapper.
+INFO 2026-04-17 13:34:23 rain（v3）.py:755 step:15 smpl:60 ep:0 epch:0.00 loss:0.069 expert_dorf_loss:0.928 online_dorf_loss:0.573 critic_loss:0.292 grdn:0.743 good:248.0 lr:1.0e-05 updt_s:0.202 data_s:80.856
+--- [Step 14] Rollout True Reward Sum: 4.00 (Active Envs: 4)
+WARNING 2026-04-17 13:34:23 db_utils.py:170 WandB logging of key "losses_after_forward" was ignored as its type "<class 'torch.Tensor'>" is not handled by this wrapper.
+WARNING 2026-04-17 13:34:23 db_utils.py:170 WandB logging of key "losses_after_rm_padding" was ignored as its type "<class 'torch.Tensor'>" is not handled by this wrapper.
+INFO 2026-04-17 13:35:47 rain（v3）.py:755 step:16 smpl:64 ep:0 epch:0.00 loss:0.090 expert_dorf_loss:0.903 online_dorf_loss:0.572 critic_loss:0.301 grdn:0.585 good:243.0 lr:1.0e-05 updt_s:0.233 data_s:82.947
+--- [Step 15] Rollout True Reward Sum: 4.00 (Active Envs: 4)
+WARNING 2026-04-17 13:35:47 db_utils.py:170 WandB logging of key "losses_after_forward" was ignored as its type "<class 'torch.Tensor'>" is not handled by this wrapper.
+WARNING 2026-04-17 13:35:47 db_utils.py:170 WandB logging of key "losses_after_rm_padding" was ignored as its type "<class 'torch.Tensor'>" is not handled by this wrapper.
+INFO 2026-04-17 13:37:11 rain（v3）.py:755 step:17 smpl:68 ep:0 epch:0.00 loss:0.071 expert_dorf_loss:0.894 online_dorf_loss:0.587 critic_loss:0.375 grdn:0.493 good:246.0 lr:1.0e-05 updt_s:0.199 data_s:84.272
+--- [Step 16] Rollout True Reward Sum: 4.00 (Active Envs: 4)
+WARNING 2026-04-17 13:37:11 db_utils.py:170 WandB logging of key "losses_after_forward" was ignored as its type "<class 'torch.Tensor'>" is not handled by this wrapper.
+WARNING 2026-04-17 13:37:11 db_utils.py:170 WandB logging of key "losses_after_rm_padding" was ignored as its type "<class 'torch.Tensor'>" is not handled by this wrapper.
+INFO 2026-04-17 13:38:45 rain（v3）.py:755 step:18 smpl:72 ep:0 epch:0.00 loss:0.095 expert_dorf_loss:0.887 online_dorf_loss:0.735 critic_loss:0.400 grdn:0.746 good:290.0 lr:1.0e-05 updt_s:0.616 data_s:93.146
+--- [Step 17] Rollout True Reward Sum: 4.00 (Active Envs: 4)
+WARNING 2026-04-17 13:38:45 db_utils.py:170 WandB logging of key "losses_after_forward" was ignored as its type "<class 'torch.Tensor'>" is not handled by this wrapper.
+WARNING 2026-04-17 13:38:45 db_utils.py:170 WandB logging of key "losses_after_rm_padding" was ignored as its type "<class 'torch.Tensor'>" is not handled by this wrapper.
+INFO 2026-04-17 13:40:55 rain（v3）.py:755 step:19 smpl:76 ep:0 epch:0.00 loss:0.064 expert_dorf_loss:0.886 online_dorf_loss:1.016 critic_loss:0.324 grdn:0.562 good:490.0 lr:1.0e-05 updt_s:0.205 data_s:130.019
+--- [Step 18] Rollout True Reward Sum: 3.00 (Active Envs: 4)
+WARNING 2026-04-17 13:40:55 db_utils.py:170 WandB logging of key "losses_after_forward" was ignored as its type "<class 'torch.Tensor'>" is not handled by this wrapper.
+WARNING 2026-04-17 13:40:55 db_utils.py:170 WandB logging of key "losses_after_rm_padding" was ignored as its type "<class 'torch.Tensor'>" is not handled by this wrapper.
+INFO 2026-04-17 13:42:23 rain（v3）.py:755 step:20 smpl:80 ep:0 epch:0.00 loss:0.082 expert_dorf_loss:0.856 online_dorf_loss:0.747 critic_loss:0.340 grdn:0.474 good:276.0 lr:1.0e-05 updt_s:0.213 data_s:88.006
+--- [Step 19] Rollout True Reward Sum: 4.00 (Active Envs: 4)
+WARNING 2026-04-17 13:42:23 db_utils.py:170 WandB logging of key "losses_after_forward" was ignored as its type "<class 'torch.Tensor'>" is not handled by this wrapper.
+WARNING 2026-04-17 13:42:23 db_utils.py:170 WandB logging of key "losses_after_rm_padding" was ignored as its type "<class 'torch.Tensor'>" is not handled by this wrapper.
+INFO 2026-04-17 13:44:28 rain（v3）.py:755 step:21 smpl:84 ep:1 epch:0.00 loss:0.063 expert_dorf_loss:0.851 online_dorf_loss:0.846 critic_loss:0.378 grdn:0.481 good:520.0 lr:1.0e-05 updt_s:0.217 data_s:124.275
+--- [Step 20] Rollout True Reward Sum: 3.00 (Active Envs: 4)
+WARNING 2026-04-17 13:44:28 db_utils.py:170 WandB logging of key "losses_after_forward" was ignored as its type "<class 'torch.Tensor'>" is not handled by this wrapper.
+WARNING 2026-04-17 13:44:28 db_utils.py:170 WandB logging of key "losses_after_rm_padding" was ignored as its type "<class 'torch.Tensor'>" is not handled by this wrapper.
+INFO 2026-04-17 13:45:51 rain（v3）.py:755 step:22 smpl:88 ep:1 epch:0.00 loss:0.100 expert_dorf_loss:0.817 online_dorf_loss:1.069 critic_loss:0.337 grdn:0.584 good:230.0 lr:1.0e-05 updt_s:0.260 data_s:83.252
+--- [Step 21] Rollout True Reward Sum: 4.00 (Active Envs: 4)
+WARNING 2026-04-17 13:45:51 db_utils.py:170 WandB logging of key "losses_after_forward" was ignored as its type "<class 'torch.Tensor'>" is not handled by this wrapper.
+WARNING 2026-04-17 13:45:51 db_utils.py:170 WandB logging of key "losses_after_rm_padding" was ignored as its type "<class 'torch.Tensor'>" is not handled by this wrapper.
+INFO 2026-04-17 13:47:13 rain（v3）.py:755 step:23 smpl:92 ep:1 epch:0.00 loss:0.070 expert_dorf_loss:0.861 online_dorf_loss:0.676 critic_loss:0.396 grdn:0.624 good:242.0 lr:1.0e-05 updt_s:0.192 data_s:81.657
+--- [Step 22] Rollout True Reward Sum: 4.00 (Active Envs: 4)
+WARNING 2026-04-17 13:47:13 db_utils.py:170 WandB logging of key "losses_after_forward" was ignored as its type "<class 'torch.Tensor'>" is not handled by this wrapper.
+WARNING 2026-04-17 13:47:13 db_utils.py:170 WandB logging of key "losses_after_rm_padding" was ignored as its type "<class 'torch.Tensor'>" is not handled by this wrapper.
+INFO 2026-04-17 13:49:17 rain（v3）.py:755 step:24 smpl:96 ep:1 epch:0.00 loss:0.091 expert_dorf_loss:0.844 online_dorf_loss:1.183 critic_loss:1.140 grdn:0.609 good:569.0 lr:1.0e-05 updt_s:0.182 data_s:123.738
+--- [Step 23] Rollout True Reward Sum: 3.00 (Active Envs: 4)
+WARNING 2026-04-17 13:49:17 db_utils.py:170 WandB logging of key "losses_after_forward" was ignored as its type "<class 'torch.Tensor'>" is not handled by this wrapper.
+WARNING 2026-04-17 13:49:17 db_utils.py:170 WandB logging of key "losses_after_rm_padding" was ignored as its type "<class 'torch.Tensor'>" is not handled by this wrapper.
+INFO 2026-04-17 13:50:37 rain（v3）.py:755 step:25 smpl:100 ep:1 epch:0.00 loss:0.084 expert_dorf_loss:0.872 online_dorf_loss:0.465 critic_loss:0.329 grdn:0.633 good:209.0 lr:1.0e-05 updt_s:0.212 data_s:79.634
+--- [Step 24] Rollout True Reward Sum: 4.00 (Active Envs: 4)
+WARNING 2026-04-17 13:50:37 db_utils.py:170 WandB logging of key "losses_after_forward" was ignored as its type "<class 'torch.Tensor'>" is not handled by this wrapper.
+WARNING 2026-04-17 13:50:37 db_utils.py:170 WandB logging of key "losses_after_rm_padding" was ignored as its type "<class 'torch.Tensor'>" is not handled by this wrapper.
+INFO 2026-04-17 13:52:43 rain（v3）.py:755 step:26 smpl:104 ep:1 epch:0.00 loss:0.104 expert_dorf_loss:0.881 online_dorf_loss:1.366 critic_loss:0.889 grdn:0.565 good:501.0 lr:1.0e-05 updt_s:0.197 data_s:126.138
+--- [Step 25] Rollout True Reward Sum: 4.00 (Active Envs: 4)
+WARNING 2026-04-17 13:52:43 db_utils.py:170 WandB logging of key "losses_after_forward" was ignored as its type "<class 'torch.Tensor'>" is not handled by this wrapper.
+WARNING 2026-04-17 13:52:43 db_utils.py:170 WandB logging of key "losses_after_rm_padding" was ignored as its type "<class 'torch.Tensor'>" is not handled by this wrapper.
+INFO 2026-04-17 13:54:50 rain（v3）.py:755 step:27 smpl:108 ep:1 epch:0.00 loss:0.074 expert_dorf_loss:0.876 online_dorf_loss:1.157 critic_loss:0.387 grdn:0.685 good:491.0 lr:1.0e-05 updt_s:0.203 data_s:126.136
+--- [Step 26] Rollout True Reward Sum: 3.00 (Active Envs: 4)
+WARNING 2026-04-17 13:54:50 db_utils.py:170 WandB logging of key "losses_after_forward" was ignored as its type "<class 'torch.Tensor'>" is not handled by this wrapper.
+WARNING 2026-04-17 13:54:50 db_utils.py:170 WandB logging of key "losses_after_rm_padding" was ignored as its type "<class 'torch.Tensor'>" is not handled by this wrapper.
+INFO 2026-04-17 13:56:56 rain（v3）.py:755 step:28 smpl:112 ep:1 epch:0.00 loss:0.097 expert_dorf_loss:0.891 online_dorf_loss:1.110 critic_loss:0.542 grdn:1.156 good:494.0 lr:1.0e-05 updt_s:0.184 data_s:126.224
+--- [Step 27] Rollout True Reward Sum: 3.00 (Active Envs: 4)
+WARNING 2026-04-17 13:56:56 db_utils.py:170 WandB logging of key "losses_after_forward" was ignored as its type "<class 'torch.Tensor'>" is not handled by this wrapper.
+WARNING 2026-04-17 13:56:56 db_utils.py:170 WandB logging of key "losses_after_rm_padding" was ignored as its type "<class 'torch.Tensor'>" is not handled by this wrapper.
+INFO 2026-04-17 13:58:17 rain（v3）.py:755 step:29 smpl:116 ep:1 epch:0.00 loss:0.071 expert_dorf_loss:0.887 online_dorf_loss:0.594 critic_loss:0.276 grdn:0.634 good:216.0 lr:1.0e-05 updt_s:0.220 data_s:80.959
+--- [Step 28] Rollout True Reward Sum: 4.00 (Active Envs: 4)
+WARNING 2026-04-17 13:58:17 db_utils.py:170 WandB logging of key "losses_after_forward" was ignored as its type "<class 'torch.Tensor'>" is not handled by this wrapper.
+WARNING 2026-04-17 13:58:17 db_utils.py:170 WandB logging of key "losses_after_rm_padding" was ignored as its type "<class 'torch.Tensor'>" is not handled by this wrapper.
+INFO 2026-04-17 13:59:59 rain（v3）.py:755 step:30 smpl:120 ep:1 epch:0.00 loss:0.113 expert_dorf_loss:0.884 online_dorf_loss:0.930 critic_loss:0.532 grdn:0.772 good:382.0 lr:1.0e-05 updt_s:0.220 data_s:101.573
+--- [Step 29] Rollout True Reward Sum: 4.00 (Active Envs: 4)
+WARNING 2026-04-17 13:59:59 db_utils.py:170 WandB logging of key "losses_after_forward" was ignored as its type "<class 'torch.Tensor'>" is not handled by this wrapper.
+WARNING 2026-04-17 13:59:59 db_utils.py:170 WandB logging of key "losses_after_rm_padding" was ignored as its type "<class 'torch.Tensor'>" is not handled by this wrapper.
+INFO 2026-04-17 14:01:16 rain（v3）.py:755 step:31 smpl:124 ep:1 epch:0.00 loss:0.056 expert_dorf_loss:0.899 online_dorf_loss:0.570 critic_loss:0.308 grdn:0.538 good:236.0 lr:1.0e-05 updt_s:0.189 data_s:76.789
+--- [Step 30] Rollout True Reward Sum: 4.00 (Active Envs: 4)
+WARNING 2026-04-17 14:01:16 db_utils.py:170 WandB logging of key "losses_after_forward" was ignored as its type "<class 'torch.Tensor'>" is not handled by this wrapper.
+WARNING 2026-04-17 14:01:16 db_utils.py:170 WandB logging of key "losses_after_rm_padding" was ignored as its type "<class 'torch.Tensor'>" is not handled by this wrapper.
+INFO 2026-04-17 14:02:35 rain（v3）.py:755 step:32 smpl:128 ep:1 epch:0.00 loss:0.087 expert_dorf_loss:0.860 online_dorf_loss:0.476 critic_loss:0.181 grdn:0.485 good:231.0 lr:1.0e-05 updt_s:0.190 data_s:79.139
+--- [Step 31] Rollout True Reward Sum: 4.00 (Active Envs: 4)
+WARNING 2026-04-17 14:02:35 db_utils.py:170 WandB logging of key "losses_after_forward" was ignored as its type "<class 'torch.Tensor'>" is not handled by this wrapper.
+WARNING 2026-04-17 14:02:35 db_utils.py:170 WandB logging of key "losses_after_rm_padding" was ignored as its type "<class 'torch.Tensor'>" is not handled by this wrapper.
+INFO 2026-04-17 14:03:58 rain（v3）.py:755 step:33 smpl:132 ep:1 epch:0.00 loss:0.067 expert_dorf_loss:0.890 online_dorf_loss:0.676 critic_loss:0.389 grdn:0.489 good:259.0 lr:1.0e-05 updt_s:0.219 data_s:82.774
+--- [Step 32] Rollout True Reward Sum: 4.00 (Active Envs: 4)
+WARNING 2026-04-17 14:03:58 db_utils.py:170 WandB logging of key "losses_after_forward" was ignored as its type "<class 'torch.Tensor'>" is not handled by this wrapper.
+WARNING 2026-04-17 14:03:58 db_utils.py:170 WandB logging of key "losses_after_rm_padding" was ignored as its type "<class 'torch.Tensor'>" is not handled by this wrapper.
+INFO 2026-04-17 14:05:25 rain（v3）.py:755 step:34 smpl:136 ep:1 epch:0.00 loss:0.079 expert_dorf_loss:0.833 online_dorf_loss:0.714 critic_loss:0.439 grdn:0.674 good:297.0 lr:1.0e-05 updt_s:0.194 data_s:86.245
+--- [Step 33] Rollout True Reward Sum: 4.00 (Active Envs: 4)
+WARNING 2026-04-17 14:05:25 db_utils.py:170 WandB logging of key "losses_after_forward" was ignored as its type "<class 'torch.Tensor'>" is not handled by this wrapper.
+WARNING 2026-04-17 14:05:25 db_utils.py:170 WandB logging of key "losses_after_rm_padding" was ignored as its type "<class 'torch.Tensor'>" is not handled by this wrapper.
+INFO 2026-04-17 14:06:47 rain（v3）.py:755 step:35 smpl:140 ep:1 epch:0.00 loss:0.067 expert_dorf_loss:0.861 online_dorf_loss:0.567 critic_loss:0.273 grdn:0.715 good:265.0 lr:1.0e-05 updt_s:0.239 data_s:81.561
+--- [Step 34] Rollout True Reward Sum: 4.00 (Active Envs: 4)
+WARNING 2026-04-17 14:06:47 db_utils.py:170 WandB logging of key "losses_after_forward" was ignored as its type "<class 'torch.Tensor'>" is not handled by this wrapper.
+WARNING 2026-04-17 14:06:47 db_utils.py:170 WandB logging of key "losses_after_rm_padding" was ignored as its type "<class 'torch.Tensor'>" is not handled by this wrapper.
+INFO 2026-04-17 14:08:51 rain（v3）.py:755 step:36 smpl:144 ep:1 epch:0.00 loss:0.076 expert_dorf_loss:0.821 online_dorf_loss:1.060 critic_loss:0.626 grdn:0.557 good:548.0 lr:1.0e-05 updt_s:0.200 data_s:123.840
+--- [Step 35] Rollout True Reward Sum: 3.00 (Active Envs: 4)
+WARNING 2026-04-17 14:08:51 db_utils.py:170 WandB logging of key "losses_after_forward" was ignored as its type "<class 'torch.Tensor'>" is not handled by this wrapper.
+WARNING 2026-04-17 14:08:51 db_utils.py:170 WandB logging of key "losses_after_rm_padding" was ignored as its type "<class 'torch.Tensor'>" is not handled by this wrapper.
+INFO 2026-04-17 14:10:06 rain（v3）.py:755 step:37 smpl:148 ep:1 epch:0.00 loss:0.064 expert_dorf_loss:0.822 online_dorf_loss:0.452 critic_loss:0.239 grdn:0.555 good:219.0 lr:1.0e-05 updt_s:0.197 data_s:74.729
+--- [Step 36] Rollout True Reward Sum: 4.00 (Active Envs: 4)
+WARNING 2026-04-17 14:10:06 db_utils.py:170 WandB logging of key "losses_after_forward" was ignored as its type "<class 'torch.Tensor'>" is not handled by this wrapper.
+WARNING 2026-04-17 14:10:06 db_utils.py:170 WandB logging of key "losses_after_rm_padding" was ignored as its type "<class 'torch.Tensor'>" is not handled by this wrapper.
+INFO 2026-04-17 14:11:35 rain（v3）.py:755 step:38 smpl:152 ep:1 epch:0.00 loss:0.099 expert_dorf_loss:0.805 online_dorf_loss:0.657 critic_loss:0.238 grdn:0.659 good:298.0 lr:1.0e-05 updt_s:0.211 data_s:89.054
+--- [Step 37] Rollout True Reward Sum: 4.00 (Active Envs: 4)
+WARNING 2026-04-17 14:11:35 db_utils.py:170 WandB logging of key "losses_after_forward" was ignored as its type "<class 'torch.Tensor'>" is not handled by this wrapper.
+WARNING 2026-04-17 14:11:35 db_utils.py:170 WandB logging of key "losses_after_rm_padding" was ignored as its type "<class 'torch.Tensor'>" is not handled by this wrapper.
+INFO 2026-04-17 14:13:39 rain（v3）.py:755 step:39 smpl:156 ep:1 epch:0.00 loss:0.061 expert_dorf_loss:0.801 online_dorf_loss:0.891 critic_loss:0.360 grdn:0.714 good:544.0 lr:1.0e-05 updt_s:0.199 data_s:123.848
+--- [Step 38] Rollout True Reward Sum: 3.00 (Active Envs: 4)
+WARNING 2026-04-17 14:13:39 db_utils.py:170 WandB logging of key "losses_after_forward" was ignored as its type "<class 'torch.Tensor'>" is not handled by this wrapper.
+WARNING 2026-04-17 14:13:39 db_utils.py:170 WandB logging of key "losses_after_rm_padding" was ignored as its type "<class 'torch.Tensor'>" is not handled by this wrapper.
+INFO 2026-04-17 14:15:01 rain（v3）.py:755 step:40 smpl:160 ep:1 epch:0.00 loss:0.095 expert_dorf_loss:0.765 online_dorf_loss:0.725 critic_loss:0.338 grdn:0.689 good:270.0 lr:1.0e-05 updt_s:0.211 data_s:81.294
+--- [Step 39] Rollout True Reward Sum: 4.00 (Active Envs: 4)
+WARNING 2026-04-17 14:15:01 db_utils.py:170 WandB logging of key "losses_after_forward" was ignored as its type "<class 'torch.Tensor'>" is not handled by this wrapper.
+WARNING 2026-04-17 14:15:01 db_utils.py:170 WandB logging of key "losses_after_rm_padding" was ignored as its type "<class 'torch.Tensor'>" is not handled by this wrapper.
+INFO 2026-04-17 14:16:18 rain（v3）.py:755 step:41 smpl:164 ep:1 epch:0.00 loss:0.055 expert_dorf_loss:0.763 online_dorf_loss:0.619 critic_loss:0.187 grdn:0.699 good:236.0 lr:1.0e-05 updt_s:0.192 data_s:77.394
+--- [Step 40] Rollout True Reward Sum: 4.00 (Active Envs: 4)
+WARNING 2026-04-17 14:16:18 db_utils.py:170 WandB logging of key "losses_after_forward" was ignored as its type "<class 'torch.Tensor'>" is not handled by this wrapper.
+WARNING 2026-04-17 14:16:18 db_utils.py:170 WandB logging of key "losses_after_rm_padding" was ignored as its type "<class 'torch.Tensor'>" is not handled by this wrapper.
+INFO 2026-04-17 14:18:23 rain（v3）.py:755 step:42 smpl:168 ep:1 epch:0.00 loss:0.055 expert_dorf_loss:0.760 online_dorf_loss:0.771 critic_loss:0.334 grdn:0.497 good:419.0 lr:1.0e-05 updt_s:0.179 data_s:124.422
+--- [Step 41] Rollout True Reward Sum: 2.00 (Active Envs: 4)
+WARNING 2026-04-17 14:18:23 db_utils.py:170 WandB logging of key "losses_after_forward" was ignored as its type "<class 'torch.Tensor'>" is not handled by this wrapper.
+WARNING 2026-04-17 14:18:23 db_utils.py:170 WandB logging of key "losses_after_rm_padding" was ignored as its type "<class 'torch.Tensor'>" is not handled by this wrapper.
+INFO 2026-04-17 14:20:01 rain（v3）.py:755 step:43 smpl:172 ep:1 epch:0.00 loss:0.073 expert_dorf_loss:0.756 online_dorf_loss:1.073 critic_loss:0.537 grdn:0.659 good:418.0 lr:1.0e-05 updt_s:0.198 data_s:97.832
+--- [Step 42] Rollout True Reward Sum: 4.00 (Active Envs: 4)
+WARNING 2026-04-17 14:20:01 db_utils.py:170 WandB logging of key "losses_after_forward" was ignored as its type "<class 'torch.Tensor'>" is not handled by this wrapper.
+WARNING 2026-04-17 14:20:01 db_utils.py:170 WandB logging of key "losses_after_rm_padding" was ignored as its type "<class 'torch.Tensor'>" is not handled by this wrapper.
+INFO 2026-04-17 14:21:13 rain（v3）.py:755 step:44 smpl:176 ep:1 epch:0.00 loss:0.080 expert_dorf_loss:0.744 online_dorf_loss:0.493 critic_loss:0.209 grdn:0.714 good:175.0 lr:1.0e-05 updt_s:0.204 data_s:71.336
+--- [Step 43] Rollout True Reward Sum: 4.00 (Active Envs: 4)
+WARNING 2026-04-17 14:21:13 db_utils.py:170 WandB logging of key "losses_after_forward" was ignored as its type "<class 'torch.Tensor'>" is not handled by this wrapper.
+WARNING 2026-04-17 14:21:13 db_utils.py:170 WandB logging of key "losses_after_rm_padding" was ignored as its type "<class 'torch.Tensor'>" is not handled by this wrapper.
+INFO 2026-04-17 14:22:31 rain（v3）.py:755 step:45 smpl:180 ep:1 epch:0.00 loss:0.066 expert_dorf_loss:0.762 online_dorf_loss:0.538 critic_loss:0.268 grdn:0.495 good:224.0 lr:1.0e-05 updt_s:0.182 data_s:78.357
+--- [Step 44] Rollout True Reward Sum: 4.00 (Active Envs: 4)
+WARNING 2026-04-17 14:22:31 db_utils.py:170 WandB logging of key "losses_after_forward" was ignored as its type "<class 'torch.Tensor'>" is not handled by this wrapper.
+WARNING 2026-04-17 14:22:31 db_utils.py:170 WandB logging of key "losses_after_rm_padding" was ignored as its type "<class 'torch.Tensor'>" is not handled by this wrapper.
+INFO 2026-04-17 14:23:52 rain（v3）.py:755 step:46 smpl:184 ep:1 epch:0.00 loss:0.074 expert_dorf_loss:0.754 online_dorf_loss:0.681 critic_loss:0.364 grdn:0.552 good:258.0 lr:1.0e-05 updt_s:0.214 data_s:80.657
+--- [Step 45] Rollout True Reward Sum: 4.00 (Active Envs: 4)
+WARNING 2026-04-17 14:23:52 db_utils.py:170 WandB logging of key "losses_after_forward" was ignored as its type "<class 'torch.Tensor'>" is not handled by this wrapper.
+WARNING 2026-04-17 14:23:52 db_utils.py:170 WandB logging of key "losses_after_rm_padding" was ignored as its type "<class 'torch.Tensor'>" is not handled by this wrapper.
+INFO 2026-04-17 14:25:57 rain（v3）.py:755 step:47 smpl:188 ep:1 epch:0.00 loss:0.079 expert_dorf_loss:0.776 online_dorf_loss:0.968 critic_loss:0.438 grdn:0.513 good:502.0 lr:1.0e-05 updt_s:0.217 data_s:124.279
+--- [Step 46] Rollout True Reward Sum: 3.00 (Active Envs: 4)
+WARNING 2026-04-17 14:25:57 db_utils.py:170 WandB logging of key "losses_after_forward" was ignored as its type "<class 'torch.Tensor'>" is not handled by this wrapper.
+WARNING 2026-04-17 14:25:57 db_utils.py:170 WandB logging of key "losses_after_rm_padding" was ignored as its type "<class 'torch.Tensor'>" is not handled by this wrapper.
+INFO 2026-04-17 14:28:03 rain（v3）.py:755 step:48 smpl:192 ep:1 epch:0.00 loss:0.130 expert_dorf_loss:0.746 online_dorf_loss:0.987 critic_loss:0.261 grdn:2.005 good:515.0 lr:1.0e-05 updt_s:0.184 data_s:126.391
+--- [Step 47] Rollout True Reward Sum: 3.00 (Active Envs: 4)
+WARNING 2026-04-17 14:28:03 db_utils.py:170 WandB logging of key "losses_after_forward" was ignored as its type "<class 'torch.Tensor'>" is not handled by this wrapper.
+WARNING 2026-04-17 14:28:03 db_utils.py:170 WandB logging of key "losses_after_rm_padding" was ignored as its type "<class 'torch.Tensor'>" is not handled by this wrapper.
+INFO 2026-04-17 14:30:07 rain（v3）.py:755 step:49 smpl:196 ep:1 epch:0.00 loss:0.073 expert_dorf_loss:0.756 online_dorf_loss:1.063 critic_loss:0.442 grdn:0.550 good:514.0 lr:1.0e-05 updt_s:0.193 data_s:123.173
+--- [Step 48] Rollout True Reward Sum: 3.00 (Active Envs: 4)
+WARNING 2026-04-17 14:30:07 db_utils.py:170 WandB logging of key "losses_after_forward" was ignored as its type "<class 'torch.Tensor'>" is not handled by this wrapper.
+WARNING 2026-04-17 14:30:07 db_utils.py:170 WandB logging of key "losses_after_rm_padding" was ignored as its type "<class 'torch.Tensor'>" is not handled by this wrapper.
+INFO 2026-04-17 14:31:24 rain（v3）.py:755 step:50 smpl:200 ep:1 epch:0.00 loss:0.117 expert_dorf_loss:0.773 online_dorf_loss:0.426 critic_loss:0.163 grdn:0.922 good:208.0 lr:1.0e-05 updt_s:0.202 data_s:76.916
+--- [Step 49] Rollout True Reward Sum: 4.00 (Active Envs: 4)
+WARNING 2026-04-17 14:31:24 db_utils.py:170 WandB logging of key "losses_after_forward" was ignored as its type "<class 'torch.Tensor'>" is not handled by this wrapper.
+WARNING 2026-04-17 14:31:24 db_utils.py:170 WandB logging of key "losses_after_rm_padding" was ignored as its type "<class 'torch.Tensor'>" is not handled by this wrapper.
+INFO 2026-04-17 14:31:24 rain（v3）.py:777 Checkpoint policy after step 50
+INFO 2026-04-17 14:31:26 rain（v3）.py:798 DORF 状态已保存至: train_logs/libero_object_tlofVLA_v2/checkpoints/000050/dorf_state.pt
+/root/autodl-tmp/miniconda3/envs/lerobot/lib/python3.10/site-packages/wandb/analytics/sentry.py:279: DeprecationWarning: The `Scope.user` setter is deprecated in favor of `Scope.set_user()`.
+  self.scope.user = {"email": email}
+INFO 2026-04-17 14:32:53 rain（v3）.py:755 step:51 smpl:204 ep:1 epch:0.00 loss:0.051 expert_dorf_loss:0.742 online_dorf_loss:0.545 critic_loss:0.352 grdn:0.561 good:226.0 lr:1.0e-05 updt_s:0.245 data_s:81.749
+--- [Step 50] Rollout True Reward Sum: 4.00 (Active Envs: 4)
+WARNING 2026-04-17 14:32:53 db_utils.py:170 WandB logging of key "losses_after_forward" was ignored as its type "<class 'torch.Tensor'>" is not handled by this wrapper.
+WARNING 2026-04-17 14:32:53 db_utils.py:170 WandB logging of key "losses_after_rm_padding" was ignored as its type "<class 'torch.Tensor'>" is not handled by this wrapper.
+INFO 2026-04-17 14:34:57 rain（v3）.py:755 step:52 smpl:208 ep:1 epch:0.00 loss:0.086 expert_dorf_loss:0.747 online_dorf_loss:0.869 critic_loss:0.240 grdn:0.676 good:471.0 lr:1.0e-05 updt_s:0.194 data_s:123.592
+--- [Step 51] Rollout True Reward Sum: 3.00 (Active Envs: 4)
+WARNING 2026-04-17 14:34:57 db_utils.py:170 WandB logging of key "losses_after_forward" was ignored as its type "<class 'torch.Tensor'>" is not handled by this wrapper.
+WARNING 2026-04-17 14:34:57 db_utils.py:170 WandB logging of key "losses_after_rm_padding" was ignored as its type "<class 'torch.Tensor'>" is not handled by this wrapper.
+INFO 2026-04-17 14:37:02 rain（v3）.py:755 step:53 smpl:212 ep:1 epch:0.00 loss:0.080 expert_dorf_loss:0.731 online_dorf_loss:0.950 critic_loss:0.353 grdn:0.516 good:519.0 lr:1.0e-05 updt_s:0.201 data_s:124.748
+--- [Step 52] Rollout True Reward Sum: 3.00 (Active Envs: 4)
+WARNING 2026-04-17 14:37:02 db_utils.py:170 WandB logging of key "losses_after_forward" was ignored as its type "<class 'torch.Tensor'>" is not handled by this wrapper.
+WARNING 2026-04-17 14:37:02 db_utils.py:170 WandB logging of key "losses_after_rm_padding" was ignored as its type "<class 'torch.Tensor'>" is not handled by this wrapper.
+INFO 2026-04-17 14:38:23 rain（v3）.py:755 step:54 smpl:216 ep:1 epch:0.00 loss:0.081 expert_dorf_loss:0.711 online_dorf_loss:0.696 critic_loss:0.467 grdn:0.690 good:248.0 lr:1.0e-05 updt_s:0.234 data_s:80.120
+--- [Step 53] Rollout True Reward Sum: 4.00 (Active Envs: 4)
+WARNING 2026-04-17 14:38:23 db_utils.py:170 WandB logging of key "losses_after_forward" was ignored as its type "<class 'torch.Tensor'>" is not handled by this wrapper.
+WARNING 2026-04-17 14:38:23 db_utils.py:170 WandB logging of key "losses_after_rm_padding" was ignored as its type "<class 'torch.Tensor'>" is not handled by this wrapper.
+INFO 2026-04-17 14:40:26 rain（v3）.py:755 step:55 smpl:220 ep:1 epch:0.00 loss:0.077 expert_dorf_loss:0.697 online_dorf_loss:0.816 critic_loss:0.389 grdn:0.994 good:499.0 lr:1.0e-05 updt_s:0.191 data_s:123.426
+--- [Step 54] Rollout True Reward Sum: 3.00 (Active Envs: 4)
+WARNING 2026-04-17 14:40:26 db_utils.py:170 WandB logging of key "losses_after_forward" was ignored as its type "<class 'torch.Tensor'>" is not handled by this wrapper.
+WARNING 2026-04-17 14:40:26 db_utils.py:170 WandB logging of key "losses_after_rm_padding" was ignored as its type "<class 'torch.Tensor'>" is not handled by this wrapper.
+INFO 2026-04-17 14:41:53 rain（v3）.py:755 step:56 smpl:224 ep:1 epch:0.00 loss:0.087 expert_dorf_loss:0.671 online_dorf_loss:0.714 critic_loss:0.338 grdn:0.597 good:302.0 lr:1.0e-05 updt_s:0.227 data_s:86.520
+--- [Step 55] Rollout True Reward Sum: 4.00 (Active Envs: 4)
+WARNING 2026-04-17 14:41:53 db_utils.py:170 WandB logging of key "losses_after_forward" was ignored as its type "<class 'torch.Tensor'>" is not handled by this wrapper.
+WARNING 2026-04-17 14:41:53 db_utils.py:170 WandB logging of key "losses_after_rm_padding" was ignored as its type "<class 'torch.Tensor'>" is not handled by this wrapper.
+INFO 2026-04-17 14:43:57 rain（v3）.py:755 step:57 smpl:228 ep:1 epch:0.00 loss:0.057 expert_dorf_loss:0.661 online_dorf_loss:0.773 critic_loss:0.433 grdn:0.580 good:552.0 lr:1.0e-05 updt_s:0.183 data_s:123.313
+--- [Step 56] Rollout True Reward Sum: 3.00 (Active Envs: 4)
+WARNING 2026-04-17 14:43:57 db_utils.py:170 WandB logging of key "losses_after_forward" was ignored as its type "<class 'torch.Tensor'>" is not handled by this wrapper.
+WARNING 2026-04-17 14:43:57 db_utils.py:170 WandB logging of key "losses_after_rm_padding" was ignored as its type "<class 'torch.Tensor'>" is not handled by this wrapper.
+INFO 2026-04-17 14:45:58 rain（v3）.py:755 step:58 smpl:232 ep:1 epch:0.00 loss:0.059 expert_dorf_loss:0.639 online_dorf_loss:0.910 critic_loss:0.740 grdn:0.629 good:467.0 lr:1.0e-05 updt_s:0.215 data_s:121.245
+--- [Step 57] Rollout True Reward Sum: 2.00 (Active Envs: 4)
+WARNING 2026-04-17 14:45:58 db_utils.py:170 WandB logging of key "losses_after_forward" was ignored as its type "<class 'torch.Tensor'>" is not handled by this wrapper.
+WARNING 2026-04-17 14:45:58 db_utils.py:170 WandB logging of key "losses_after_rm_padding" was ignored as its type "<class 'torch.Tensor'>" is not handled by this wrapper.
+INFO 2026-04-17 14:47:18 rain（v3）.py:755 step:59 smpl:236 ep:1 epch:0.00 loss:0.055 expert_dorf_loss:0.659 online_dorf_loss:0.833 critic_loss:0.319 grdn:0.648 good:253.0 lr:1.0e-05 updt_s:0.231 data_s:80.044
+--- [Step 58] Rollout True Reward Sum: 4.00 (Active Envs: 4)
+WARNING 2026-04-17 14:47:18 db_utils.py:170 WandB logging of key "losses_after_forward" was ignored as its type "<class 'torch.Tensor'>" is not handled by this wrapper.
+WARNING 2026-04-17 14:47:18 db_utils.py:170 WandB logging of key "losses_after_rm_padding" was ignored as its type "<class 'torch.Tensor'>" is not handled by this wrapper.
+INFO 2026-04-17 14:48:58 rain（v3）.py:755 step:60 smpl:240 ep:1 epch:0.00 loss:0.092 expert_dorf_loss:0.651 online_dorf_loss:0.940 critic_loss:0.529 grdn:0.661 good:426.0 lr:1.0e-05 updt_s:0.212 data_s:99.571
+--- [Step 59] Rollout True Reward Sum: 4.00 (Active Envs: 4)
+WARNING 2026-04-17 14:48:58 db_utils.py:170 WandB logging of key "losses_after_forward" was ignored as its type "<class 'torch.Tensor'>" is not handled by this wrapper.
+WARNING 2026-04-17 14:48:58 db_utils.py:170 WandB logging of key "losses_after_rm_padding" was ignored as its type "<class 'torch.Tensor'>" is not handled by this wrapper.
+INFO 2026-04-17 14:50:16 rain（v3）.py:755 step:61 smpl:244 ep:2 epch:0.00 loss:0.076 expert_dorf_loss:0.668 online_dorf_loss:0.576 critic_loss:0.309 grdn:0.696 good:224.0 lr:1.0e-05 updt_s:0.194 data_s:77.546
+--- [Step 60] Rollout True Reward Sum: 4.00 (Active Envs: 4)
+WARNING 2026-04-17 14:50:16 db_utils.py:170 WandB logging of key "losses_after_forward" was ignored as its type "<class 'torch.Tensor'>" is not handled by this wrapper.
+WARNING 2026-04-17 14:50:16 db_utils.py:170 WandB logging of key "losses_after_rm_padding" was ignored as its type "<class 'torch.Tensor'>" is not handled by this wrapper.
+INFO 2026-04-17 14:51:41 rain（v3）.py:755 step:62 smpl:248 ep:2 epch:0.00 loss:0.079 expert_dorf_loss:0.653 online_dorf_loss:0.825 critic_loss:0.458 grdn:0.802 good:265.0 lr:1.0e-05 updt_s:0.217 data_s:85.188
+--- [Step 61] Rollout True Reward Sum: 4.00 (Active Envs: 4)
+WARNING 2026-04-17 14:51:41 db_utils.py:170 WandB logging of key "losses_after_forward" was ignored as its type "<class 'torch.Tensor'>" is not handled by this wrapper.
+WARNING 2026-04-17 14:51:41 db_utils.py:170 WandB logging of key "losses_after_rm_padding" was ignored as its type "<class 'torch.Tensor'>" is not handled by this wrapper.
+INFO 2026-04-17 14:53:43 rain（v3）.py:755 step:63 smpl:252 ep:2 epch:0.00 loss:0.097 expert_dorf_loss:0.679 online_dorf_loss:1.001 critic_loss:0.261 grdn:0.894 good:373.0 lr:1.0e-05 updt_s:0.186 data_s:121.413
+--- [Step 62] Rollout True Reward Sum: 2.00 (Active Envs: 4)
+WARNING 2026-04-17 14:53:43 db_utils.py:170 WandB logging of key "losses_after_forward" was ignored as its type "<class 'torch.Tensor'>" is not handled by this wrapper.
+WARNING 2026-04-17 14:53:43 db_utils.py:170 WandB logging of key "losses_after_rm_padding" was ignored as its type "<class 'torch.Tensor'>" is not handled by this wrapper.
+INFO 2026-04-17 14:55:46 rain（v3）.py:755 step:64 smpl:256 ep:2 epch:0.00 loss:0.067 expert_dorf_loss:0.678 online_dorf_loss:1.093 critic_loss:0.572 grdn:0.549 good:439.0 lr:1.0e-05 updt_s:0.180 data_s:122.985
+--- [Step 63] Rollout True Reward Sum: 3.00 (Active Envs: 4)
+WARNING 2026-04-17 14:55:46 db_utils.py:170 WandB logging of key "losses_after_forward" was ignored as its type "<class 'torch.Tensor'>" is not handled by this wrapper.
+WARNING 2026-04-17 14:55:46 db_utils.py:170 WandB logging of key "losses_after_rm_padding" was ignored as its type "<class 'torch.Tensor'>" is not handled by this wrapper.
+INFO 2026-04-17 14:57:37 rain（v3）.py:755 step:65 smpl:260 ep:2 epch:0.00 loss:0.061 expert_dorf_loss:0.701 online_dorf_loss:1.087 critic_loss:0.525 grdn:0.843 good:468.0 lr:1.0e-05 updt_s:0.205 data_s:111.184
+--- [Step 64] Rollout True Reward Sum: 4.00 (Active Envs: 4)
+WARNING 2026-04-17 14:57:37 db_utils.py:170 WandB logging of key "losses_after_forward" was ignored as its type "<class 'torch.Tensor'>" is not handled by this wrapper.
+WARNING 2026-04-17 14:57:37 db_utils.py:170 WandB logging of key "losses_after_rm_padding" was ignored as its type "<class 'torch.Tensor'>" is not handled by this wrapper.
+INFO 2026-04-17 14:58:58 rain（v3）.py:755 step:66 smpl:264 ep:2 epch:0.00 loss:0.101 expert_dorf_loss:0.651 online_dorf_loss:0.629 critic_loss:0.289 grdn:0.668 good:249.0 lr:1.0e-05 updt_s:0.246 data_s:80.621
+--- [Step 65] Rollout True Reward Sum: 4.00 (Active Envs: 4)
+WARNING 2026-04-17 14:58:58 db_utils.py:170 WandB logging of key "losses_after_forward" was ignored as its type "<class 'torch.Tensor'>" is not handled by this wrapper.
+WARNING 2026-04-17 14:58:58 db_utils.py:170 WandB logging of key "losses_after_rm_padding" was ignored as its type "<class 'torch.Tensor'>" is not handled by this wrapper.
+INFO 2026-04-17 15:01:01 rain（v3）.py:755 step:67 smpl:268 ep:2 epch:0.00 loss:0.061 expert_dorf_loss:0.670 online_dorf_loss:1.067 critic_loss:0.194 grdn:0.517 good:481.0 lr:1.0e-05 updt_s:0.180 data_s:122.494
+--- [Step 66] Rollout True Reward Sum: 3.00 (Active Envs: 4)
+WARNING 2026-04-17 15:01:01 db_utils.py:170 WandB logging of key "losses_after_forward" was ignored as its type "<class 'torch.Tensor'>" is not handled by this wrapper.
+WARNING 2026-04-17 15:01:01 db_utils.py:170 WandB logging of key "losses_after_rm_padding" was ignored as its type "<class 'torch.Tensor'>" is not handled by this wrapper.
+INFO 2026-04-17 15:03:03 rain（v3）.py:755 step:68 smpl:272 ep:2 epch:0.00 loss:0.071 expert_dorf_loss:0.636 online_dorf_loss:1.351 critic_loss:1.156 grdn:0.459 good:567.0 lr:1.0e-05 updt_s:0.193 data_s:121.837
+--- [Step 67] Rollout True Reward Sum: 3.00 (Active Envs: 4)
+WARNING 2026-04-17 15:03:03 db_utils.py:170 WandB logging of key "losses_after_forward" was ignored as its type "<class 'torch.Tensor'>" is not handled by this wrapper.
+WARNING 2026-04-17 15:03:03 db_utils.py:170 WandB logging of key "losses_after_rm_padding" was ignored as its type "<class 'torch.Tensor'>" is not handled by this wrapper.
+INFO 2026-04-17 15:04:32 rain（v3）.py:755 step:69 smpl:276 ep:2 epch:0.00 loss:0.058 expert_dorf_loss:0.606 online_dorf_loss:0.687 critic_loss:0.282 grdn:0.458 good:304.0 lr:1.0e-05 updt_s:0.195 data_s:88.974
+--- [Step 68] Rollout True Reward Sum: 4.00 (Active Envs: 4)
+WARNING 2026-04-17 15:04:32 db_utils.py:170 WandB logging of key "losses_after_forward" was ignored as its type "<class 'torch.Tensor'>" is not handled by this wrapper.
+WARNING 2026-04-17 15:04:32 db_utils.py:170 WandB logging of key "losses_after_rm_padding" was ignored as its type "<class 'torch.Tensor'>" is not handled by this wrapper.
+INFO 2026-04-17 15:06:35 rain（v3）.py:755 step:70 smpl:280 ep:2 epch:0.00 loss:0.079 expert_dorf_loss:0.625 online_dorf_loss:1.011 critic_loss:0.361 grdn:0.522 good:539.0 lr:1.0e-05 updt_s:0.180 data_s:122.876
+--- [Step 69] Rollout True Reward Sum: 3.00 (Active Envs: 4)
+WARNING 2026-04-17 15:06:35 db_utils.py:170 WandB logging of key "losses_after_forward" was ignored as its type "<class 'torch.Tensor'>" is not handled by this wrapper.
+WARNING 2026-04-17 15:06:35 db_utils.py:170 WandB logging of key "losses_after_rm_padding" was ignored as its type "<class 'torch.Tensor'>" is not handled by this wrapper.
+INFO 2026-04-17 15:08:38 rain（v3）.py:755 step:71 smpl:284 ep:2 epch:0.00 loss:0.055 expert_dorf_loss:0.584 online_dorf_loss:1.015 critic_loss:0.600 grdn:0.577 good:544.0 lr:1.0e-05 updt_s:0.194 data_s:122.094
+--- [Step 70] Rollout True Reward Sum: 3.00 (Active Envs: 4)
+WARNING 2026-04-17 15:08:38 db_utils.py:170 WandB logging of key "losses_after_forward" was ignored as its type "<class 'torch.Tensor'>" is not handled by this wrapper.
+WARNING 2026-04-17 15:08:38 db_utils.py:170 WandB logging of key "losses_after_rm_padding" was ignored as its type "<class 'torch.Tensor'>" is not handled by this wrapper.
+INFO 2026-04-17 15:10:41 rain（v3）.py:755 step:72 smpl:288 ep:2 epch:0.00 loss:0.067 expert_dorf_loss:0.559 online_dorf_loss:0.901 critic_loss:0.342 grdn:0.752 good:559.0 lr:1.0e-05 updt_s:0.215 data_s:123.298
+--- [Step 71] Rollout True Reward Sum: 3.00 (Active Envs: 4)
+WARNING 2026-04-17 15:10:41 db_utils.py:170 WandB logging of key "losses_after_forward" was ignored as its type "<class 'torch.Tensor'>" is not handled by this wrapper.
+WARNING 2026-04-17 15:10:41 db_utils.py:170 WandB logging of key "losses_after_rm_padding" was ignored as its type "<class 'torch.Tensor'>" is not handled by this wrapper.
+INFO 2026-04-17 15:12:45 rain（v3）.py:755 step:73 smpl:292 ep:2 epch:0.00 loss:0.081 expert_dorf_loss:0.546 online_dorf_loss:0.738 critic_loss:0.305 grdn:0.661 good:574.0 lr:1.0e-05 updt_s:0.177 data_s:123.602
+--- [Step 72] Rollout True Reward Sum: 3.00 (Active Envs: 4)
+WARNING 2026-04-17 15:12:45 db_utils.py:170 WandB logging of key "losses_after_forward" was ignored as its type "<class 'torch.Tensor'>" is not handled by this wrapper.
+WARNING 2026-04-17 15:12:45 db_utils.py:170 WandB logging of key "losses_after_rm_padding" was ignored as its type "<class 'torch.Tensor'>" is not handled by this wrapper.
+INFO 2026-04-17 15:14:49 rain（v3）.py:755 step:74 smpl:296 ep:2 epch:0.00 loss:0.122 expert_dorf_loss:0.514 online_dorf_loss:0.978 critic_loss:0.359 grdn:1.111 good:239.0 lr:1.0e-05 updt_s:0.205 data_s:123.672
+--- [Step 73] Rollout True Reward Sum: 3.00 (Active Envs: 4)
+WARNING 2026-04-17 15:14:49 db_utils.py:170 WandB logging of key "losses_after_forward" was ignored as its type "<class 'torch.Tensor'>" is not handled by this wrapper.
+WARNING 2026-04-17 15:14:49 db_utils.py:170 WandB logging of key "losses_after_rm_padding" was ignored as its type "<class 'torch.Tensor'>" is not handled by this wrapper.
+INFO 2026-04-17 15:16:12 rain（v3）.py:755 step:75 smpl:300 ep:2 epch:0.00 loss:0.058 expert_dorf_loss:0.522 online_dorf_loss:1.054 critic_loss:0.272 grdn:0.491 good:246.0 lr:1.0e-05 updt_s:0.223 data_s:82.655
+--- [Step 74] Rollout True Reward Sum: 4.00 (Active Envs: 4)
+WARNING 2026-04-17 15:16:12 db_utils.py:170 WandB logging of key "losses_after_forward" was ignored as its type "<class 'torch.Tensor'>" is not handled by this wrapper.
+WARNING 2026-04-17 15:16:12 db_utils.py:170 WandB logging of key "losses_after_rm_padding" was ignored as its type "<class 'torch.Tensor'>" is not handled by this wrapper.
+INFO 2026-04-17 15:18:13 rain（v3）.py:755 step:76 smpl:304 ep:2 epch:0.00 loss:0.103 expert_dorf_loss:0.517 online_dorf_loss:1.575 critic_loss:1.186 grdn:0.581 good:346.0 lr:1.0e-05 updt_s:0.218 data_s:120.914
+--- [Step 75] Rollout True Reward Sum: 3.00 (Active Envs: 4)
+WARNING 2026-04-17 15:18:13 db_utils.py:170 WandB logging of key "losses_after_forward" was ignored as its type "<class 'torch.Tensor'>" is not handled by this wrapper.
+WARNING 2026-04-17 15:18:13 db_utils.py:170 WandB logging of key "losses_after_rm_padding" was ignored as its type "<class 'torch.Tensor'>" is not handled by this wrapper.
+INFO 2026-04-17 15:20:16 rain（v3）.py:755 step:77 smpl:308 ep:2 epch:0.00 loss:0.062 expert_dorf_loss:0.535 online_dorf_loss:1.289 critic_loss:1.047 grdn:0.512 good:690.0 lr:1.0e-05 updt_s:0.177 data_s:122.919
+--- [Step 76] Rollout True Reward Sum: 3.00 (Active Envs: 4)
+WARNING 2026-04-17 15:20:16 db_utils.py:170 WandB logging of key "losses_after_forward" was ignored as its type "<class 'torch.Tensor'>" is not handled by this wrapper.
+WARNING 2026-04-17 15:20:16 db_utils.py:170 WandB logging of key "losses_after_rm_padding" was ignored as its type "<class 'torch.Tensor'>" is not handled by this wrapper.
+INFO 2026-04-17 15:21:28 rain（v3）.py:755 step:78 smpl:312 ep:2 epch:0.00 loss:0.077 expert_dorf_loss:0.557 online_dorf_loss:0.373 critic_loss:0.192 grdn:0.624 good:204.0 lr:1.0e-05 updt_s:0.195 data_s:72.083
+--- [Step 77] Rollout True Reward Sum: 4.00 (Active Envs: 4)
+WARNING 2026-04-17 15:21:28 db_utils.py:170 WandB logging of key "losses_after_forward" was ignored as its type "<class 'torch.Tensor'>" is not handled by this wrapper.
+WARNING 2026-04-17 15:21:28 db_utils.py:170 WandB logging of key "losses_after_rm_padding" was ignored as its type "<class 'torch.Tensor'>" is not handled by this wrapper.
+INFO 2026-04-17 15:23:29 rain（v3）.py:755 step:79 smpl:316 ep:2 epch:0.00 loss:0.065 expert_dorf_loss:0.585 online_dorf_loss:0.890 critic_loss:0.345 grdn:0.497 good:395.0 lr:1.0e-05 updt_s:0.174 data_s:120.105
+--- [Step 78] Rollout True Reward Sum: 2.00 (Active Envs: 4)
+WARNING 2026-04-17 15:23:29 db_utils.py:170 WandB logging of key "losses_after_forward" was ignored as its type "<class 'torch.Tensor'>" is not handled by this wrapper.
+WARNING 2026-04-17 15:23:29 db_utils.py:170 WandB logging of key "losses_after_rm_padding" was ignored as its type "<class 'torch.Tensor'>" is not handled by this wrapper.
+INFO 2026-04-17 15:24:48 rain（v3）.py:755 step:80 smpl:320 ep:2 epch:0.00 loss:0.053 expert_dorf_loss:0.611 online_dorf_loss:0.521 critic_loss:0.236 grdn:0.500 good:247.0 lr:1.0e-05 updt_s:0.217 data_s:79.150
+--- [Step 79] Rollout True Reward Sum: 4.00 (Active Envs: 4)
+WARNING 2026-04-17 15:24:48 db_utils.py:170 WandB logging of key "losses_after_forward" was ignored as its type "<class 'torch.Tensor'>" is not handled by this wrapper.
+WARNING 2026-04-17 15:24:48 db_utils.py:170 WandB logging of key "losses_after_rm_padding" was ignored as its type "<class 'torch.Tensor'>" is not handled by this wrapper.
+INFO 2026-04-17 15:26:18 rain（v3）.py:755 step:81 smpl:324 ep:2 epch:0.00 loss:0.088 expert_dorf_loss:0.622 online_dorf_loss:0.743 critic_loss:0.475 grdn:0.670 good:309.0 lr:1.0e-05 updt_s:0.210 data_s:89.154
+--- [Step 80] Rollout True Reward Sum: 4.00 (Active Envs: 4)
+WARNING 2026-04-17 15:26:18 db_utils.py:170 WandB logging of key "losses_after_forward" was ignored as its type "<class 'torch.Tensor'>" is not handled by this wrapper.
+WARNING 2026-04-17 15:26:18 db_utils.py:170 WandB logging of key "losses_after_rm_padding" was ignored as its type "<class 'torch.Tensor'>" is not handled by this wrapper.
+INFO 2026-04-17 15:27:35 rain（v3）.py:755 step:82 smpl:328 ep:2 epch:0.00 loss:0.092 expert_dorf_loss:0.621 online_dorf_loss:0.520 critic_loss:0.254 grdn:0.530 good:231.0 lr:1.0e-05 updt_s:0.229 data_s:77.700
+--- [Step 81] Rollout True Reward Sum: 4.00 (Active Envs: 4)
+WARNING 2026-04-17 15:27:35 db_utils.py:170 WandB logging of key "losses_after_forward" was ignored as its type "<class 'torch.Tensor'>" is not handled by this wrapper.
+WARNING 2026-04-17 15:27:35 db_utils.py:170 WandB logging of key "losses_after_rm_padding" was ignored as its type "<class 'torch.Tensor'>" is not handled by this wrapper.
+INFO 2026-04-17 15:28:59 rain（v3）.py:755 step:83 smpl:332 ep:2 epch:0.00 loss:0.062 expert_dorf_loss:0.651 online_dorf_loss:0.897 critic_loss:0.466 grdn:0.489 good:286.0 lr:1.0e-05 updt_s:0.221 data_s:83.107
+--- [Step 82] Rollout True Reward Sum: 4.00 (Active Envs: 4)
+WARNING 2026-04-17 15:28:59 db_utils.py:170 WandB logging of key "losses_after_forward" was ignored as its type "<class 'torch.Tensor'>" is not handled by this wrapper.
+WARNING 2026-04-17 15:28:59 db_utils.py:170 WandB logging of key "losses_after_rm_padding" was ignored as its type "<class 'torch.Tensor'>" is not handled by this wrapper.
+INFO 2026-04-17 15:31:02 rain（v3）.py:755 step:84 smpl:336 ep:2 epch:0.00 loss:0.091 expert_dorf_loss:0.623 online_dorf_loss:1.295 critic_loss:0.633 grdn:0.706 good:504.0 lr:1.0e-05 updt_s:0.179 data_s:123.150
+--- [Step 83] Rollout True Reward Sum: 3.00 (Active Envs: 4)
+WARNING 2026-04-17 15:31:02 db_utils.py:170 WandB logging of key "losses_after_forward" was ignored as its type "<class 'torch.Tensor'>" is not handled by this wrapper.
+WARNING 2026-04-17 15:31:02 db_utils.py:170 WandB logging of key "losses_after_rm_padding" was ignored as its type "<class 'torch.Tensor'>" is not handled by this wrapper.
+INFO 2026-04-17 15:32:26 rain（v3）.py:755 step:85 smpl:340 ep:2 epch:0.00 loss:0.060 expert_dorf_loss:0.709 online_dorf_loss:0.729 critic_loss:0.261 grdn:0.485 good:244.0 lr:1.0e-05 updt_s:0.209 data_s:83.411
+--- [Step 84] Rollout True Reward Sum: 4.00 (Active Envs: 4)
+WARNING 2026-04-17 15:32:26 db_utils.py:170 WandB logging of key "losses_after_forward" was ignored as its type "<class 'torch.Tensor'>" is not handled by this wrapper.
+WARNING 2026-04-17 15:32:26 db_utils.py:170 WandB logging of key "losses_after_rm_padding" was ignored as its type "<class 'torch.Tensor'>" is not handled by this wrapper.
+INFO 2026-04-17 15:34:28 rain（v3）.py:755 step:86 smpl:344 ep:2 epch:0.00 loss:0.090 expert_dorf_loss:0.606 online_dorf_loss:1.248 critic_loss:0.338 grdn:0.837 good:500.0 lr:1.0e-05 updt_s:0.213 data_s:122.083
+--- [Step 85] Rollout True Reward Sum: 3.00 (Active Envs: 4)
+WARNING 2026-04-17 15:34:28 db_utils.py:170 WandB logging of key "losses_after_forward" was ignored as its type "<class 'torch.Tensor'>" is not handled by this wrapper.
+WARNING 2026-04-17 15:34:28 db_utils.py:170 WandB logging of key "losses_after_rm_padding" was ignored as its type "<class 'torch.Tensor'>" is not handled by this wrapper.
+INFO 2026-04-17 15:36:30 rain（v3）.py:755 step:87 smpl:348 ep:2 epch:0.00 loss:0.031 expert_dorf_loss:0.724 online_dorf_loss:1.155 critic_loss:0.739 grdn:0.617 good:481.0 lr:1.0e-05 updt_s:0.172 data_s:121.635
+--- [Step 86] Rollout True Reward Sum: 3.00 (Active Envs: 4)
+WARNING 2026-04-17 15:36:30 db_utils.py:170 WandB logging of key "losses_after_forward" was ignored as its type "<class 'torch.Tensor'>" is not handled by this wrapper.
+WARNING 2026-04-17 15:36:30 db_utils.py:170 WandB logging of key "losses_after_rm_padding" was ignored as its type "<class 'torch.Tensor'>" is not handled by this wrapper.
+INFO 2026-04-17 15:38:32 rain（v3）.py:755 step:88 smpl:352 ep:2 epch:0.00 loss:0.083 expert_dorf_loss:0.557 online_dorf_loss:1.212 critic_loss:0.294 grdn:0.718 good:513.0 lr:1.0e-05 updt_s:0.198 data_s:121.680
+--- [Step 87] Rollout True Reward Sum: 3.00 (Active Envs: 4)
+WARNING 2026-04-17 15:38:32 db_utils.py:170 WandB logging of key "losses_after_forward" was ignored as its type "<class 'torch.Tensor'>" is not handled by this wrapper.
+WARNING 2026-04-17 15:38:32 db_utils.py:170 WandB logging of key "losses_after_rm_padding" was ignored as its type "<class 'torch.Tensor'>" is not handled by this wrapper.
+INFO 2026-04-17 15:39:47 rain（v3）.py:755 step:89 smpl:356 ep:2 epch:0.00 loss:0.027 expert_dorf_loss:0.559 online_dorf_loss:0.414 critic_loss:0.141 grdn:0.499 good:204.0 lr:1.0e-05 updt_s:0.201 data_s:74.566
+--- [Step 88] Rollout True Reward Sum: 4.00 (Active Envs: 4)
+WARNING 2026-04-17 15:39:47 db_utils.py:170 WandB logging of key "losses_after_forward" was ignored as its type "<class 'torch.Tensor'>" is not handled by this wrapper.
+WARNING 2026-04-17 15:39:47 db_utils.py:170 WandB logging of key "losses_after_rm_padding" was ignored as its type "<class 'torch.Tensor'>" is not handled by this wrapper.
+INFO 2026-04-17 15:41:10 rain（v3）.py:755 step:90 smpl:360 ep:2 epch:0.00 loss:0.085 expert_dorf_loss:0.545 online_dorf_loss:0.590 critic_loss:0.245 grdn:0.881 good:261.0 lr:1.0e-05 updt_s:0.200 data_s:82.723
+--- [Step 89] Rollout True Reward Sum: 4.00 (Active Envs: 4)
+WARNING 2026-04-17 15:41:10 db_utils.py:170 WandB logging of key "losses_after_forward" was ignored as its type "<class 'torch.Tensor'>" is not handled by this wrapper.
+WARNING 2026-04-17 15:41:10 db_utils.py:170 WandB logging of key "losses_after_rm_padding" was ignored as its type "<class 'torch.Tensor'>" is not handled by this wrapper.
+INFO 2026-04-17 15:42:36 rain（v3）.py:755 step:91 smpl:364 ep:2 epch:0.00 loss:0.081 expert_dorf_loss:0.579 online_dorf_loss:0.680 critic_loss:0.346 grdn:0.574 good:284.0 lr:1.0e-05 updt_s:0.202 data_s:85.660
+--- [Step 90] Rollout True Reward Sum: 4.00 (Active Envs: 4)
+WARNING 2026-04-17 15:42:36 db_utils.py:170 WandB logging of key "losses_after_forward" was ignored as its type "<class 'torch.Tensor'>" is not handled by this wrapper.
+WARNING 2026-04-17 15:42:36 db_utils.py:170 WandB logging of key "losses_after_rm_padding" was ignored as its type "<class 'torch.Tensor'>" is not handled by this wrapper.
+INFO 2026-04-17 15:44:06 rain（v3）.py:755 step:92 smpl:368 ep:2 epch:0.00 loss:0.113 expert_dorf_loss:0.465 online_dorf_loss:0.791 critic_loss:0.402 grdn:0.552 good:341.0 lr:1.0e-05 updt_s:0.212 data_s:89.778
+--- [Step 91] Rollout True Reward Sum: 4.00 (Active Envs: 4)
+WARNING 2026-04-17 15:44:06 db_utils.py:170 WandB logging of key "losses_after_forward" was ignored as its type "<class 'torch.Tensor'>" is not handled by this wrapper.
+WARNING 2026-04-17 15:44:06 db_utils.py:170 WandB logging of key "losses_after_rm_padding" was ignored as its type "<class 'torch.Tensor'>" is not handled by this wrapper.
+INFO 2026-04-17 15:45:35 rain（v3）.py:755 step:93 smpl:372 ep:2 epch:0.00 loss:0.083 expert_dorf_loss:0.459 online_dorf_loss:0.699 critic_loss:0.219 grdn:0.649 good:305.0 lr:1.0e-05 updt_s:0.226 data_s:88.847
+--- [Step 92] Rollout True Reward Sum: 4.00 (Active Envs: 4)
+WARNING 2026-04-17 15:45:35 db_utils.py:170 WandB logging of key "losses_after_forward" was ignored as its type "<class 'torch.Tensor'>" is not handled by this wrapper.
+WARNING 2026-04-17 15:45:35 db_utils.py:170 WandB logging of key "losses_after_rm_padding" was ignored as its type "<class 'torch.Tensor'>" is not handled by this wrapper.
+INFO 2026-04-17 15:46:59 rain（v3）.py:755 step:94 smpl:376 ep:2 epch:0.00 loss:0.074 expert_dorf_loss:0.459 online_dorf_loss:0.659 critic_loss:0.240 grdn:0.584 good:275.0 lr:1.0e-05 updt_s:0.186 data_s:83.812
+--- [Step 93] Rollout True Reward Sum: 4.00 (Active Envs: 4)
+WARNING 2026-04-17 15:46:59 db_utils.py:170 WandB logging of key "losses_after_forward" was ignored as its type "<class 'torch.Tensor'>" is not handled by this wrapper.
+WARNING 2026-04-17 15:46:59 db_utils.py:170 WandB logging of key "losses_after_rm_padding" was ignored as its type "<class 'torch.Tensor'>" is not handled by this wrapper.
+INFO 2026-04-17 15:48:42 rain（v3）.py:755 step:95 smpl:380 ep:2 epch:0.00 loss:0.080 expert_dorf_loss:0.457 online_dorf_loss:0.983 critic_loss:0.546 grdn:0.611 good:450.0 lr:1.0e-05 updt_s:0.216 data_s:102.884
+--- [Step 94] Rollout True Reward Sum: 4.00 (Active Envs: 4)
+WARNING 2026-04-17 15:48:42 db_utils.py:170 WandB logging of key "losses_after_forward" was ignored as its type "<class 'torch.Tensor'>" is not handled by this wrapper.
+WARNING 2026-04-17 15:48:42 db_utils.py:170 WandB logging of key "losses_after_rm_padding" was ignored as its type "<class 'torch.Tensor'>" is not handled by this wrapper.
+INFO 2026-04-17 15:50:45 rain（v3）.py:755 step:96 smpl:384 ep:2 epch:0.00 loss:0.108 expert_dorf_loss:0.416 online_dorf_loss:0.957 critic_loss:0.337 grdn:1.224 good:517.0 lr:1.0e-05 updt_s:0.194 data_s:123.152
+--- [Step 95] Rollout True Reward Sum: 3.00 (Active Envs: 4)
+WARNING 2026-04-17 15:50:45 db_utils.py:170 WandB logging of key "losses_after_forward" was ignored as its type "<class 'torch.Tensor'>" is not handled by this wrapper.
+WARNING 2026-04-17 15:50:45 db_utils.py:170 WandB logging of key "losses_after_rm_padding" was ignored as its type "<class 'torch.Tensor'>" is not handled by this wrapper.
+INFO 2026-04-17 15:52:08 rain（v3）.py:755 step:97 smpl:388 ep:2 epch:0.00 loss:0.063 expert_dorf_loss:0.420 online_dorf_loss:0.697 critic_loss:0.331 grdn:0.567 good:260.0 lr:1.0e-05 updt_s:0.218 data_s:82.199
+--- [Step 96] Rollout True Reward Sum: 4.00 (Active Envs: 4)
+WARNING 2026-04-17 15:52:08 db_utils.py:170 WandB logging of key "losses_after_forward" was ignored as its type "<class 'torch.Tensor'>" is not handled by this wrapper.
+WARNING 2026-04-17 15:52:08 db_utils.py:170 WandB logging of key "losses_after_rm_padding" was ignored as its type "<class 'torch.Tensor'>" is not handled by this wrapper.
+INFO 2026-04-17 15:53:54 rain（v3）.py:755 step:98 smpl:392 ep:2 epch:0.00 loss:0.085 expert_dorf_loss:0.402 online_dorf_loss:1.054 critic_loss:0.912 grdn:0.577 good:476.0 lr:1.0e-05 updt_s:0.193 data_s:106.589
+--- [Step 97] Rollout True Reward Sum: 4.00 (Active Envs: 4)
+WARNING 2026-04-17 15:53:54 db_utils.py:170 WandB logging of key "losses_after_forward" was ignored as its type "<class 'torch.Tensor'>" is not handled by this wrapper.
+WARNING 2026-04-17 15:53:54 db_utils.py:170 WandB logging of key "losses_after_rm_padding" was ignored as its type "<class 'torch.Tensor'>" is not handled by this wrapper.
+INFO 2026-04-17 15:55:33 rain（v3）.py:755 step:99 smpl:396 ep:2 epch:0.00 loss:0.039 expert_dorf_loss:0.406 online_dorf_loss:0.875 critic_loss:0.289 grdn:0.587 good:401.0 lr:1.0e-05 updt_s:0.194 data_s:98.818
+--- [Step 98] Rollout True Reward Sum: 4.00 (Active Envs: 4)
+WARNING 2026-04-17 15:55:33 db_utils.py:170 WandB logging of key "losses_after_forward" was ignored as its type "<class 'torch.Tensor'>" is not handled by this wrapper.
+WARNING 2026-04-17 15:55:33 db_utils.py:170 WandB logging of key "losses_after_rm_padding" was ignored as its type "<class 'torch.Tensor'>" is not handled by this wrapper.
+INFO 2026-04-17 15:57:03 rain（v3）.py:755 step:100 smpl:400 ep:2 epch:0.00 loss:0.069 expert_dorf_loss:0.364 online_dorf_loss:0.758 critic_loss:0.461 grdn:0.486 good:293.0 lr:1.0e-05 updt_s:0.201 data_s:88.936
+--- [Step 99] Rollout True Reward Sum: 4.00 (Active Envs: 4)
+WARNING 2026-04-17 15:57:03 db_utils.py:170 WandB logging of key "losses_after_forward" was ignored as its type "<class 'torch.Tensor'>" is not handled by this wrapper.
+WARNING 2026-04-17 15:57:03 db_utils.py:170 WandB logging of key "losses_after_rm_padding" was ignored as its type "<class 'torch.Tensor'>" is not handled by this wrapper.
+INFO 2026-04-17 15:57:03 rain（v3）.py:777 Checkpoint policy after step 100
+INFO 2026-04-17 15:57:05 rain（v3）.py:798 DORF 状态已保存至: train_logs/libero_object_tlofVLA_v2/checkpoints/000100/dorf_state.pt
+INFO 2026-04-17 15:58:27 rain（v3）.py:755 step:101 smpl:404 ep:3 epch:0.00 loss:0.059 expert_dorf_loss:0.360 online_dorf_loss:0.447 critic_loss:0.167 grdn:0.690 good:193.0 lr:1.0e-05 updt_s:0.193 data_s:76.891
+--- [Step 100] Rollout True Reward Sum: 4.00 (Active Envs: 4)
+WARNING 2026-04-17 15:58:27 db_utils.py:170 WandB logging of key "losses_after_forward" was ignored as its type "<class 'torch.Tensor'>" is not handled by this wrapper.
+WARNING 2026-04-17 15:58:27 db_utils.py:170 WandB logging of key "losses_after_rm_padding" was ignored as its type "<class 'torch.Tensor'>" is not handled by this wrapper.
+INFO 2026-04-17 15:59:47 rain（v3）.py:755 step:102 smpl:408 ep:3 epch:0.00 loss:0.083 expert_dorf_loss:0.373 online_dorf_loss:0.623 critic_loss:0.295 grdn:0.553 good:229.0 lr:1.0e-05 updt_s:0.204 data_s:80.022
+--- [Step 101] Rollout True Reward Sum: 4.00 (Active Envs: 4)
+WARNING 2026-04-17 15:59:47 db_utils.py:170 WandB logging of key "losses_after_forward" was ignored as its type "<class 'torch.Tensor'>" is not handled by this wrapper.
+WARNING 2026-04-17 15:59:47 db_utils.py:170 WandB logging of key "losses_after_rm_padding" was ignored as its type "<class 'torch.Tensor'>" is not handled by this wrapper.
+INFO 2026-04-17 16:01:51 rain（v3）.py:755 step:103 smpl:412 ep:3 epch:0.00 loss:0.065 expert_dorf_loss:0.423 online_dorf_loss:1.127 critic_loss:0.907 grdn:0.888 good:622.0 lr:1.0e-05 updt_s:0.182 data_s:123.264
+--- [Step 102] Rollout True Reward Sum: 3.00 (Active Envs: 4)
+WARNING 2026-04-17 16:01:51 db_utils.py:170 WandB logging of key "losses_after_forward" was ignored as its type "<class 'torch.Tensor'>" is not handled by this wrapper.
+WARNING 2026-04-17 16:01:51 db_utils.py:170 WandB logging of key "losses_after_rm_padding" was ignored as its type "<class 'torch.Tensor'>" is not handled by this wrapper.
+INFO 2026-04-17 16:03:23 rain（v3）.py:755 step:104 smpl:416 ep:3 epch:0.00 loss:0.077 expert_dorf_loss:0.325 online_dorf_loss:0.972 critic_loss:0.562 grdn:0.602 good:331.0 lr:1.0e-05 updt_s:0.206 data_s:92.292
+--- [Step 103] Rollout True Reward Sum: 4.00 (Active Envs: 4)
+WARNING 2026-04-17 16:03:23 db_utils.py:170 WandB logging of key "losses_after_forward" was ignored as its type "<class 'torch.Tensor'>" is not handled by this wrapper.
+WARNING 2026-04-17 16:03:23 db_utils.py:170 WandB logging of key "losses_after_rm_padding" was ignored as its type "<class 'torch.Tensor'>" is not handled by this wrapper.
+INFO 2026-04-17 16:04:48 rain（v3）.py:755 step:105 smpl:420 ep:3 epch:0.00 loss:0.049 expert_dorf_loss:0.347 online_dorf_loss:0.598 critic_loss:0.270 grdn:0.667 good:256.0 lr:1.0e-05 updt_s:0.226 data_s:84.750
+--- [Step 104] Rollout True Reward Sum: 4.00 (Active Envs: 4)
+WARNING 2026-04-17 16:04:48 db_utils.py:170 WandB logging of key "losses_after_forward" was ignored as its type "<class 'torch.Tensor'>" is not handled by this wrapper.
+WARNING 2026-04-17 16:04:48 db_utils.py:170 WandB logging of key "losses_after_rm_padding" was ignored as its type "<class 'torch.Tensor'>" is not handled by this wrapper.
+INFO 2026-04-17 16:06:53 rain（v3）.py:755 step:106 smpl:424 ep:3 epch:0.00 loss:0.063 expert_dorf_loss:0.366 online_dorf_loss:1.104 critic_loss:0.314 grdn:0.526 good:503.0 lr:1.0e-05 updt_s:0.219 data_s:124.720
+--- [Step 105] Rollout True Reward Sum: 3.00 (Active Envs: 4)
+WARNING 2026-04-17 16:06:53 db_utils.py:170 WandB logging of key "losses_after_forward" was ignored as its type "<class 'torch.Tensor'>" is not handled by this wrapper.
+WARNING 2026-04-17 16:06:53 db_utils.py:170 WandB logging of key "losses_after_rm_padding" was ignored as its type "<class 'torch.Tensor'>" is not handled by this wrapper.
+INFO 2026-04-17 16:08:11 rain（v3）.py:755 step:107 smpl:428 ep:3 epch:0.00 loss:0.051 expert_dorf_loss:0.379 online_dorf_loss:0.547 critic_loss:0.219 grdn:0.616 good:214.0 lr:1.0e-05 updt_s:0.219 data_s:77.703
+--- [Step 106] Rollout True Reward Sum: 4.00 (Active Envs: 4)
+WARNING 2026-04-17 16:08:11 db_utils.py:170 WandB logging of key "losses_after_forward" was ignored as its type "<class 'torch.Tensor'>" is not handled by this wrapper.
+WARNING 2026-04-17 16:08:11 db_utils.py:170 WandB logging of key "losses_after_rm_padding" was ignored as its type "<class 'torch.Tensor'>" is not handled by this wrapper.
+INFO 2026-04-17 16:09:46 rain（v3）.py:755 step:108 smpl:432 ep:3 epch:0.00 loss:0.046 expert_dorf_loss:0.270 online_dorf_loss:0.721 critic_loss:0.304 grdn:0.509 good:343.0 lr:1.0e-05 updt_s:0.206 data_s:94.571
+--- [Step 107] Rollout True Reward Sum: 4.00 (Active Envs: 4)
+WARNING 2026-04-17 16:09:46 db_utils.py:170 WandB logging of key "losses_after_forward" was ignored as its type "<class 'torch.Tensor'>" is not handled by this wrapper.
+WARNING 2026-04-17 16:09:46 db_utils.py:170 WandB logging of key "losses_after_rm_padding" was ignored as its type "<class 'torch.Tensor'>" is not handled by this wrapper.
+INFO 2026-04-17 16:11:49 rain（v3）.py:755 step:109 smpl:436 ep:3 epch:0.00 loss:0.080 expert_dorf_loss:0.292 online_dorf_loss:0.990 critic_loss:0.400 grdn:0.913 good:510.0 lr:1.0e-05 updt_s:0.183 data_s:122.494
+--- [Step 108] Rollout True Reward Sum: 3.00 (Active Envs: 4)
+WARNING 2026-04-17 16:11:49 db_utils.py:170 WandB logging of key "losses_after_forward" was ignored as its type "<class 'torch.Tensor'>" is not handled by this wrapper.
+WARNING 2026-04-17 16:11:49 db_utils.py:170 WandB logging of key "losses_after_rm_padding" was ignored as its type "<class 'torch.Tensor'>" is not handled by this wrapper.
+INFO 2026-04-17 16:13:16 rain（v3）.py:755 step:110 smpl:440 ep:3 epch:0.00 loss:0.139 expert_dorf_loss:0.244 online_dorf_loss:0.747 critic_loss:0.278 grdn:2.137 good:299.0 lr:1.0e-05 updt_s:0.239 data_s:86.750
+--- [Step 109] Rollout True Reward Sum: 4.00 (Active Envs: 4)
+WARNING 2026-04-17 16:13:16 db_utils.py:170 WandB logging of key "losses_after_forward" was ignored as its type "<class 'torch.Tensor'>" is not handled by this wrapper.
+WARNING 2026-04-17 16:13:16 db_utils.py:170 WandB logging of key "losses_after_rm_padding" was ignored as its type "<class 'torch.Tensor'>" is not handled by this wrapper.
+INFO 2026-04-17 16:14:41 rain（v3）.py:755 step:111 smpl:444 ep:3 epch:0.00 loss:0.089 expert_dorf_loss:0.264 online_dorf_loss:0.689 critic_loss:0.349 grdn:0.987 good:250.0 lr:1.0e-05 updt_s:0.209 data_s:84.428
+--- [Step 110] Rollout True Reward Sum: 4.00 (Active Envs: 4)
+WARNING 2026-04-17 16:14:41 db_utils.py:170 WandB logging of key "losses_after_forward" was ignored as its type "<class 'torch.Tensor'>" is not handled by this wrapper.
+WARNING 2026-04-17 16:14:41 db_utils.py:170 WandB logging of key "losses_after_rm_padding" was ignored as its type "<class 'torch.Tensor'>" is not handled by this wrapper.
+INFO 2026-04-17 16:16:42 rain（v3）.py:755 step:112 smpl:448 ep:3 epch:0.00 loss:0.070 expert_dorf_loss:0.250 online_dorf_loss:1.469 critic_loss:0.972 grdn:0.544 good:654.0 lr:1.0e-05 updt_s:0.203 data_s:121.498
+--- [Step 111] Rollout True Reward Sum: 3.00 (Active Envs: 4)
+WARNING 2026-04-17 16:16:42 db_utils.py:170 WandB logging of key "losses_after_forward" was ignored as its type "<class 'torch.Tensor'>" is not handled by this wrapper.
+WARNING 2026-04-17 16:16:42 db_utils.py:170 WandB logging of key "losses_after_rm_padding" was ignored as its type "<class 'torch.Tensor'>" is not handled by this wrapper.
+INFO 2026-04-17 16:18:06 rain（v3）.py:755 step:113 smpl:452 ep:3 epch:0.00 loss:0.055 expert_dorf_loss:0.273 online_dorf_loss:0.689 critic_loss:0.385 grdn:0.676 good:263.0 lr:1.0e-05 updt_s:0.230 data_s:83.147
+--- [Step 112] Rollout True Reward Sum: 4.00 (Active Envs: 4)
+WARNING 2026-04-17 16:18:06 db_utils.py:170 WandB logging of key "losses_after_forward" was ignored as its type "<class 'torch.Tensor'>" is not handled by this wrapper.
+WARNING 2026-04-17 16:18:06 db_utils.py:170 WandB logging of key "losses_after_rm_padding" was ignored as its type "<class 'torch.Tensor'>" is not handled by this wrapper.
+INFO 2026-04-17 16:20:07 rain（v3）.py:755 step:114 smpl:456 ep:3 epch:0.00 loss:0.087 expert_dorf_loss:0.242 online_dorf_loss:1.041 critic_loss:0.503 grdn:0.545 good:491.0 lr:1.0e-05 updt_s:0.212 data_s:120.945
+--- [Step 113] Rollout True Reward Sum: 3.00 (Active Envs: 4)
+WARNING 2026-04-17 16:20:07 db_utils.py:170 WandB logging of key "losses_after_forward" was ignored as its type "<class 'torch.Tensor'>" is not handled by this wrapper.
+WARNING 2026-04-17 16:20:07 db_utils.py:170 WandB logging of key "losses_after_rm_padding" was ignored as its type "<class 'torch.Tensor'>" is not handled by this wrapper.
+INFO 2026-04-17 16:21:29 rain（v3）.py:755 step:115 smpl:460 ep:3 epch:0.00 loss:0.088 expert_dorf_loss:0.256 online_dorf_loss:0.547 critic_loss:0.225 grdn:1.046 good:230.0 lr:1.0e-05 updt_s:0.203 data_s:82.038
+--- [Step 114] Rollout True Reward Sum: 4.00 (Active Envs: 4)
+WARNING 2026-04-17 16:21:29 db_utils.py:170 WandB logging of key "losses_after_forward" was ignored as its type "<class 'torch.Tensor'>" is not handled by this wrapper.
+WARNING 2026-04-17 16:21:29 db_utils.py:170 WandB logging of key "losses_after_rm_padding" was ignored as its type "<class 'torch.Tensor'>" is not handled by this wrapper.
+INFO 2026-04-17 16:22:55 rain（v3）.py:755 step:116 smpl:464 ep:3 epch:0.00 loss:0.065 expert_dorf_loss:0.270 online_dorf_loss:0.632 critic_loss:0.402 grdn:0.471 good:279.0 lr:1.0e-05 updt_s:0.229 data_s:85.483
+--- [Step 115] Rollout True Reward Sum: 4.00 (Active Envs: 4)
+WARNING 2026-04-17 16:22:55 db_utils.py:170 WandB logging of key "losses_after_forward" was ignored as its type "<class 'torch.Tensor'>" is not handled by this wrapper.
+WARNING 2026-04-17 16:22:55 db_utils.py:170 WandB logging of key "losses_after_rm_padding" was ignored as its type "<class 'torch.Tensor'>" is not handled by this wrapper.
+INFO 2026-04-17 16:24:58 rain（v3）.py:755 step:117 smpl:468 ep:3 epch:0.00 loss:0.072 expert_dorf_loss:0.281 online_dorf_loss:1.129 critic_loss:0.593 grdn:0.523 good:501.0 lr:1.0e-05 updt_s:0.177 data_s:122.773
+--- [Step 116] Rollout True Reward Sum: 3.00 (Active Envs: 4)
+WARNING 2026-04-17 16:24:58 db_utils.py:170 WandB logging of key "losses_after_forward" was ignored as its type "<class 'torch.Tensor'>" is not handled by this wrapper.
+WARNING 2026-04-17 16:24:58 db_utils.py:170 WandB logging of key "losses_after_rm_padding" was ignored as its type "<class 'torch.Tensor'>" is not handled by this wrapper.
+INFO 2026-04-17 16:26:18 rain（v3）.py:755 step:118 smpl:472 ep:3 epch:0.00 loss:0.084 expert_dorf_loss:0.199 online_dorf_loss:0.593 critic_loss:0.291 grdn:0.601 good:217.0 lr:1.0e-05 updt_s:0.206 data_s:79.968
+--- [Step 117] Rollout True Reward Sum: 4.00 (Active Envs: 4)
+WARNING 2026-04-17 16:26:18 db_utils.py:170 WandB logging of key "losses_after_forward" was ignored as its type "<class 'torch.Tensor'>" is not handled by this wrapper.
+WARNING 2026-04-17 16:26:18 db_utils.py:170 WandB logging of key "losses_after_rm_padding" was ignored as its type "<class 'torch.Tensor'>" is not handled by this wrapper.
+INFO 2026-04-17 16:27:31 rain（v3）.py:755 step:119 smpl:476 ep:3 epch:0.00 loss:0.089 expert_dorf_loss:0.229 online_dorf_loss:0.368 critic_loss:0.142 grdn:0.735 good:186.0 lr:1.0e-05 updt_s:0.219 data_s:72.488
+--- [Step 118] Rollout True Reward Sum: 4.00 (Active Envs: 4)
+WARNING 2026-04-17 16:27:31 db_utils.py:170 WandB logging of key "losses_after_forward" was ignored as its type "<class 'torch.Tensor'>" is not handled by this wrapper.
+WARNING 2026-04-17 16:27:31 db_utils.py:170 WandB logging of key "losses_after_rm_padding" was ignored as its type "<class 'torch.Tensor'>" is not handled by this wrapper.
+INFO 2026-04-17 16:28:45 rain（v3）.py:755 step:120 smpl:480 ep:3 epch:0.00 loss:0.068 expert_dorf_loss:0.167 online_dorf_loss:0.347 critic_loss:0.112 grdn:0.436 good:203.0 lr:1.0e-05 updt_s:0.239 data_s:73.835
+--- [Step 119] Rollout True Reward Sum: 4.00 (Active Envs: 4)
+WARNING 2026-04-17 16:28:45 db_utils.py:170 WandB logging of key "losses_after_forward" was ignored as its type "<class 'torch.Tensor'>" is not handled by this wrapper.
+WARNING 2026-04-17 16:28:45 db_utils.py:170 WandB logging of key "losses_after_rm_padding" was ignored as its type "<class 'torch.Tensor'>" is not handled by this wrapper.
+INFO 2026-04-17 16:30:05 rain（v3）.py:755 step:121 smpl:484 ep:3 epch:0.00 loss:0.098 expert_dorf_loss:0.193 online_dorf_loss:0.662 critic_loss:0.288 grdn:0.871 good:249.0 lr:1.0e-05 updt_s:0.216 data_s:80.348
+--- [Step 120] Rollout True Reward Sum: 4.00 (Active Envs: 4)
+WARNING 2026-04-17 16:30:05 db_utils.py:170 WandB logging of key "losses_after_forward" was ignored as its type "<class 'torch.Tensor'>" is not handled by this wrapper.
+WARNING 2026-04-17 16:30:05 db_utils.py:170 WandB logging of key "losses_after_rm_padding" was ignored as its type "<class 'torch.Tensor'>" is not handled by this wrapper.
+INFO 2026-04-17 16:31:32 rain（v3）.py:755 step:122 smpl:488 ep:3 epch:0.00 loss:0.071 expert_dorf_loss:0.152 online_dorf_loss:0.784 critic_loss:0.455 grdn:0.448 good:278.0 lr:1.0e-05 updt_s:0.201 data_s:86.241
+--- [Step 121] Rollout True Reward Sum: 4.00 (Active Envs: 4)
+WARNING 2026-04-17 16:31:32 db_utils.py:170 WandB logging of key "losses_after_forward" was ignored as its type "<class 'torch.Tensor'>" is not handled by this wrapper.
+WARNING 2026-04-17 16:31:32 db_utils.py:170 WandB logging of key "losses_after_rm_padding" was ignored as its type "<class 'torch.Tensor'>" is not handled by this wrapper.
+INFO 2026-04-17 16:33:01 rain（v3）.py:755 step:123 smpl:492 ep:3 epch:0.00 loss:0.072 expert_dorf_loss:0.167 online_dorf_loss:0.652 critic_loss:0.375 grdn:0.659 good:283.0 lr:1.0e-05 updt_s:0.206 data_s:88.918
+--- [Step 122] Rollout True Reward Sum: 4.00 (Active Envs: 4)
+WARNING 2026-04-17 16:33:01 db_utils.py:170 WandB logging of key "losses_after_forward" was ignored as its type "<class 'torch.Tensor'>" is not handled by this wrapper.
+WARNING 2026-04-17 16:33:01 db_utils.py:170 WandB logging of key "losses_after_rm_padding" was ignored as its type "<class 'torch.Tensor'>" is not handled by this wrapper.
+INFO 2026-04-17 16:34:19 rain（v3）.py:755 step:124 smpl:496 ep:3 epch:0.00 loss:0.100 expert_dorf_loss:0.144 online_dorf_loss:0.516 critic_loss:0.238 grdn:1.059 good:215.0 lr:1.0e-05 updt_s:0.176 data_s:77.734
+--- [Step 123] Rollout True Reward Sum: 4.00 (Active Envs: 4)
+WARNING 2026-04-17 16:34:19 db_utils.py:170 WandB logging of key "losses_after_forward" was ignored as its type "<class 'torch.Tensor'>" is not handled by this wrapper.
+WARNING 2026-04-17 16:34:19 db_utils.py:170 WandB logging of key "losses_after_rm_padding" was ignored as its type "<class 'torch.Tensor'>" is not handled by this wrapper.
+INFO 2026-04-17 16:35:41 rain（v3）.py:755 step:125 smpl:500 ep:3 epch:0.00 loss:0.057 expert_dorf_loss:0.117 online_dorf_loss:0.781 critic_loss:0.361 grdn:0.536 good:223.0 lr:1.0e-05 updt_s:0.229 data_s:81.990
+--- [Step 124] Rollout True Reward Sum: 4.00 (Active Envs: 4)
+WARNING 2026-04-17 16:35:41 db_utils.py:170 WandB logging of key "losses_after_forward" was ignored as its type "<class 'torch.Tensor'>" is not handled by this wrapper.
+WARNING 2026-04-17 16:35:41 db_utils.py:170 WandB logging of key "losses_after_rm_padding" was ignored as its type "<class 'torch.Tensor'>" is not handled by this wrapper.
+INFO 2026-04-17 16:37:05 rain（v3）.py:755 step:126 smpl:504 ep:3 epch:0.00 loss:0.068 expert_dorf_loss:0.170 online_dorf_loss:0.546 critic_loss:0.301 grdn:0.666 good:218.0 lr:1.0e-05 updt_s:0.217 data_s:83.128
+--- [Step 125] Rollout True Reward Sum: 4.00 (Active Envs: 4)
+WARNING 2026-04-17 16:37:05 db_utils.py:170 WandB logging of key "losses_after_forward" was ignored as its type "<class 'torch.Tensor'>" is not handled by this wrapper.
+WARNING 2026-04-17 16:37:05 db_utils.py:170 WandB logging of key "losses_after_rm_padding" was ignored as its type "<class 'torch.Tensor'>" is not handled by this wrapper.
+INFO 2026-04-17 16:38:27 rain（v3）.py:755 step:127 smpl:508 ep:3 epch:0.00 loss:0.067 expert_dorf_loss:0.161 online_dorf_loss:0.615 critic_loss:0.321 grdn:0.642 good:230.0 lr:1.0e-05 updt_s:0.202 data_s:81.882
+--- [Step 126] Rollout True Reward Sum: 4.00 (Active Envs: 4)
+WARNING 2026-04-17 16:38:27 db_utils.py:170 WandB logging of key "losses_after_forward" was ignored as its type "<class 'torch.Tensor'>" is not handled by this wrapper.
+WARNING 2026-04-17 16:38:27 db_utils.py:170 WandB logging of key "losses_after_rm_padding" was ignored as its type "<class 'torch.Tensor'>" is not handled by this wrapper.
+INFO 2026-04-17 16:40:10 rain（v3）.py:755 step:128 smpl:512 ep:3 epch:0.00 loss:0.087 expert_dorf_loss:0.119 online_dorf_loss:1.043 critic_loss:0.206 grdn:0.507 good:337.0 lr:1.0e-05 updt_s:0.245 data_s:102.777
+--- [Step 127] Rollout True Reward Sum: 4.00 (Active Envs: 4)
+WARNING 2026-04-17 16:40:10 db_utils.py:170 WandB logging of key "losses_after_forward" was ignored as its type "<class 'torch.Tensor'>" is not handled by this wrapper.
+WARNING 2026-04-17 16:40:10 db_utils.py:170 WandB logging of key "losses_after_rm_padding" was ignored as its type "<class 'torch.Tensor'>" is not handled by this wrapper.
+INFO 2026-04-17 16:41:31 rain（v3）.py:755 step:129 smpl:516 ep:3 epch:0.00 loss:0.062 expert_dorf_loss:0.232 online_dorf_loss:0.558 critic_loss:0.278 grdn:0.710 good:222.0 lr:1.0e-05 updt_s:0.176 data_s:80.616
+--- [Step 128] Rollout True Reward Sum: 4.00 (Active Envs: 4)
+WARNING 2026-04-17 16:41:31 db_utils.py:170 WandB logging of key "losses_after_forward" was ignored as its type "<class 'torch.Tensor'>" is not handled by this wrapper.
+WARNING 2026-04-17 16:41:31 db_utils.py:170 WandB logging of key "losses_after_rm_padding" was ignored as its type "<class 'torch.Tensor'>" is not handled by this wrapper.
+INFO 2026-04-17 16:43:29 rain（v3）.py:755 step:130 smpl:520 ep:3 epch:0.00 loss:0.089 expert_dorf_loss:0.087 online_dorf_loss:1.097 critic_loss:0.670 grdn:0.506 good:555.0 lr:1.0e-05 updt_s:0.195 data_s:117.915
+--- [Step 129] Rollout True Reward Sum: 4.00 (Active Envs: 4)
+WARNING 2026-04-17 16:43:29 db_utils.py:170 WandB logging of key "losses_after_forward" was ignored as its type "<class 'torch.Tensor'>" is not handled by this wrapper.
+WARNING 2026-04-17 16:43:29 db_utils.py:170 WandB logging of key "losses_after_rm_padding" was ignored as its type "<class 'torch.Tensor'>" is not handled by this wrapper.
+INFO 2026-04-17 16:44:56 rain（v3）.py:755 step:131 smpl:524 ep:3 epch:0.00 loss:0.132 expert_dorf_loss:0.119 online_dorf_loss:0.748 critic_loss:0.402 grdn:3.679 good:286.0 lr:1.0e-05 updt_s:0.231 data_s:86.825
+--- [Step 130] Rollout True Reward Sum: 4.00 (Active Envs: 4)
+WARNING 2026-04-17 16:44:56 db_utils.py:170 WandB logging of key "losses_after_forward" was ignored as its type "<class 'torch.Tensor'>" is not handled by this wrapper.
+WARNING 2026-04-17 16:44:56 db_utils.py:170 WandB logging of key "losses_after_rm_padding" was ignored as its type "<class 'torch.Tensor'>" is not handled by this wrapper.
+INFO 2026-04-17 16:46:37 rain（v3）.py:755 step:132 smpl:528 ep:3 epch:0.00 loss:0.078 expert_dorf_loss:0.063 online_dorf_loss:0.972 critic_loss:0.598 grdn:0.752 good:411.0 lr:1.0e-05 updt_s:0.209 data_s:100.589
+--- [Step 131] Rollout True Reward Sum: 4.00 (Active Envs: 4)
+WARNING 2026-04-17 16:46:37 db_utils.py:170 WandB logging of key "losses_after_forward" was ignored as its type "<class 'torch.Tensor'>" is not handled by this wrapper.
+WARNING 2026-04-17 16:46:37 db_utils.py:170 WandB logging of key "losses_after_rm_padding" was ignored as its type "<class 'torch.Tensor'>" is not handled by this wrapper.
+INFO 2026-04-17 16:48:01 rain（v3）.py:755 step:133 smpl:532 ep:3 epch:0.00 loss:0.036 expert_dorf_loss:0.098 online_dorf_loss:0.683 critic_loss:0.212 grdn:0.537 good:269.0 lr:1.0e-05 updt_s:0.225 data_s:84.464
+--- [Step 132] Rollout True Reward Sum: 4.00 (Active Envs: 4)
+WARNING 2026-04-17 16:48:01 db_utils.py:170 WandB logging of key "losses_after_forward" was ignored as its type "<class 'torch.Tensor'>" is not handled by this wrapper.
+WARNING 2026-04-17 16:48:01 db_utils.py:170 WandB logging of key "losses_after_rm_padding" was ignored as its type "<class 'torch.Tensor'>" is not handled by this wrapper.
+INFO 2026-04-17 16:49:26 rain（v3）.py:755 step:134 smpl:536 ep:3 epch:0.00 loss:0.098 expert_dorf_loss:0.061 online_dorf_loss:0.694 critic_loss:0.395 grdn:0.611 good:273.0 lr:1.0e-05 updt_s:0.230 data_s:84.370
+--- [Step 133] Rollout True Reward Sum: 4.00 (Active Envs: 4)
+WARNING 2026-04-17 16:49:26 db_utils.py:170 WandB logging of key "losses_after_forward" was ignored as its type "<class 'torch.Tensor'>" is not handled by this wrapper.
+WARNING 2026-04-17 16:49:26 db_utils.py:170 WandB logging of key "losses_after_rm_padding" was ignored as its type "<class 'torch.Tensor'>" is not handled by this wrapper.
+INFO 2026-04-17 16:51:02 rain（v3）.py:755 step:135 smpl:540 ep:3 epch:0.00 loss:0.102 expert_dorf_loss:0.100 online_dorf_loss:0.860 critic_loss:0.361 grdn:0.642 good:362.0 lr:1.0e-05 updt_s:0.198 data_s:95.989
+--- [Step 134] Rollout True Reward Sum: 4.00 (Active Envs: 4)
+WARNING 2026-04-17 16:51:02 db_utils.py:170 WandB logging of key "losses_after_forward" was ignored as its type "<class 'torch.Tensor'>" is not handled by this wrapper.
+WARNING 2026-04-17 16:51:02 db_utils.py:170 WandB logging of key "losses_after_rm_padding" was ignored as its type "<class 'torch.Tensor'>" is not handled by this wrapper.
+INFO 2026-04-17 16:53:05 rain（v3）.py:755 step:136 smpl:544 ep:3 epch:0.00 loss:0.060 expert_dorf_loss:0.064 online_dorf_loss:1.052 critic_loss:0.749 grdn:0.559 good:504.0 lr:1.0e-05 updt_s:0.222 data_s:122.835
+--- [Step 135] Rollout True Reward Sum: 3.00 (Active Envs: 4)
+WARNING 2026-04-17 16:53:05 db_utils.py:170 WandB logging of key "losses_after_forward" was ignored as its type "<class 'torch.Tensor'>" is not handled by this wrapper.
+WARNING 2026-04-17 16:53:05 db_utils.py:170 WandB logging of key "losses_after_rm_padding" was ignored as its type "<class 'torch.Tensor'>" is not handled by this wrapper.
+INFO 2026-04-17 16:54:28 rain（v3）.py:755 step:137 smpl:548 ep:3 epch:0.00 loss:0.050 expert_dorf_loss:0.086 online_dorf_loss:0.700 critic_loss:0.277 grdn:0.540 good:262.0 lr:1.0e-05 updt_s:0.215 data_s:82.350
+--- [Step 136] Rollout True Reward Sum: 4.00 (Active Envs: 4)
+WARNING 2026-04-17 16:54:28 db_utils.py:170 WandB logging of key "losses_after_forward" was ignored as its type "<class 'torch.Tensor'>" is not handled by this wrapper.
+WARNING 2026-04-17 16:54:28 db_utils.py:170 WandB logging of key "losses_after_rm_padding" was ignored as its type "<class 'torch.Tensor'>" is not handled by this wrapper.
+INFO 2026-04-17 16:56:31 rain（v3）.py:755 step:138 smpl:552 ep:3 epch:0.00 loss:0.121 expert_dorf_loss:0.066 online_dorf_loss:0.925 critic_loss:0.400 grdn:0.495 good:497.0 lr:1.0e-05 updt_s:0.205 data_s:122.814
+--- [Step 137] Rollout True Reward Sum: 3.00 (Active Envs: 4)
+WARNING 2026-04-17 16:56:31 db_utils.py:170 WandB logging of key "losses_after_forward" was ignored as its type "<class 'torch.Tensor'>" is not handled by this wrapper.
+WARNING 2026-04-17 16:56:31 db_utils.py:170 WandB logging of key "losses_after_rm_padding" was ignored as its type "<class 'torch.Tensor'>" is not handled by this wrapper.
+INFO 2026-04-17 16:58:33 rain（v3）.py:755 step:139 smpl:556 ep:3 epch:0.00 loss:0.082 expert_dorf_loss:0.041 online_dorf_loss:1.027 critic_loss:0.883 grdn:0.973 good:657.0 lr:1.0e-05 updt_s:0.203 data_s:122.070
+--- [Step 138] Rollout True Reward Sum: 3.00 (Active Envs: 4)
+WARNING 2026-04-17 16:58:33 db_utils.py:170 WandB logging of key "losses_after_forward" was ignored as its type "<class 'torch.Tensor'>" is not handled by this wrapper.
+WARNING 2026-04-17 16:58:33 db_utils.py:170 WandB logging of key "losses_after_rm_padding" was ignored as its type "<class 'torch.Tensor'>" is not handled by this wrapper.
+INFO 2026-04-17 17:00:04 rain（v3）.py:755 step:140 smpl:560 ep:3 epch:0.00 loss:0.087 expert_dorf_loss:0.026 online_dorf_loss:0.976 critic_loss:0.439 grdn:0.571 good:299.0 lr:1.0e-05 updt_s:0.196 data_s:90.750
+--- [Step 139] Rollout True Reward Sum: 4.00 (Active Envs: 4)
+WARNING 2026-04-17 17:00:04 db_utils.py:170 WandB logging of key "losses_after_forward" was ignored as its type "<class 'torch.Tensor'>" is not handled by this wrapper.
+WARNING 2026-04-17 17:00:04 db_utils.py:170 WandB logging of key "losses_after_rm_padding" was ignored as its type "<class 'torch.Tensor'>" is not handled by this wrapper.
+INFO 2026-04-17 17:01:28 rain（v3）.py:755 step:141 smpl:564 ep:3 epch:0.00 loss:0.066 expert_dorf_loss:0.046 online_dorf_loss:0.623 critic_loss:0.361 grdn:0.632 good:257.0 lr:1.0e-05 updt_s:0.239 data_s:84.017
+--- [Step 140] Rollout True Reward Sum: 4.00 (Active Envs: 4)
+WARNING 2026-04-17 17:01:28 db_utils.py:170 WandB logging of key "losses_after_forward" was ignored as its type "<class 'torch.Tensor'>" is not handled by this wrapper.
+WARNING 2026-04-17 17:01:28 db_utils.py:170 WandB logging of key "losses_after_rm_padding" was ignored as its type "<class 'torch.Tensor'>" is not handled by this wrapper.
+INFO 2026-04-17 17:03:32 rain（v3）.py:755 step:142 smpl:568 ep:4 epch:0.00 loss:0.114 expert_dorf_loss:0.051 online_dorf_loss:0.962 critic_loss:0.656 grdn:0.729 good:577.0 lr:1.0e-05 updt_s:0.207 data_s:123.131
+--- [Step 141] Rollout True Reward Sum: 4.00 (Active Envs: 4)
+WARNING 2026-04-17 17:03:32 db_utils.py:170 WandB logging of key "losses_after_forward" was ignored as its type "<class 'torch.Tensor'>" is not handled by this wrapper.
+WARNING 2026-04-17 17:03:32 db_utils.py:170 WandB logging of key "losses_after_rm_padding" was ignored as its type "<class 'torch.Tensor'>" is not handled by this wrapper.
+INFO 2026-04-17 17:04:55 rain（v3）.py:755 step:143 smpl:572 ep:4 epch:0.00 loss:0.099 expert_dorf_loss:0.078 online_dorf_loss:0.614 critic_loss:0.379 grdn:0.810 good:258.0 lr:1.0e-05 updt_s:0.181 data_s:83.135
+--- [Step 142] Rollout True Reward Sum: 4.00 (Active Envs: 4)
+WARNING 2026-04-17 17:04:55 db_utils.py:170 WandB logging of key "losses_after_forward" was ignored as its type "<class 'torch.Tensor'>" is not handled by this wrapper.
+WARNING 2026-04-17 17:04:55 db_utils.py:170 WandB logging of key "losses_after_rm_padding" was ignored as its type "<class 'torch.Tensor'>" is not handled by this wrapper.
+INFO 2026-04-17 17:06:15 rain（v3）.py:755 step:144 smpl:576 ep:4 epch:0.00 loss:0.085 expert_dorf_loss:0.050 online_dorf_loss:0.444 critic_loss:0.242 grdn:0.613 good:220.0 lr:1.0e-05 updt_s:0.233 data_s:79.872
+--- [Step 143] Rollout True Reward Sum: 4.00 (Active Envs: 4)
+WARNING 2026-04-17 17:06:15 db_utils.py:170 WandB logging of key "losses_after_forward" was ignored as its type "<class 'torch.Tensor'>" is not handled by this wrapper.
+WARNING 2026-04-17 17:06:15 db_utils.py:170 WandB logging of key "losses_after_rm_padding" was ignored as its type "<class 'torch.Tensor'>" is not handled by this wrapper.
+INFO 2026-04-17 17:07:41 rain（v3）.py:755 step:145 smpl:580 ep:4 epch:0.00 loss:0.067 expert_dorf_loss:0.056 online_dorf_loss:0.792 critic_loss:0.250 grdn:0.637 good:275.0 lr:1.0e-05 updt_s:0.195 data_s:85.668
+--- [Step 144] Rollout True Reward Sum: 4.00 (Active Envs: 4)
+WARNING 2026-04-17 17:07:41 db_utils.py:170 WandB logging of key "losses_after_forward" was ignored as its type "<class 'torch.Tensor'>" is not handled by this wrapper.
+WARNING 2026-04-17 17:07:41 db_utils.py:170 WandB logging of key "losses_after_rm_padding" was ignored as its type "<class 'torch.Tensor'>" is not handled by this wrapper.
+INFO 2026-04-17 17:09:00 rain（v3）.py:755 step:146 smpl:584 ep:4 epch:0.00 loss:0.058 expert_dorf_loss:0.089 online_dorf_loss:0.486 critic_loss:0.401 grdn:0.751 good:201.0 lr:1.0e-05 updt_s:0.196 data_s:78.572
+--- [Step 145] Rollout True Reward Sum: 4.00 (Active Envs: 4)
+WARNING 2026-04-17 17:09:00 db_utils.py:170 WandB logging of key "losses_after_forward" was ignored as its type "<class 'torch.Tensor'>" is not handled by this wrapper.
+WARNING 2026-04-17 17:09:00 db_utils.py:170 WandB logging of key "losses_after_rm_padding" was ignored as its type "<class 'torch.Tensor'>" is not handled by this wrapper.
+INFO 2026-04-17 17:10:18 rain（v3）.py:755 step:147 smpl:588 ep:4 epch:0.00 loss:0.059 expert_dorf_loss:0.066 online_dorf_loss:0.340 critic_loss:0.277 grdn:0.859 good:208.0 lr:1.0e-05 updt_s:0.184 data_s:77.668
+--- [Step 146] Rollout True Reward Sum: 4.00 (Active Envs: 4)
+WARNING 2026-04-17 17:10:18 db_utils.py:170 WandB logging of key "losses_after_forward" was ignored as its type "<class 'torch.Tensor'>" is not handled by this wrapper.
+WARNING 2026-04-17 17:10:18 db_utils.py:170 WandB logging of key "losses_after_rm_padding" was ignored as its type "<class 'torch.Tensor'>" is not handled by this wrapper.
+INFO 2026-04-17 17:11:42 rain（v3）.py:755 step:148 smpl:592 ep:4 epch:0.00 loss:0.086 expert_dorf_loss:0.069 online_dorf_loss:0.738 critic_loss:0.279 grdn:0.689 good:248.0 lr:1.0e-05 updt_s:0.219 data_s:83.921
+--- [Step 147] Rollout True Reward Sum: 4.00 (Active Envs: 4)
+WARNING 2026-04-17 17:11:42 db_utils.py:170 WandB logging of key "losses_after_forward" was ignored as its type "<class 'torch.Tensor'>" is not handled by this wrapper.
+WARNING 2026-04-17 17:11:42 db_utils.py:170 WandB logging of key "losses_after_rm_padding" was ignored as its type "<class 'torch.Tensor'>" is not handled by this wrapper.
+INFO 2026-04-17 17:13:03 rain（v3）.py:755 step:149 smpl:596 ep:4 epch:0.00 loss:0.046 expert_dorf_loss:0.110 online_dorf_loss:0.559 critic_loss:0.310 grdn:0.472 good:223.0 lr:1.0e-05 updt_s:0.196 data_s:80.706
+--- [Step 148] Rollout True Reward Sum: 4.00 (Active Envs: 4)
+WARNING 2026-04-17 17:13:03 db_utils.py:170 WandB logging of key "losses_after_forward" was ignored as its type "<class 'torch.Tensor'>" is not handled by this wrapper.
+WARNING 2026-04-17 17:13:03 db_utils.py:170 WandB logging of key "losses_after_rm_padding" was ignored as its type "<class 'torch.Tensor'>" is not handled by this wrapper.
+INFO 2026-04-17 17:14:34 rain（v3）.py:755 step:150 smpl:600 ep:4 epch:0.00 loss:0.073 expert_dorf_loss:0.048 online_dorf_loss:0.872 critic_loss:0.421 grdn:0.524 good:317.0 lr:1.0e-05 updt_s:0.194 data_s:90.870
+--- [Step 149] Rollout True Reward Sum: 4.00 (Active Envs: 4)
+WARNING 2026-04-17 17:14:34 db_utils.py:170 WandB logging of key "losses_after_forward" was ignored as its type "<class 'torch.Tensor'>" is not handled by this wrapper.
+WARNING 2026-04-17 17:14:34 db_utils.py:170 WandB logging of key "losses_after_rm_padding" was ignored as its type "<class 'torch.Tensor'>" is not handled by this wrapper.
+INFO 2026-04-17 17:14:34 rain（v3）.py:777 Checkpoint policy after step 150
+INFO 2026-04-17 17:14:36 rain（v3）.py:798 DORF 状态已保存至: train_logs/libero_object_tlofVLA_v2/checkpoints/000150/dorf_state.pt
+INFO 2026-04-17 17:16:01 rain（v3）.py:755 step:151 smpl:604 ep:4 epch:0.00 loss:0.056 expert_dorf_loss:0.084 online_dorf_loss:0.521 critic_loss:0.268 grdn:0.580 good:220.0 lr:1.0e-05 updt_s:0.239 data_s:79.076
+--- [Step 150] Rollout True Reward Sum: 4.00 (Active Envs: 4)
+WARNING 2026-04-17 17:16:01 db_utils.py:170 WandB logging of key "losses_after_forward" was ignored as its type "<class 'torch.Tensor'>" is not handled by this wrapper.
+WARNING 2026-04-17 17:16:01 db_utils.py:170 WandB logging of key "losses_after_rm_padding" was ignored as its type "<class 'torch.Tensor'>" is not handled by this wrapper.
+INFO 2026-04-17 17:17:20 rain（v3）.py:755 step:152 smpl:608 ep:4 epch:0.00 loss:0.072 expert_dorf_loss:0.016 online_dorf_loss:0.489 critic_loss:0.213 grdn:0.499 good:219.0 lr:1.0e-05 updt_s:0.226 data_s:79.139
+--- [Step 151] Rollout True Reward Sum: 4.00 (Active Envs: 4)
+WARNING 2026-04-17 17:17:20 db_utils.py:170 WandB logging of key "losses_after_forward" was ignored as its type "<class 'torch.Tensor'>" is not handled by this wrapper.
+WARNING 2026-04-17 17:17:20 db_utils.py:170 WandB logging of key "losses_after_rm_padding" was ignored as its type "<class 'torch.Tensor'>" is not handled by this wrapper.
+Running rollout with at most 280 steps:  14%|█▍        | 39/280 [00:14<01:30,  2.67it/s, running_success_rate=0.0%]Exception ignored in atexit callback: <OpenGL.platform.baseplatform.eglTerminate object at 0x7f07bc0bfbb0>Exception ignored in sys.unraisablehook: <built-in function unraisablehook>

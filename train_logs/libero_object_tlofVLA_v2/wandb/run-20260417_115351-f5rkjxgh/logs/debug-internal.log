@@ -1,0 +1,10 @@
+{"time":"2026-04-17T11:53:51.465953362+08:00","level":"INFO","msg":"stream: starting","core version":"0.24.2"}
+{"time":"2026-04-17T11:53:52.883173176+08:00","level":"INFO","msg":"stream: created new stream","id":"f5rkjxgh"}
+{"time":"2026-04-17T11:53:52.88449519+08:00","level":"INFO","msg":"handler: started","stream_id":"f5rkjxgh"}
+{"time":"2026-04-17T11:53:52.884575014+08:00","level":"INFO","msg":"stream: started","id":"f5rkjxgh"}
+{"time":"2026-04-17T11:53:52.884585073+08:00","level":"INFO","msg":"writer: started","stream_id":"f5rkjxgh"}
+{"time":"2026-04-17T11:53:52.884602948+08:00","level":"INFO","msg":"sender: started","stream_id":"f5rkjxgh"}
+{"time":"2026-04-17T12:04:32.41889522+08:00","level":"INFO","msg":"api: retrying HTTP error","status":500,"url":"https://api.wandb.ai/files/x-k/tlof-VLA-v2/f5rkjxgh/file_stream","body":"{\"error\":\"context deadline exceeded\"}"}
+{"time":"2026-04-17T12:42:48.964349547+08:00","level":"INFO","msg":"api: retrying HTTP error","status":500,"url":"https://api.wandb.ai/files/x-k/tlof-VLA-v2/f5rkjxgh/file_stream","body":"{\"error\":\"context deadline exceeded\"}"}
+{"time":"2026-04-17T12:51:49.958730174+08:00","level":"INFO","msg":"api: retrying HTTP error","status":500,"url":"https://api.wandb.ai/files/x-k/tlof-VLA-v2/f5rkjxgh/file_stream","body":"{\"error\":\"context deadline exceeded\"}"}
+{"time":"2026-04-17T12:55:46.295164292+08:00","level":"INFO","msg":"stream: closing","id":"f5rkjxgh"}
