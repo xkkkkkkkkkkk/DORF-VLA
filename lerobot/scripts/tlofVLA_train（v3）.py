@@ -601,21 +601,25 @@ def train(cfg: TrainPipelineConfig, accelerator: Accelerator | None = None):
         next_imgs = torch.cat([next_img_global, next_img_wrist], dim=2)
 
         with torch.no_grad():
-            next_values = critic(next_imgs, next_states)
-            next_values = next_values * (1.0 - dones)
-        terminal_value = next_values[:, -1]
+            # next_values = critic(next_imgs, next_states)
+            # next_values = next_values * (1.0 - dones)
+            trajectory_success = (true_rewards.sum(dim=1) > 0.5).float()
+        target_dorf_signal = A_true_norm.detach()
+        # terminal_value = next_values[:, -1]
         # 2. 计算 Advantage
+        penalty_mask = (trajectory_success < 0.5).unsqueeze(1).expand_as(target_dorf_signal)
+        target_dorf_signal[penalty_mask] -= 0.2
         A_learned = compute_gae(learned_dense_rewards, values, terminal_value, dones)
         A_learned_norm = (A_learned - A_learned.mean()) / (A_learned.std() + 1e-8)
-        A_true = compute_gae(true_rewards, values.detach(), terminal_value, dones)
-        A_true_norm = (A_true - A_true.mean()) / (A_true.std() + 1e-8)
+        # A_true = compute_gae(true_rewards, values.detach(), terminal_value, dones)
+        # A_true_norm = (A_true - A_true.mean()) / (A_true.std() + 1e-8)
         returns_true = A_true.detach() + values.detach()
         returns_norm = (returns_true - returns_true.mean()) / (returns_true.std() + 1e-8)
         values_norm = (values - values.mean()) / (values.std() + 1e-8)
         # 3. [DORF核心修复] 计算损失（在线拟合 + 专家锚定）
         # A. 在线部分：让 A_learned 拟合环境真实反馈 A_true
         # online_dorf_loss = torch.nn.functional.mse_loss(A_learned, A_true.detach())
-        online_dorf_loss = torch.nn.functional.mse_loss(A_learned_norm, A_true_norm.detach())
+        online_dorf_loss = torch.nn.functional.mse_loss(A_learned_norm, target_dorf_signal)
         # B. 专家部分：强制让价值网络认出专家动作是满分 1.0
         with torch.no_grad():
             e_img_global = batch["observation.images.image"].to(device).float()
