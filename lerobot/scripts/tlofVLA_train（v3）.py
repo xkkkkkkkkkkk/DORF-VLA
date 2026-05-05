@@ -468,6 +468,7 @@ def train(cfg: TrainPipelineConfig, accelerator: Accelerator | None = None):
         "loss": AverageMeter("loss", ":.3f"),
         "expert_dorf_loss": AverageMeter("expert_dorf_loss", ":.3f"),   # 自加
         "online_dorf_loss": AverageMeter("online_dorf_loss", ":.3f"),   # 自加
+        "total_dorf_loss": AverageMeter("total_dorf_loss", ":.3f"),   # 自加
         "critic_loss": AverageMeter("critic_loss", ":.3f"), # 自加
         "grad_norm": AverageMeter("grdn", ":.3f"),
         "num_good": AverageMeter("good", ":.1f"), # 自加
@@ -544,7 +545,6 @@ def train(cfg: TrainPipelineConfig, accelerator: Accelerator | None = None):
                 preprocessor=preprocessor,
                 postprocessor=postprocessor,
                 return_observations=True, 
-                tqdm_class=lambda x: x,
             )
 
         train_success_rate = 0.0
@@ -601,18 +601,22 @@ def train(cfg: TrainPipelineConfig, accelerator: Accelerator | None = None):
         next_imgs = torch.cat([next_img_global, next_img_wrist], dim=2)
 
         with torch.no_grad():
-            # next_values = critic(next_imgs, next_states)
-            # next_values = next_values * (1.0 - dones)
+            next_values = critic(next_imgs, next_states)
+            next_values = next_values * (1.0 - dones)
             trajectory_success = (true_rewards.sum(dim=1) > 0.5).float()
-        target_dorf_signal = A_true_norm.detach()
-        # terminal_value = next_values[:, -1]
+        
+        terminal_value = next_values[:, -1]
         # 2. 计算 Advantage
-        penalty_mask = (trajectory_success < 0.5).unsqueeze(1).expand_as(target_dorf_signal)
-        target_dorf_signal[penalty_mask] -= 0.2
+        
         A_learned = compute_gae(learned_dense_rewards, values, terminal_value, dones)
         A_learned_norm = (A_learned - A_learned.mean()) / (A_learned.std() + 1e-8)
-        # A_true = compute_gae(true_rewards, values.detach(), terminal_value, dones)
-        # A_true_norm = (A_true - A_true.mean()) / (A_true.std() + 1e-8)
+        A_true = compute_gae(true_rewards, values.detach(), terminal_value, dones)
+        A_true_norm = (A_true - A_true.mean()) / (A_true.std() + 1e-8)
+
+        target_dorf_signal = A_true_norm.detach()
+        penalty_mask = (trajectory_success < 0.5).unsqueeze(1).expand_as(target_dorf_signal)
+        target_dorf_signal[penalty_mask] -= 0.2
+        
         returns_true = A_true.detach() + values.detach()
         returns_norm = (returns_true - returns_true.mean()) / (returns_true.std() + 1e-8)
         values_norm = (values - values.mean()) / (values.std() + 1e-8)

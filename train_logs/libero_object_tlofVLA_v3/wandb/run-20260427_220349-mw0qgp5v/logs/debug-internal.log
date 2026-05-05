@@ -1,0 +1,12 @@
+{"time":"2026-04-27T22:03:49.852909791+08:00","level":"INFO","msg":"stream: starting","core version":"0.24.2"}
+{"time":"2026-04-27T22:03:51.073367746+08:00","level":"INFO","msg":"stream: created new stream","id":"mw0qgp5v"}
+{"time":"2026-04-27T22:03:51.073445933+08:00","level":"INFO","msg":"handler: started","stream_id":"mw0qgp5v"}
+{"time":"2026-04-27T22:03:51.073501349+08:00","level":"INFO","msg":"stream: started","id":"mw0qgp5v"}
+{"time":"2026-04-27T22:03:51.073532743+08:00","level":"INFO","msg":"sender: started","stream_id":"mw0qgp5v"}
+{"time":"2026-04-27T22:03:51.073540342+08:00","level":"INFO","msg":"writer: started","stream_id":"mw0qgp5v"}
+{"time":"2026-04-28T06:43:22.139781603+08:00","level":"INFO","msg":"api: retrying error","error":"Post \"https://api.wandb.ai/files/x-k/tlof-VLA-v3/mw0qgp5v/file_stream\": read tcp 172.17.0.6:39162->34.8.250.101:443: read: connection reset by peer"}
+{"time":"2026-04-28T15:05:18.473915599+08:00","level":"INFO","msg":"stream: closing","id":"mw0qgp5v"}
+{"time":"2026-04-28T15:07:33.602964081+08:00","level":"INFO","msg":"fileTransfer: Close: file transfer manager closed"}
+{"time":"2026-04-28T15:07:34.086837626+08:00","level":"INFO","msg":"handler: closed","stream_id":"mw0qgp5v"}
+{"time":"2026-04-28T15:07:34.08709691+08:00","level":"INFO","msg":"sender: closed","stream_id":"mw0qgp5v"}
+{"time":"2026-04-28T15:07:34.087132614+08:00","level":"INFO","msg":"stream: closed","id":"mw0qgp5v"}
