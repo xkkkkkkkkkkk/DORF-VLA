@@ -469,6 +469,7 @@ def train(cfg: TrainPipelineConfig, accelerator: Accelerator | None = None):
         "expert_dorf_loss": AverageMeter("expert_dorf_loss", ":.3f"),   # 自加
         "online_dorf_loss": AverageMeter("online_dorf_loss", ":.3f"),   # 自加
         "total_dorf_loss": AverageMeter("total_dorf_loss", ":.3f"),   # 自加
+        "margin": AverageMeter("margin", ":.3f"),   # 自加
         "critic_loss": AverageMeter("critic_loss", ":.3f"), # 自加
         "grad_norm": AverageMeter("grdn", ":.3f"),
         "num_good": AverageMeter("good", ":.1f"), # 自加
@@ -528,7 +529,9 @@ def train(cfg: TrainPipelineConfig, accelerator: Accelerator | None = None):
             if is_main_process:
                 logging.info("成功加载断点重续的 DORF 权重！")
 
-
+    dorf_online_start_steps = 80  # 阶段 1 -> 2：奖励模型何时开始看在线数据
+    vla_update_start_steps = 200  # 阶段 2 -> 3：VLA 何时开始利用在线数据微调
+    last_valid_margin = torch.tensor(0.0, device=device)
     for _ in range(step, cfg.steps):
         start_time = time.perf_counter()
         output_dict = {}
@@ -607,7 +610,6 @@ def train(cfg: TrainPipelineConfig, accelerator: Accelerator | None = None):
         
         terminal_value = next_values[:, -1]
         # 2. 计算 Advantage
-        
         A_learned = compute_gae(learned_dense_rewards, values, terminal_value, dones)
         A_learned_norm = (A_learned - A_learned.mean()) / (A_learned.std() + 1e-8)
         A_true = compute_gae(true_rewards, values.detach(), terminal_value, dones)
@@ -620,23 +622,35 @@ def train(cfg: TrainPipelineConfig, accelerator: Accelerator | None = None):
         returns_true = A_true.detach() + values.detach()
         returns_norm = (returns_true - returns_true.mean()) / (returns_true.std() + 1e-8)
         values_norm = (values - values.mean()) / (values.std() + 1e-8)
-        # 3. [DORF核心修复] 计算损失（在线拟合 + 专家锚定）
-        # A. 在线部分：让 A_learned 拟合环境真实反馈 A_true
+        # 在线部分：让 A_learned 拟合环境真实反馈 A_true
         # online_dorf_loss = torch.nn.functional.mse_loss(A_learned, A_true.detach())
         online_dorf_loss = torch.nn.functional.mse_loss(A_learned_norm, target_dorf_signal)
-        # B. 专家部分：强制让价值网络认出专家动作是满分 1.0
+        # 专家部分：强制让价值网络认出专家动作是满分 1.0
         with torch.no_grad():
             e_img_global = batch["observation.images.image"].to(device).float()
             e_img_wrist = batch["observation.images.image2"].to(device).float()
             e_imgs = torch.cat([e_img_global, e_img_wrist], dim=2)
             e_states = batch["observation.state"].to(device).float()
-            e_actions = batch["action"][:, 0:1].to(device).float() # 对齐点对点评分
+            e_actions = batch["action"][:, 0:1].to(device).float() 
         e_A_learned = dorf_reward(e_imgs, e_states, e_actions)
-        # 强制锚定：专家动作的优势得分必须趋向 1.0
         expert_dorf_loss = torch.nn.functional.mse_loss(e_A_learned, torch.ones_like(e_A_learned) * 1.0)
         critic_loss = torch.nn.functional.mse_loss(values_norm, returns_norm.detach())
-        total_dorf_loss = online_dorf_loss +  expert_dorf_loss + critic_loss
-
+        if step < dorf_online_start_steps:
+            total_dorf_loss = expert_dorf_loss 
+            output_dict["dorf/stage"] = 1
+            output_dict["dorf/online_loss"] = 0.0
+            output_dict["dorf/critic_loss"] = 0.0
+        else:
+            alpha = min(1.0, (step - dorf_online_start_steps) / 50.0) 
+            total_dorf_loss = (alpha * online_dorf_loss) + expert_dorf_loss + critic_loss
+            output_dict["dorf/stage"] = 2
+            output_dict["dorf/online_loss_weight"] = alpha
+        if "loss" in train_metrics:
+            train_metrics["loss"].update(total_dorf_loss.item())
+        if "expert_dorf_loss" in train_metrics:
+            train_metrics["expert_dorf_loss"].update(expert_dorf_loss.item())
+        if "total_dorf_loss" in train_metrics: # 防御性编程，如果名字叫这个
+            train_metrics["total_dorf_loss"].update(total_dorf_loss.item())
         total_dorf_loss.backward()
         opt_dorf.step()
 
@@ -651,104 +665,133 @@ def train(cfg: TrainPipelineConfig, accelerator: Accelerator | None = None):
         w_online_full = torch.exp(A_learned_norm / tau)
         w_online_full = torch.clamp(w_online_full, min = 0.01, max=5.0) # 截断，防止偶尔极端的优势值导致梯度爆炸
 
-        mask = (A_learned_norm > 0)
+        # 计算当前 Batch 轨迹级别的成败掩码
+        success_mask = (trajectory_success > 0.5)
+        fail_mask = ~success_mask
+        valid_trajectory_mask = success_mask.unsqueeze(1).expand_as(A_learned_norm)
+
+        # mask = (A_learned_norm > 0)
+        mask = (A_learned_norm > 0) & valid_trajectory_mask
         num_good = mask.sum().item()
         train_tracker.num_good.update(num_good)
-        warmup_steps = 500 
         chunk_size = batch["action"].shape[1] # 获取当前 VLA 需要的序列长度 (通常为 280 或 50)
-        # 决定要注入多少在线样本
-        num_to_replace = min(cfg.batch_size // 4, num_good) if (num_good > 0 and step > warmup_steps) else 0
-        output_dict["dorf/online_samples_count"] = num_to_replace
-        if num_to_replace > 0:
-            # 找到正优势值的索引，并随机选取 num_to_replace 个
-            b_idx, s_idx = torch.where(mask)
-            rand_perm = torch.randperm(num_good)[:num_to_replace]
-            sel_b = b_idx[rand_perm]
-            sel_s = s_idx[rand_perm]
-            
-            # 初始化存储在线提取数据的字典
-            online_data = {
-                "action": [],
-                "observation.state": [],
-                "observation.images.image": [],
-                "observation.images.image2": [],
-                "task": []
-            }
-            online_weights = []
 
-            # 2. 从在线 rollout_data 中安全地提取完整的连续 Chunk
-            for i in range(num_to_replace):
-                b, s = sel_b[i].item(), sel_s[i].item()
-                start_s = max(0, min(s - (chunk_size // 2), actions.shape[1] - chunk_size))
-                end_s = start_s + chunk_size
-                
-                # 提取连续的一整段动作和起始状态
-                online_data["action"].append(actions[b, start_s:end_s].cpu())
-                online_data["observation.state"].append(states[b, start_s].unsqueeze(0).cpu())
-                
-                # 提取图像并强制插值缩放，对齐离线图像的分辨率
-                for img_key in ["observation.images.image", "observation.images.image2"]:
-                    target_h, target_w = batch[img_key].shape[-2:]
-                    img_raw = obs_dict[img_key][b, start_s].cpu().float()
-                    # unsqueeze(0) 增加 batch 维度用于 interpolate
-                    img_resized = F.interpolate(img_raw.unsqueeze(0), size=(target_h, target_w), mode='bilinear').squeeze(0)
-                    online_data[img_key].append(img_resized)
-                
-                # 提取任务指令
-                online_data["task"].append("Complete the task") 
-                # 提取对应时刻的权重
-                online_weights.append(w_online_full[b, s].item())
-            
-            # 3. 构建全新的干净 Mixed Batch（绝对不修改原始的 batch）
-            mixed_batch = {}
-            for k in batch.keys():
-                # 先把离线数据保留（从 num_to_replace 往后取）
-                if isinstance(batch[k], torch.Tensor):
-                    offline_part = batch[k][num_to_replace:].cpu()
-                    # 如果有对应的在线数据，就 concat 起来
-                    if k in online_data:
-                        online_tensor = torch.stack(online_data[k])
-                        # 维度对齐检查 (尤其是图像如果是5维 [B, 1, C, H, W])
-                        if offline_part.ndim == 5 and online_tensor.ndim == 4:
-                            online_tensor = online_tensor.unsqueeze(1) 
-                        mixed_batch[k] = torch.cat([offline_part, online_tensor], dim=0)
-                    else:
-                        # 没有的话，需要用全 0 补齐 batch_size
-                        padding_shape = list(offline_part.shape)
-                        padding_shape[0] = num_to_replace
-                        padding = torch.zeros(padding_shape, dtype=offline_part.dtype)
-                        mixed_batch[k] = torch.cat([offline_part, padding], dim=0)
-                elif isinstance(batch[k], list) and k == "task":
-                    offline_tasks = batch["task"][num_to_replace:]
-                    mixed_batch["task"] = offline_tasks + online_data["task"]
-
-            # 4. 构建拼接后的权重张量 (离线权重设为 1.0)
-            offline_w = torch.ones(cfg.batch_size - num_to_replace, dtype=torch.float32)
-            online_w = torch.tensor(online_weights, dtype=torch.float32)
-            mixed_weights = torch.cat([offline_w, online_w], dim=0).to(device)
-            # batch 均值归一化
-            mixed_weights = mixed_weights / (mixed_weights.mean() + 1e-8)
+        # 安全计算 Margin，防止因单一样本群导致 NaN
+        if success_mask.any() and fail_mask.any():
+            margin = A_learned_norm[success_mask].mean() - A_learned_norm[fail_mask].mean()
+            last_valid_margin = margin.detach()
         else:
-            # 没有提取到好样本，或者在预热期，直接使用纯离线数据
-            mixed_batch = batch
-            mixed_weights = torch.ones(cfg.batch_size, dtype=torch.float32).to(device)
+            margin = last_valid_margin
+            
+        output_dict["dorf/critic_margin"] = margin.item()
+        # 进入阶段 3 的条件：步数 > steps 且 裁判能分辨优劣 (Margin > 0.1)
+        is_stage_3 = (step > vla_update_start_steps) and (margin.item() > 0.1)
+        # 只有在阶段 3 才允许在线样本替换专家样本
+        num_to_replace = min(cfg.batch_size // 4, num_good) if (num_good > 0 and is_stage_3) else 0
+        output_dict["dorf/vla_updating"] = int(is_stage_3)
 
-        # 5. 安全地传入 preprocessor，根据最新的 task 和 images 重新生成 pixel_values 和 lang_tokens
-        mixed_batch = preprocessor(mixed_batch)
+        inner_epochs = 3 # 内循环次数
+        for inner_idx in range(inner_epochs):
+            if inner_idx > 0:
+                try:
+                    batch = next(dl_iter)
+                except (StopIteration, UnboundLocalError, NameError):
+                    dl_iter = iter(dataloader)
+                    batch = next(dl_iter)
+            chunk_size = batch["action"].shape[1]
 
-        train_tracker.dataloading_s = time.perf_counter() - start_time
-        
-        # 6. 调用重写的 update_policy
-        train_tracker, output_dict = update_policy(
-            train_tracker,
-            policy,
-            mixed_batch,
-            optimizer,
-            cfg.optimizer.grad_clip_norm,
-            accelerator=accelerator,
-            lr_scheduler=lr_scheduler,
-            sample_weights=mixed_weights, # 注入平滑权重！
-        )
+            num_to_replace = min(cfg.batch_size // 4, num_good) if (num_good> 0 and is_stage_3) else 0
+
+            if num_to_replace > 0:
+                # 找到正优势值的索引，并随机选取 num_to_replace 个
+                b_idx, s_idx = torch.where(mask)
+                rand_perm = torch.randperm(num_good)[:num_to_replace]
+                sel_b = b_idx[rand_perm]
+                sel_s = s_idx[rand_perm]
+                
+                # 初始化存储在线提取数据的字典
+                online_data = {
+                    "action": [],
+                    "observation.state": [],
+                    "observation.images.image": [],
+                    "observation.images.image2": [],
+                    "task": []
+                }
+                online_weights = []
+
+                # 2. 从在线 rollout_data 中安全地提取完整的连续 Chunk
+                for i in range(num_to_replace):
+                    b, s = sel_b[i].item(), sel_s[i].item()
+                    start_s = max(0, min(s - (chunk_size // 2), actions.shape[1] - chunk_size))
+                    end_s = start_s + chunk_size
+                    
+                    # 提取连续的一整段动作和起始状态
+                    online_data["action"].append(actions[b, start_s:end_s].cpu())
+                    online_data["observation.state"].append(states[b, start_s].unsqueeze(0).cpu())
+                    
+                    # 提取图像并强制插值缩放，对齐离线图像的分辨率
+                    for img_key in ["observation.images.image", "observation.images.image2"]:
+                        target_h, target_w = batch[img_key].shape[-2:]
+                        img_raw = obs_dict[img_key][b, start_s].cpu().float()
+                        # unsqueeze(0) 增加 batch 维度用于 interpolate
+                        img_resized = F.interpolate(img_raw.unsqueeze(0), size=(target_h, target_w), mode='bilinear').squeeze(0)
+                        online_data[img_key].append(img_resized)
+                    
+                    # 提取任务指令
+                    online_data["task"].append("Complete the task") 
+                    # 提取对应时刻的权重
+                    online_weights.append(w_online_full[b, s].item())
+                
+                # 3. 构建全新的干净 Mixed Batch（绝对不修改原始的 batch）
+                mixed_batch = {}
+                for k in batch.keys():
+                    # 先把离线数据保留（从 num_to_replace 往后取）
+                    if isinstance(batch[k], torch.Tensor):
+                        offline_part = batch[k][num_to_replace:].cpu()
+                        # 如果有对应的在线数据，就 concat 起来
+                        if k in online_data:
+                            online_tensor = torch.stack(online_data[k])
+                            # 维度对齐检查 (尤其是图像如果是5维 [B, 1, C, H, W])
+                            if offline_part.ndim == 5 and online_tensor.ndim == 4:
+                                online_tensor = online_tensor.unsqueeze(1) 
+                            mixed_batch[k] = torch.cat([offline_part, online_tensor], dim=0)
+                        else:
+                            # 没有的话，需要用全 0 补齐 batch_size
+                            padding_shape = list(offline_part.shape)
+                            padding_shape[0] = num_to_replace
+                            padding = torch.zeros(padding_shape, dtype=offline_part.dtype)
+                            mixed_batch[k] = torch.cat([offline_part, padding], dim=0)
+                    elif isinstance(batch[k], list) and k == "task":
+                        offline_tasks = batch["task"][num_to_replace:]
+                        mixed_batch["task"] = offline_tasks + online_data["task"]
+
+                # 4. 构建拼接后的权重张量 (离线权重设为 1.0)
+                offline_w = torch.ones(cfg.batch_size - num_to_replace, dtype=torch.float32)
+                online_w = torch.tensor(online_weights, dtype=torch.float32) * 0.5
+                mixed_weights = torch.cat([offline_w, online_w], dim=0).to(device)
+                # batch 均值归一化
+                mixed_weights = mixed_weights / (mixed_weights.mean() + 1e-8)
+            else:
+                # 没有提取到好样本，或者在预热期，直接使用纯离线数据
+                mixed_batch = batch
+                mixed_weights = torch.ones(cfg.batch_size, dtype=torch.float32).to(device)
+
+            # 5. 安全地传入 preprocessor，根据最新的 task 和 images 重新生成 pixel_values 和 lang_tokens
+            mixed_batch = preprocessor(mixed_batch)
+
+            train_tracker.dataloading_s = time.perf_counter() - start_time
+            
+            # 6. 调用重写的 update_policy
+            train_tracker, output_dict = update_policy(
+                train_tracker,
+                policy,
+                mixed_batch,
+                optimizer,
+                cfg.optimizer.grad_clip_norm,
+                accelerator=accelerator,
+                lr_scheduler=lr_scheduler,
+                sample_weights=mixed_weights, # 注入平滑权重！
+            )
         # 更新训练步数与状态
         step += 1
         train_tracker.step()

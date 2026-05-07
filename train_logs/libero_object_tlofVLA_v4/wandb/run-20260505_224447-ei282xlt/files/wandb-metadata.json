@@ -1,0 +1,63 @@
+{
+  "os": "Linux-5.15.0-78-generic-x86_64-with-glibc2.35",
+  "python": "CPython 3.10.19",
+  "startedAt": "2026-05-05T14:44:47.920659Z",
+  "args": [
+    "--wandb.enable=True",
+    "--wandb.project=tlof-VLA-v4",
+    "--wandb.entity=x-k",
+    "--policy.path=HuggingFaceVLA/smolvla_libero",
+    "--dataset.repo_id=HuggingFaceVLA/libero",
+    "--dataset.streaming=True",
+    "--optimizer.type=adamw",
+    "--optimizer.lr=1e-5",
+    "--optimizer.weight_decay=1e-4",
+    "--optimizer.grad_clip_norm=1.0",
+    "--env.type=libero",
+    "--env.task=libero_object",
+    "--steps=1000",
+    "--eval_freq=1000",
+    "--log_freq=1",
+    "--save_freq=100",
+    "--output_dir=./train_logs/libero_object_tlofVLA_v4",
+    "--resume=True",
+    "--policy.device=cuda",
+    "--eval.batch_size",
+    "4",
+    "--eval.use_async_envs=False"
+  ],
+  "program": "/root/autodl-tmp/lerobot/src/lerobot/scripts/tlofVLA_train（v3）.py",
+  "codePath": "lerobot/scripts/tlofVLA_train（v3）.py",
+  "codePathLocal": "lerobot/scripts/tlofVLA_train（v3）.py",
+  "git": {
+    "remote": "git@github.com:xkkkkkkkkkkk/DORF-VLA.git",
+    "commit": "452d3dc05a4e80e36d6d61e3fca6666cba5cb2e4"
+  },
+  "root": "train_logs/libero_object_tlofVLA_v4",
+  "host": "autodl-container-wtcnbd3acn-93a2ef74",
+  "executable": "/root/autodl-tmp/miniconda3/envs/lerobot/bin/python",
+  "cpu_count": 104,
+  "cpu_count_logical": 208,
+  "gpu": "NVIDIA GeForce RTX 4090",
+  "gpu_count": 1,
+  "disk": {
+    "/": {
+      "total": "32212254720",
+      "used": "14336413696"
+    }
+  },
+  "memory": {
+    "total": "810158297088"
+  },
+  "gpu_nvidia": [
+    {
+      "name": "NVIDIA GeForce RTX 4090",
+      "memoryTotal": "51527024640",
+      "cudaCores": 16384,
+      "architecture": "Ada",
+      "uuid": "GPU-01119529-b8f4-1b79-71bb-92b934ead110"
+    }
+  ],
+  "cudaVersion": "13.0",
+  "writerId": "cbkvsvtzp09iyygod7qemrwy66em52fj"
+}

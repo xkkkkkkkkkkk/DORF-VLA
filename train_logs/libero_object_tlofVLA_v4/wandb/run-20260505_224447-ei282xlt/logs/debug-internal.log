@@ -1,0 +1,49 @@
+{"time":"2026-05-05T22:44:48.15333392+08:00","level":"INFO","msg":"stream: starting","core version":"0.24.2"}
+{"time":"2026-05-05T22:44:49.330876957+08:00","level":"INFO","msg":"stream: created new stream","id":"ei282xlt"}
+{"time":"2026-05-05T22:44:49.332795055+08:00","level":"INFO","msg":"handler: started","stream_id":"ei282xlt"}
+{"time":"2026-05-05T22:44:49.333100623+08:00","level":"INFO","msg":"stream: started","id":"ei282xlt"}
+{"time":"2026-05-05T22:44:49.333141688+08:00","level":"INFO","msg":"sender: started","stream_id":"ei282xlt"}
+{"time":"2026-05-05T22:44:49.33314972+08:00","level":"INFO","msg":"writer: started","stream_id":"ei282xlt"}
+{"time":"2026-05-05T22:49:17.970068905+08:00","level":"WARN","msg":"handler: ignoring partial history record","step":1,"current":3}
+{"time":"2026-05-05T22:49:17.970135703+08:00","level":"WARN","msg":"handler: ignoring partial history record","step":1,"current":3}
+{"time":"2026-05-05T22:49:17.970213082+08:00","level":"WARN","msg":"handler: ignoring partial history record","step":1,"current":3}
+{"time":"2026-05-05T22:49:17.970370494+08:00","level":"WARN","msg":"handler: ignoring partial history record","step":1,"current":3}
+{"time":"2026-05-05T22:49:17.970595805+08:00","level":"WARN","msg":"handler: ignoring partial history record","step":1,"current":3}
+{"time":"2026-05-05T22:49:17.970700006+08:00","level":"WARN","msg":"handler: ignoring partial history record","step":1,"current":3}
+{"time":"2026-05-05T22:49:17.970887279+08:00","level":"WARN","msg":"handler: ignoring partial history record","step":1,"current":3}
+{"time":"2026-05-05T22:49:17.971047124+08:00","level":"WARN","msg":"handler: ignoring partial history record","step":1,"current":3}
+{"time":"2026-05-05T22:49:17.971236545+08:00","level":"WARN","msg":"handler: ignoring partial history record","step":1,"current":3}
+{"time":"2026-05-05T22:49:17.971406814+08:00","level":"WARN","msg":"handler: ignoring partial history record","step":1,"current":3}
+{"time":"2026-05-05T22:49:17.971593146+08:00","level":"WARN","msg":"handler: ignoring partial history record","step":1,"current":3}
+{"time":"2026-05-05T22:49:17.971743516+08:00","level":"WARN","msg":"handler: ignoring partial history record","step":1,"current":3}
+{"time":"2026-05-05T22:49:17.971953712+08:00","level":"WARN","msg":"handler: ignoring partial history record","step":1,"current":3}
+{"time":"2026-05-05T22:49:17.972154165+08:00","level":"WARN","msg":"handler: ignoring partial history record","step":1,"current":3}
+{"time":"2026-05-05T22:49:17.972376745+08:00","level":"WARN","msg":"handler: ignoring partial history record","step":1,"current":3}
+{"time":"2026-05-05T22:49:17.972575138+08:00","level":"WARN","msg":"handler: ignoring partial history record","step":1,"current":3}
+{"time":"2026-05-05T22:49:17.973420256+08:00","level":"WARN","msg":"handler: ignoring partial history record","step":1,"current":3}
+{"time":"2026-05-05T22:49:17.973677712+08:00","level":"WARN","msg":"handler: ignoring partial history record","step":1,"current":3}
+{"time":"2026-05-05T22:49:17.973900405+08:00","level":"WARN","msg":"handler: ignoring partial history record","step":1,"current":3}
+{"time":"2026-05-05T22:51:19.298824311+08:00","level":"WARN","msg":"handler: ignoring partial history record","step":2,"current":3}
+{"time":"2026-05-05T22:51:19.299014281+08:00","level":"WARN","msg":"handler: ignoring partial history record","step":2,"current":3}
+{"time":"2026-05-05T22:51:19.299084764+08:00","level":"WARN","msg":"handler: ignoring partial history record","step":2,"current":3}
+{"time":"2026-05-05T22:51:19.299209067+08:00","level":"WARN","msg":"handler: ignoring partial history record","step":2,"current":3}
+{"time":"2026-05-05T22:51:19.299316777+08:00","level":"WARN","msg":"handler: ignoring partial history record","step":2,"current":3}
+{"time":"2026-05-05T22:51:19.29943707+08:00","level":"WARN","msg":"handler: ignoring partial history record","step":2,"current":3}
+{"time":"2026-05-05T22:51:19.29956046+08:00","level":"WARN","msg":"handler: ignoring partial history record","step":2,"current":3}
+{"time":"2026-05-05T22:51:19.299675623+08:00","level":"WARN","msg":"handler: ignoring partial history record","step":2,"current":3}
+{"time":"2026-05-05T22:51:19.299787714+08:00","level":"WARN","msg":"handler: ignoring partial history record","step":2,"current":3}
+{"time":"2026-05-05T22:51:19.29991126+08:00","level":"WARN","msg":"handler: ignoring partial history record","step":2,"current":3}
+{"time":"2026-05-05T22:51:19.300125474+08:00","level":"WARN","msg":"handler: ignoring partial history record","step":2,"current":3}
+{"time":"2026-05-05T22:51:19.300164349+08:00","level":"WARN","msg":"handler: ignoring partial history record","step":2,"current":3}
+{"time":"2026-05-05T22:51:19.3002918+08:00","level":"WARN","msg":"handler: ignoring partial history record","step":2,"current":3}
+{"time":"2026-05-05T22:51:19.300450658+08:00","level":"WARN","msg":"handler: ignoring partial history record","step":2,"current":3}
+{"time":"2026-05-05T22:51:19.300607233+08:00","level":"WARN","msg":"handler: ignoring partial history record","step":2,"current":3}
+{"time":"2026-05-05T22:51:19.300783535+08:00","level":"WARN","msg":"handler: ignoring partial history record","step":2,"current":3}
+{"time":"2026-05-05T22:51:19.301723953+08:00","level":"WARN","msg":"handler: ignoring partial history record","step":2,"current":3}
+{"time":"2026-05-05T22:51:19.301913639+08:00","level":"WARN","msg":"handler: ignoring partial history record","step":2,"current":3}
+{"time":"2026-05-05T22:51:19.302118512+08:00","level":"WARN","msg":"handler: ignoring partial history record","step":2,"current":3}
+{"time":"2026-05-06T11:59:56.482278019+08:00","level":"INFO","msg":"stream: closing","id":"ei282xlt"}
+{"time":"2026-05-06T12:00:00.170831169+08:00","level":"INFO","msg":"fileTransfer: Close: file transfer manager closed"}
+{"time":"2026-05-06T12:00:00.989944925+08:00","level":"INFO","msg":"handler: closed","stream_id":"ei282xlt"}
+{"time":"2026-05-06T12:00:00.990245049+08:00","level":"INFO","msg":"sender: closed","stream_id":"ei282xlt"}
+{"time":"2026-05-06T12:00:00.990289523+08:00","level":"INFO","msg":"stream: closed","id":"ei282xlt"}

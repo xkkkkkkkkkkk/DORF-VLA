@@ -1,0 +1,7 @@
+{"time":"2026-05-05T22:27:05.097153446+08:00","level":"INFO","msg":"stream: starting","core version":"0.24.2"}
+{"time":"2026-05-05T22:27:06.336947937+08:00","level":"INFO","msg":"stream: created new stream","id":"ei282xlt"}
+{"time":"2026-05-05T22:27:06.337052404+08:00","level":"INFO","msg":"handler: started","stream_id":"ei282xlt"}
+{"time":"2026-05-05T22:27:06.337125681+08:00","level":"INFO","msg":"stream: started","id":"ei282xlt"}
+{"time":"2026-05-05T22:27:06.337166295+08:00","level":"INFO","msg":"sender: started","stream_id":"ei282xlt"}
+{"time":"2026-05-05T22:27:06.337161711+08:00","level":"INFO","msg":"writer: started","stream_id":"ei282xlt"}
+{"time":"2026-05-05T22:35:00.412257615+08:00","level":"INFO","msg":"stream: closing","id":"ei282xlt"}

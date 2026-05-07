@@ -1,0 +1,136 @@
+2026-05-05 22:39:21,251 INFO    MainThread:9568 [wandb_setup.py:_flush():81] Current SDK version is 0.24.2
+2026-05-05 22:39:21,251 INFO    MainThread:9568 [wandb_setup.py:_flush():81] Configure stats pid to 9568
+2026-05-05 22:39:21,251 INFO    MainThread:9568 [wandb_setup.py:_flush():81] Loading settings from environment variables
+2026-05-05 22:39:21,251 INFO    MainThread:9568 [wandb_init.py:setup_run_log_directory():717] Logging user logs to train_logs/libero_object_tlofVLA_v4/wandb/run-20260505_223921-ei282xlt/logs/debug.log
+2026-05-05 22:39:21,252 INFO    MainThread:9568 [wandb_init.py:setup_run_log_directory():718] Logging internal logs to train_logs/libero_object_tlofVLA_v4/wandb/run-20260505_223921-ei282xlt/logs/debug-internal.log
+2026-05-05 22:39:21,252 INFO    MainThread:9568 [wandb_init.py:init():844] calling init triggers
+2026-05-05 22:39:21,252 INFO    MainThread:9568 [wandb_init.py:init():849] wandb.init called with sweep_config: {}
+config: {'dataset': {'repo_id': 'HuggingFaceVLA/libero', 'root': None, 'episodes': None, 'image_transforms': {'enable': False, 'max_num_transforms': 3, 'random_order': False, 'tfs': {'brightness': {'weight': 1.0, 'type': 'ColorJitter', 'kwargs': {'brightness': [0.8, 1.2]}}, 'contrast': {'weight': 1.0, 'type': 'ColorJitter', 'kwargs': {'contrast': [0.8, 1.2]}}, 'saturation': {'weight': 1.0, 'type': 'ColorJitter', 'kwargs': {'saturation': [0.5, 1.5]}}, 'hue': {'weight': 1.0, 'type': 'ColorJitter', 'kwargs': {'hue': [-0.05, 0.05]}}, 'sharpness': {'weight': 1.0, 'type': 'SharpnessJitter', 'kwargs': {'sharpness': [0.5, 1.5]}}, 'affine': {'weight': 1.0, 'type': 'RandomAffine', 'kwargs': {'degrees': [-5.0, 5.0], 'translate': [0.05, 0.05]}}}}, 'revision': None, 'use_imagenet_stats': True, 'video_backend': 'torchcodec', 'streaming': True}, 'env': {'type': 'libero', 'task': 'libero_object', 'fps': 30, 'features': {'action': {'type': <FeatureType.ACTION: 'ACTION'>, 'shape': [7]}, 'pixels/agentview_image': {'type': <FeatureType.VISUAL: 'VISUAL'>, 'shape': [360, 360, 3]}, 'pixels/robot0_eye_in_hand_image': {'type': <FeatureType.VISUAL: 'VISUAL'>, 'shape': [360, 360, 3]}, 'robot_state/eef/pos': {'type': <FeatureType.STATE: 'STATE'>, 'shape': [3]}, 'robot_state/eef/quat': {'type': <FeatureType.STATE: 'STATE'>, 'shape': [4]}, 'robot_state/eef/mat': {'type': <FeatureType.STATE: 'STATE'>, 'shape': [3, 3]}, 'robot_state/gripper/qpos': {'type': <FeatureType.STATE: 'STATE'>, 'shape': [2]}, 'robot_state/gripper/qvel': {'type': <FeatureType.STATE: 'STATE'>, 'shape': [2]}, 'robot_state/joints/pos': {'type': <FeatureType.STATE: 'STATE'>, 'shape': [7]}, 'robot_state/joints/vel': {'type': <FeatureType.STATE: 'STATE'>, 'shape': [7]}}, 'features_map': {'action': 'action', 'robot_state/eef/pos': 'observation.state.eef_pos', 'robot_state/eef/quat': 'observation.state.eef_quat', 'robot_state/eef/mat': 'observation.state.eef_mat', 'robot_state/gripper/qpos': 'observation.state.gripper_qpos', 'robot_state/gripper/qvel': 'observation.state.gripper_qvel', 'robot_state/joints/pos': 'observation.state.joint_pos', 'robot_state/joints/vel': 'observation.state.joint_vel', 'pixels/agentview_image': 'observation.images.image', 'pixels/robot0_eye_in_hand_image': 'observation.images.image2'}, 'max_parallel_tasks': 1, 'disable_env_checker': True, 'task_ids': None, 'episode_length': None, 'obs_type': 'pixels_agent_pos', 'render_mode': 'rgb_array', 'camera_name': 'agentview_image,robot0_eye_in_hand_image', 'init_states': True, 'camera_name_mapping': None, 'observation_height': 360, 'observation_width': 360, 'control_mode': 'relative'}, 'policy': {'type': 'smolvla', 'n_obs_steps': 1, 'input_features': {'observation.images.image': {'type': <FeatureType.VISUAL: 'VISUAL'>, 'shape': [3, 256, 256]}, 'observation.images.image2': {'type': <FeatureType.VISUAL: 'VISUAL'>, 'shape': [3, 256, 256]}, 'observation.state': {'type': <FeatureType.STATE: 'STATE'>, 'shape': [8]}}, 'output_features': {'action': {'type': <FeatureType.ACTION: 'ACTION'>, 'shape': [7]}}, 'device': 'cuda', 'use_amp': False, 'use_peft': False, 'push_to_hub': True, 'repo_id': 'None', 'private': None, 'tags': None, 'license': None, 'pretrained_path': 'HuggingFaceVLA/smolvla_libero', 'chunk_size': 50, 'n_action_steps': 1, 'normalization_mapping': {'VISUAL': <NormalizationMode.IDENTITY: 'IDENTITY'>, 'STATE': <NormalizationMode.MEAN_STD: 'MEAN_STD'>, 'ACTION': <NormalizationMode.MEAN_STD: 'MEAN_STD'>}, 'max_state_dim': 32, 'max_action_dim': 32, 'resize_imgs_with_padding': [512, 512], 'empty_cameras': 0, 'adapt_to_pi_aloha': False, 'use_delta_joint_actions_aloha': False, 'tokenizer_max_length': 48, 'num_steps': 10, 'use_cache': True, 'freeze_vision_encoder': True, 'train_expert_only': True, 'train_state_proj': True, 'optimizer_lr': 0.0001, 'optimizer_betas': [0.9, 0.95], 'optimizer_eps': 1e-08, 'optimizer_weight_decay': 1e-10, 'optimizer_grad_clip_norm': 10.0, 'scheduler_warmup_steps': 1000, 'scheduler_decay_steps': 30000, 'scheduler_decay_lr': 2.5e-06, 'vlm_model_name': 'HuggingFaceTB/SmolVLM2-500M-Instruct', 'load_vlm_weights': True, 'add_image_special_tokens': False, 'attention_mode': 'cross_attn', 'prefix_length': 0, 'pad_language_to': 'longest', 'num_expert_layers': -1, 'num_vlm_layers': 0, 'self_attn_every_n_layers': 2, 'expert_width_multiplier': 0.5, 'min_period': 0.004, 'max_period': 4.0, 'rtc_config': None}, 'output_dir': 'train_logs/libero_object_tlofVLA_v4', 'job_name': 'libero_smolvla', 'resume': True, 'seed': 1000, 'num_workers': 2, 'batch_size': 4, 'steps': 1000, 'eval_freq': 1000, 'log_freq': 1, 'tolerance_s': 0.0001, 'save_checkpoint': True, 'save_freq': 100, 'use_policy_training_preset': True, 'optimizer': {'type': 'adamw', 'lr': 1e-05, 'weight_decay': 0.0001, 'grad_clip_norm': 1.0, 'betas': [0.9, 0.999], 'eps': 1e-08}, 'scheduler': None, 'eval': {'n_episodes': 50, 'batch_size': 4, 'use_async_envs': False}, 'wandb': {'enable': True, 'disable_artifact': False, 'project': 'tlof-VLA-v4', 'entity': 'x-k', 'notes': None, 'run_id': None, 'mode': None}, 'peft': None, 'use_rabc': False, 'rabc_progress_path': None, 'rabc_kappa': 0.01, 'rabc_epsilon': 1e-06, 'rabc_head_mode': 'sparse', 'rename_map': {}, 'checkpoint_path': None, '_wandb': {}}
+2026-05-05 22:39:21,252 INFO    MainThread:9568 [wandb_init.py:init():892] starting backend
+2026-05-05 22:39:21,475 INFO    MainThread:9568 [wandb_init.py:init():895] sending inform_init request
+2026-05-05 22:39:21,482 INFO    MainThread:9568 [wandb_init.py:init():903] backend started and connected
+2026-05-05 22:39:21,487 INFO    MainThread:9568 [wandb_init.py:init():973] updated telemetry
+2026-05-05 22:39:21,493 INFO    MainThread:9568 [wandb_init.py:init():997] communicating run to backend with 90.0 second timeout
+2026-05-05 22:39:24,757 INFO    MainThread:9568 [wandb_init.py:init():1037] run resumed
+2026-05-05 22:39:24,764 INFO    MainThread:9568 [wandb_init.py:init():1042] starting run threads in backend
+2026-05-05 22:39:24,942 INFO    MainThread:9568 [wandb_run.py:_console_start():2529] atexit reg
+2026-05-05 22:39:24,943 INFO    MainThread:9568 [wandb_run.py:_redirect():2377] redirect: wrap_raw
+2026-05-05 22:39:24,943 INFO    MainThread:9568 [wandb_run.py:_redirect():2446] Wrapping output streams.
+2026-05-05 22:39:24,943 INFO    MainThread:9568 [wandb_run.py:_redirect():2469] Redirects installed.
+2026-05-05 22:39:24,947 INFO    MainThread:9568 [wandb_init.py:init():1082] run started, returning control to user process
+2026-05-05 22:43:37,209 INFO    wandb-AsyncioManager-main:9568 [service_client.py:_forward_responses():94] Reached EOF.
+2026-05-05 22:43:37,209 INFO    wandb-AsyncioManager-main:9568 [mailbox.py:close():154] Closing mailbox, abandoning 1 handles.
+2026-05-05 22:43:40,975 ERROR   MainThread:9568 [redirect.py:_on_write():664] [all runs] error in stderr callback
+Traceback (most recent call last):
+  File "/root/autodl-tmp/miniconda3/envs/lerobot/lib/python3.10/site-packages/wandb/sdk/lib/redirect.py", line 662, in _on_write
+    cb(written_data)
+  File "/root/autodl-tmp/miniconda3/envs/lerobot/lib/python3.10/site-packages/wandb/sdk/wandb_run.py", line 2456, in <lambda>
+    lambda data: self._console_raw_callback("stderr", data),
+  File "/root/autodl-tmp/miniconda3/envs/lerobot/lib/python3.10/site-packages/wandb/sdk/wandb_run.py", line 400, in wrapper
+    return func(self, *args, **kwargs)
+  File "/root/autodl-tmp/miniconda3/envs/lerobot/lib/python3.10/site-packages/wandb/sdk/wandb_run.py", line 458, in wrapper_fn
+    return func(self, *args, **kwargs)
+  File "/root/autodl-tmp/miniconda3/envs/lerobot/lib/python3.10/site-packages/wandb/sdk/wandb_run.py", line 1609, in _console_raw_callback
+    self._backend.interface.publish_output_raw(name, data, nowait=True)
+  File "/root/autodl-tmp/miniconda3/envs/lerobot/lib/python3.10/site-packages/wandb/sdk/interface/interface.py", line 789, in publish_output_raw
+    o.timestamp.GetCurrentTime()
+  File "/root/autodl-tmp/miniconda3/envs/lerobot/lib/python3.10/site-packages/google/protobuf/internal/well_known_types.py", line 184, in GetCurrentTime
+    self.FromDatetime(datetime.datetime.now(tz=datetime.timezone.utc))
+  File "/root/autodl-tmp/miniconda3/envs/lerobot/lib/python3.10/site-packages/google/protobuf/internal/well_known_types.py", line 283, in FromDatetime
+    seconds = calendar.timegm(dt.utctimetuple())
+ModuleNotFoundError: import of time halted; None in sys.modules
+2026-05-05 22:43:40,977 ERROR   MainThread:9568 [redirect.py:_on_write():664] [all runs] error in stderr callback
+Traceback (most recent call last):
+  File "/root/autodl-tmp/miniconda3/envs/lerobot/lib/python3.10/site-packages/wandb/sdk/lib/redirect.py", line 662, in _on_write
+    cb(written_data)
+  File "/root/autodl-tmp/miniconda3/envs/lerobot/lib/python3.10/site-packages/wandb/sdk/wandb_run.py", line 2456, in <lambda>
+    lambda data: self._console_raw_callback("stderr", data),
+  File "/root/autodl-tmp/miniconda3/envs/lerobot/lib/python3.10/site-packages/wandb/sdk/wandb_run.py", line 400, in wrapper
+    return func(self, *args, **kwargs)
+  File "/root/autodl-tmp/miniconda3/envs/lerobot/lib/python3.10/site-packages/wandb/sdk/wandb_run.py", line 458, in wrapper_fn
+    return func(self, *args, **kwargs)
+  File "/root/autodl-tmp/miniconda3/envs/lerobot/lib/python3.10/site-packages/wandb/sdk/wandb_run.py", line 1609, in _console_raw_callback
+    self._backend.interface.publish_output_raw(name, data, nowait=True)
+  File "/root/autodl-tmp/miniconda3/envs/lerobot/lib/python3.10/site-packages/wandb/sdk/interface/interface.py", line 789, in publish_output_raw
+    o.timestamp.GetCurrentTime()
+  File "/root/autodl-tmp/miniconda3/envs/lerobot/lib/python3.10/site-packages/google/protobuf/internal/well_known_types.py", line 184, in GetCurrentTime
+    self.FromDatetime(datetime.datetime.now(tz=datetime.timezone.utc))
+  File "/root/autodl-tmp/miniconda3/envs/lerobot/lib/python3.10/site-packages/google/protobuf/internal/well_known_types.py", line 283, in FromDatetime
+    seconds = calendar.timegm(dt.utctimetuple())
+ModuleNotFoundError: import of time halted; None in sys.modules
+2026-05-05 22:43:40,977 ERROR   MainThread:9568 [redirect.py:_on_write():664] [all runs] error in stderr callback
+Traceback (most recent call last):
+  File "/root/autodl-tmp/miniconda3/envs/lerobot/lib/python3.10/site-packages/wandb/sdk/lib/redirect.py", line 662, in _on_write
+    cb(written_data)
+  File "/root/autodl-tmp/miniconda3/envs/lerobot/lib/python3.10/site-packages/wandb/sdk/wandb_run.py", line 2456, in <lambda>
+    lambda data: self._console_raw_callback("stderr", data),
+  File "/root/autodl-tmp/miniconda3/envs/lerobot/lib/python3.10/site-packages/wandb/sdk/wandb_run.py", line 400, in wrapper
+    return func(self, *args, **kwargs)
+  File "/root/autodl-tmp/miniconda3/envs/lerobot/lib/python3.10/site-packages/wandb/sdk/wandb_run.py", line 458, in wrapper_fn
+    return func(self, *args, **kwargs)
+  File "/root/autodl-tmp/miniconda3/envs/lerobot/lib/python3.10/site-packages/wandb/sdk/wandb_run.py", line 1609, in _console_raw_callback
+    self._backend.interface.publish_output_raw(name, data, nowait=True)
+  File "/root/autodl-tmp/miniconda3/envs/lerobot/lib/python3.10/site-packages/wandb/sdk/interface/interface.py", line 789, in publish_output_raw
+    o.timestamp.GetCurrentTime()
+  File "/root/autodl-tmp/miniconda3/envs/lerobot/lib/python3.10/site-packages/google/protobuf/internal/well_known_types.py", line 184, in GetCurrentTime
+    self.FromDatetime(datetime.datetime.now(tz=datetime.timezone.utc))
+  File "/root/autodl-tmp/miniconda3/envs/lerobot/lib/python3.10/site-packages/google/protobuf/internal/well_known_types.py", line 283, in FromDatetime
+    seconds = calendar.timegm(dt.utctimetuple())
+ModuleNotFoundError: import of time halted; None in sys.modules
+2026-05-05 22:43:40,977 ERROR   MainThread:9568 [redirect.py:_on_write():664] [all runs] error in stderr callback
+Traceback (most recent call last):
+  File "/root/autodl-tmp/miniconda3/envs/lerobot/lib/python3.10/site-packages/wandb/sdk/lib/redirect.py", line 662, in _on_write
+    cb(written_data)
+  File "/root/autodl-tmp/miniconda3/envs/lerobot/lib/python3.10/site-packages/wandb/sdk/wandb_run.py", line 2456, in <lambda>
+    lambda data: self._console_raw_callback("stderr", data),
+  File "/root/autodl-tmp/miniconda3/envs/lerobot/lib/python3.10/site-packages/wandb/sdk/wandb_run.py", line 400, in wrapper
+    return func(self, *args, **kwargs)
+  File "/root/autodl-tmp/miniconda3/envs/lerobot/lib/python3.10/site-packages/wandb/sdk/wandb_run.py", line 458, in wrapper_fn
+    return func(self, *args, **kwargs)
+  File "/root/autodl-tmp/miniconda3/envs/lerobot/lib/python3.10/site-packages/wandb/sdk/wandb_run.py", line 1609, in _console_raw_callback
+    self._backend.interface.publish_output_raw(name, data, nowait=True)
+  File "/root/autodl-tmp/miniconda3/envs/lerobot/lib/python3.10/site-packages/wandb/sdk/interface/interface.py", line 789, in publish_output_raw
+    o.timestamp.GetCurrentTime()
+  File "/root/autodl-tmp/miniconda3/envs/lerobot/lib/python3.10/site-packages/google/protobuf/internal/well_known_types.py", line 184, in GetCurrentTime
+    self.FromDatetime(datetime.datetime.now(tz=datetime.timezone.utc))
+  File "/root/autodl-tmp/miniconda3/envs/lerobot/lib/python3.10/site-packages/google/protobuf/internal/well_known_types.py", line 283, in FromDatetime
+    seconds = calendar.timegm(dt.utctimetuple())
+ModuleNotFoundError: import of time halted; None in sys.modules
+2026-05-05 22:43:40,977 ERROR   MainThread:9568 [redirect.py:_on_write():664] [all runs] error in stderr callback
+Traceback (most recent call last):
+  File "/root/autodl-tmp/miniconda3/envs/lerobot/lib/python3.10/site-packages/wandb/sdk/lib/redirect.py", line 662, in _on_write
+    cb(written_data)
+  File "/root/autodl-tmp/miniconda3/envs/lerobot/lib/python3.10/site-packages/wandb/sdk/wandb_run.py", line 2456, in <lambda>
+    lambda data: self._console_raw_callback("stderr", data),
+  File "/root/autodl-tmp/miniconda3/envs/lerobot/lib/python3.10/site-packages/wandb/sdk/wandb_run.py", line 400, in wrapper
+    return func(self, *args, **kwargs)
+  File "/root/autodl-tmp/miniconda3/envs/lerobot/lib/python3.10/site-packages/wandb/sdk/wandb_run.py", line 458, in wrapper_fn
+    return func(self, *args, **kwargs)
+  File "/root/autodl-tmp/miniconda3/envs/lerobot/lib/python3.10/site-packages/wandb/sdk/wandb_run.py", line 1609, in _console_raw_callback
+    self._backend.interface.publish_output_raw(name, data, nowait=True)
+  File "/root/autodl-tmp/miniconda3/envs/lerobot/lib/python3.10/site-packages/wandb/sdk/interface/interface.py", line 789, in publish_output_raw
+    o.timestamp.GetCurrentTime()
+  File "/root/autodl-tmp/miniconda3/envs/lerobot/lib/python3.10/site-packages/google/protobuf/internal/well_known_types.py", line 184, in GetCurrentTime
+    self.FromDatetime(datetime.datetime.now(tz=datetime.timezone.utc))
+  File "/root/autodl-tmp/miniconda3/envs/lerobot/lib/python3.10/site-packages/google/protobuf/internal/well_known_types.py", line 283, in FromDatetime
+    seconds = calendar.timegm(dt.utctimetuple())
+ModuleNotFoundError: import of time halted; None in sys.modules
+2026-05-05 22:43:40,977 ERROR   MainThread:9568 [redirect.py:_on_write():664] [all runs] error in stderr callback
+Traceback (most recent call last):
+  File "/root/autodl-tmp/miniconda3/envs/lerobot/lib/python3.10/site-packages/wandb/sdk/lib/redirect.py", line 662, in _on_write
+    cb(written_data)
+  File "/root/autodl-tmp/miniconda3/envs/lerobot/lib/python3.10/site-packages/wandb/sdk/wandb_run.py", line 2456, in <lambda>
+    lambda data: self._console_raw_callback("stderr", data),
+  File "/root/autodl-tmp/miniconda3/envs/lerobot/lib/python3.10/site-packages/wandb/sdk/wandb_run.py", line 400, in wrapper
+    return func(self, *args, **kwargs)
+  File "/root/autodl-tmp/miniconda3/envs/lerobot/lib/python3.10/site-packages/wandb/sdk/wandb_run.py", line 458, in wrapper_fn
+    return func(self, *args, **kwargs)
+  File "/root/autodl-tmp/miniconda3/envs/lerobot/lib/python3.10/site-packages/wandb/sdk/wandb_run.py", line 1609, in _console_raw_callback
+    self._backend.interface.publish_output_raw(name, data, nowait=True)
+  File "/root/autodl-tmp/miniconda3/envs/lerobot/lib/python3.10/site-packages/wandb/sdk/interface/interface.py", line 789, in publish_output_raw
+    o.timestamp.GetCurrentTime()
+  File "/root/autodl-tmp/miniconda3/envs/lerobot/lib/python3.10/site-packages/google/protobuf/internal/well_known_types.py", line 184, in GetCurrentTime
+    self.FromDatetime(datetime.datetime.now(tz=datetime.timezone.utc))
+  File "/root/autodl-tmp/miniconda3/envs/lerobot/lib/python3.10/site-packages/google/protobuf/internal/well_known_types.py", line 283, in FromDatetime
+    seconds = calendar.timegm(dt.utctimetuple())
+ModuleNotFoundError: import of time halted; None in sys.modules

@@ -1,0 +1,194 @@
+INFO 2026-05-05 22:17:05 db_utils.py:106 Logs will be synced with wandb.
+INFO 2026-05-05 22:17:05 db_utils.py:107 Track this run --> https://wandb.ai/x-k/tlof-VLA-v4/runs/ei282xlt
+INFO 2026-05-05 22:17:05 rain（v3）.py:206 正在初始化本地官方数据集加载器...
+INFO 2026-05-05 22:17:06 rain（v3）.py:219 本地数据覆盖至 Episode 19，将仅加载此范围内索引。
+INFO 2026-05-05 22:17:06 rain（v3）.py:246 Creating env
+[robosuite WARNING] No private macro file found! (__init__.py:7)
+WARNING 2026-05-05 22:17:06 e/__init__.py:7 No private macro file found!
+[robosuite WARNING] It is recommended to use a private macro file (__init__.py:8)
+WARNING 2026-05-05 22:17:06 e/__init__.py:8 It is recommended to use a private macro file
+[robosuite WARNING] To setup, run: python /root/autodl-tmp/miniconda3/envs/lerobot/lib/python3.10/site-packages/robosuite/scripts/setup_macros.py (__init__.py:9)
+WARNING 2026-05-05 22:17:06 e/__init__.py:9 To setup, run: python /root/autodl-tmp/miniconda3/envs/lerobot/lib/python3.10/site-packages/robosuite/scripts/setup_macros.py
+INFO 2026-05-05 22:17:06 tesupport.py:24 No OpenGL_accelerate module loaded: No module named 'OpenGL_accelerate'
+Creating LIBERO envs | suites=['libero_object'] | n_envs(per task)=4 | init_states=True
+[info] using task orders [0, 1, 2, 3, 4, 5, 6, 7, 8, 9]
+Built vec env | suite=libero_object | task_id=0 | n_envs=4
+Built vec env | suite=libero_object | task_id=1 | n_envs=4
+Built vec env | suite=libero_object | task_id=2 | n_envs=4
+Built vec env | suite=libero_object | task_id=3 | n_envs=4
+Built vec env | suite=libero_object | task_id=4 | n_envs=4
+Built vec env | suite=libero_object | task_id=5 | n_envs=4
+Built vec env | suite=libero_object | task_id=6 | n_envs=4
+Built vec env | suite=libero_object | task_id=7 | n_envs=4
+Built vec env | suite=libero_object | task_id=8 | n_envs=4
+Built vec env | suite=libero_object | task_id=9 | n_envs=4
+INFO 2026-05-05 22:18:21 rain（v3）.py:250 Creating policy
+Loading  HuggingFaceTB/SmolVLM2-500M-Instruct weights ...
+INFO 2026-05-05 22:18:23 _client.py:1025 HTTP Request: HEAD https://hf-mirror.com/HuggingFaceTB/SmolVLM2-500M-Instruct/resolve/main/config.json "HTTP/1.1 307 Temporary Redirect"
+INFO 2026-05-05 22:18:23 _client.py:1025 HTTP Request: HEAD https://hf-mirror.com/HuggingFaceTB/SmolVLM2-500M-Video-Instruct/resolve/main/config.json "HTTP/1.1 307 Temporary Redirect"
+INFO 2026-05-05 22:18:24 _client.py:1025 HTTP Request: HEAD https://hf-mirror.com/api/resolve-cache/models/HuggingFaceTB/SmolVLM2-500M-Video-Instruct/7b375e1b73b11138ff12fe22c8f2822d8fe03467/config.json "HTTP/1.1 200 OK"
+`torch_dtype` is deprecated! Use `dtype` instead!
+INFO 2026-05-05 22:18:28 _client.py:1025 HTTP Request: HEAD https://hf-mirror.com/HuggingFaceTB/SmolVLM2-500M-Instruct/resolve/main/generation_config.json "HTTP/1.1 307 Temporary Redirect"
+INFO 2026-05-05 22:18:29 _client.py:1025 HTTP Request: HEAD https://hf-mirror.com/HuggingFaceTB/SmolVLM2-500M-Video-Instruct/resolve/main/generation_config.json "HTTP/1.1 307 Temporary Redirect"
+INFO 2026-05-05 22:18:29 _client.py:1025 HTTP Request: HEAD https://hf-mirror.com/api/resolve-cache/models/HuggingFaceTB/SmolVLM2-500M-Video-Instruct/7b375e1b73b11138ff12fe22c8f2822d8fe03467/generation_config.json "HTTP/1.1 200 OK"
+INFO 2026-05-05 22:18:29 _client.py:1025 HTTP Request: HEAD https://hf-mirror.com/HuggingFaceTB/SmolVLM2-500M-Instruct/resolve/main/processor_config.json "HTTP/1.1 307 Temporary Redirect"
+INFO 2026-05-05 22:18:29 _client.py:1025 HTTP Request: HEAD https://hf-mirror.com/HuggingFaceTB/SmolVLM2-500M-Video-Instruct/resolve/main/processor_config.json "HTTP/1.1 307 Temporary Redirect"
+INFO 2026-05-05 22:18:30 _client.py:1025 HTTP Request: HEAD https://hf-mirror.com/api/resolve-cache/models/HuggingFaceTB/SmolVLM2-500M-Video-Instruct/7b375e1b73b11138ff12fe22c8f2822d8fe03467/processor_config.json "HTTP/1.1 200 OK"
+Traceback (most recent call last):
+  File "/root/autodl-tmp/miniconda3/envs/lerobot/lib/python3.10/site-packages/httpx/_transports/default.py", line 101, in map_httpcore_exceptions
+    yield
+  File "/root/autodl-tmp/miniconda3/envs/lerobot/lib/python3.10/site-packages/httpx/_transports/default.py", line 250, in handle_request
+    resp = self._pool.handle_request(req)
+  File "/root/autodl-tmp/miniconda3/envs/lerobot/lib/python3.10/site-packages/httpcore/_sync/connection_pool.py", line 256, in handle_request
+    raise exc from None
+  File "/root/autodl-tmp/miniconda3/envs/lerobot/lib/python3.10/site-packages/httpcore/_sync/connection_pool.py", line 236, in handle_request
+    response = connection.handle_request(
+  File "/root/autodl-tmp/miniconda3/envs/lerobot/lib/python3.10/site-packages/httpcore/_sync/connection.py", line 103, in handle_request
+    return self._connection.handle_request(request)
+  File "/root/autodl-tmp/miniconda3/envs/lerobot/lib/python3.10/site-packages/httpcore/_sync/http11.py", line 136, in handle_request
+    raise exc
+  File "/root/autodl-tmp/miniconda3/envs/lerobot/lib/python3.10/site-packages/httpcore/_sync/http11.py", line 106, in handle_request
+    ) = self._receive_response_headers(**kwargs)
+  File "/root/autodl-tmp/miniconda3/envs/lerobot/lib/python3.10/site-packages/httpcore/_sync/http11.py", line 177, in _receive_response_headers
+    event = self._receive_event(timeout=timeout)
+  File "/root/autodl-tmp/miniconda3/envs/lerobot/lib/python3.10/site-packages/httpcore/_sync/http11.py", line 217, in _receive_event
+    data = self._network_stream.read(
+  File "/root/autodl-tmp/miniconda3/envs/lerobot/lib/python3.10/site-packages/httpcore/_backends/sync.py", line 126, in read
+    with map_exceptions(exc_map):
+  File "/root/autodl-tmp/miniconda3/envs/lerobot/lib/python3.10/contextlib.py", line 153, in __exit__
+    self.gen.throw(typ, value, traceback)
+  File "/root/autodl-tmp/miniconda3/envs/lerobot/lib/python3.10/site-packages/httpcore/_exceptions.py", line 14, in map_exceptions
+    raise to_exc(exc) from exc
+httpcore.ReadTimeout: The read operation timed out
+
+The above exception was the direct cause of the following exception:
+
+Traceback (most recent call last):
+  File "/root/autodl-tmp/lerobot/src/lerobot/scripts/tlofVLA_train（v3）.py", line 911, in <module>
+    main()
+  File "/root/autodl-tmp/lerobot/src/lerobot/scripts/tlofVLA_train（v3）.py", line 907, in main
+    train()
+  File "/root/autodl-tmp/lerobot/src/lerobot/configs/parser.py", line 233, in wrapper_inner
+    response = fn(cfg, *args, **kwargs)
+  File "/root/autodl-tmp/lerobot/src/lerobot/scripts/tlofVLA_train（v3）.py", line 251, in train
+    policy = make_policy(
+  File "/root/autodl-tmp/lerobot/src/lerobot/policies/factory.py", line 492, in make_policy
+    policy = policy_cls.from_pretrained(**kwargs)
+  File "/root/autodl-tmp/lerobot/src/lerobot/policies/pretrained.py", line 108, in from_pretrained
+    instance = cls(config, **kwargs)
+  File "/root/autodl-tmp/lerobot/src/lerobot/policies/smolvla/modeling_smolvla.py", line 246, in __init__
+    self.model = VLAFlowMatching(config, rtc_processor=self.rtc_processor)
+  File "/root/autodl-tmp/lerobot/src/lerobot/policies/smolvla/modeling_smolvla.py", line 559, in __init__
+    self.vlm_with_expert = SmolVLMWithExpertModel(
+  File "/root/autodl-tmp/lerobot/src/lerobot/policies/smolvla/smolvlm_with_expert.py", line 88, in __init__
+    self.processor = AutoProcessor.from_pretrained(model_id)
+  File "/root/autodl-tmp/miniconda3/envs/lerobot/lib/python3.10/site-packages/transformers/models/auto/processing_auto.py", line 300, in from_pretrained
+    config_dict, _ = ProcessorMixin.get_processor_dict(pretrained_model_name_or_path, **kwargs)
+  File "/root/autodl-tmp/miniconda3/envs/lerobot/lib/python3.10/site-packages/transformers/processing_utils.py", line 949, in get_processor_dict
+    for template in list_repo_templates(
+  File "/root/autodl-tmp/miniconda3/envs/lerobot/lib/python3.10/site-packages/transformers/utils/hub.py", line 131, in list_repo_templates
+    return [
+  File "/root/autodl-tmp/miniconda3/envs/lerobot/lib/python3.10/site-packages/transformers/utils/hub.py", line 131, in <listcomp>
+    return [
+  File "/root/autodl-tmp/miniconda3/envs/lerobot/lib/python3.10/site-packages/huggingface_hub/hf_api.py", line 3321, in list_repo_tree
+    for path_info in paginate(path=tree_url, headers=headers, params={"recursive": recursive, "expand": expand}):
+  File "/root/autodl-tmp/miniconda3/envs/lerobot/lib/python3.10/site-packages/huggingface_hub/utils/_pagination.py", line 36, in paginate
+    r = session.get(path, params=params, headers=headers)
+  File "/root/autodl-tmp/miniconda3/envs/lerobot/lib/python3.10/site-packages/httpx/_client.py", line 1053, in get
+    return self.request(
+  File "/root/autodl-tmp/miniconda3/envs/lerobot/lib/python3.10/site-packages/httpx/_client.py", line 825, in request
+    return self.send(request, auth=auth, follow_redirects=follow_redirects)
+  File "/root/autodl-tmp/miniconda3/envs/lerobot/lib/python3.10/site-packages/httpx/_client.py", line 914, in send
+    response = self._send_handling_auth(
+  File "/root/autodl-tmp/miniconda3/envs/lerobot/lib/python3.10/site-packages/httpx/_client.py", line 942, in _send_handling_auth
+    response = self._send_handling_redirects(
+  File "/root/autodl-tmp/miniconda3/envs/lerobot/lib/python3.10/site-packages/httpx/_client.py", line 979, in _send_handling_redirects
+    response = self._send_single_request(request)
+  File "/root/autodl-tmp/miniconda3/envs/lerobot/lib/python3.10/site-packages/httpx/_client.py", line 1014, in _send_single_request
+    response = transport.handle_request(request)
+  File "/root/autodl-tmp/miniconda3/envs/lerobot/lib/python3.10/site-packages/httpx/_transports/default.py", line 249, in handle_request
+    with map_httpcore_exceptions():
+  File "/root/autodl-tmp/miniconda3/envs/lerobot/lib/python3.10/contextlib.py", line 153, in __exit__
+    self.gen.throw(typ, value, traceback)
+  File "/root/autodl-tmp/miniconda3/envs/lerobot/lib/python3.10/site-packages/httpx/_transports/default.py", line 118, in map_httpcore_exceptions
+    raise mapped_exc(message) from exc
+httpx.ReadTimeout: The read operation timed out
+Traceback (most recent call last):
+  File "/root/autodl-tmp/miniconda3/envs/lerobot/lib/python3.10/site-packages/httpx/_transports/default.py", line 101, in map_httpcore_exceptions
+    yield
+  File "/root/autodl-tmp/miniconda3/envs/lerobot/lib/python3.10/site-packages/httpx/_transports/default.py", line 250, in handle_request
+    resp = self._pool.handle_request(req)
+  File "/root/autodl-tmp/miniconda3/envs/lerobot/lib/python3.10/site-packages/httpcore/_sync/connection_pool.py", line 256, in handle_request
+    raise exc from None
+  File "/root/autodl-tmp/miniconda3/envs/lerobot/lib/python3.10/site-packages/httpcore/_sync/connection_pool.py", line 236, in handle_request
+    response = connection.handle_request(
+  File "/root/autodl-tmp/miniconda3/envs/lerobot/lib/python3.10/site-packages/httpcore/_sync/connection.py", line 103, in handle_request
+    return self._connection.handle_request(request)
+  File "/root/autodl-tmp/miniconda3/envs/lerobot/lib/python3.10/site-packages/httpcore/_sync/http11.py", line 136, in handle_request
+    raise exc
+  File "/root/autodl-tmp/miniconda3/envs/lerobot/lib/python3.10/site-packages/httpcore/_sync/http11.py", line 106, in handle_request
+    ) = self._receive_response_headers(**kwargs)
+  File "/root/autodl-tmp/miniconda3/envs/lerobot/lib/python3.10/site-packages/httpcore/_sync/http11.py", line 177, in _receive_response_headers
+    event = self._receive_event(timeout=timeout)
+  File "/root/autodl-tmp/miniconda3/envs/lerobot/lib/python3.10/site-packages/httpcore/_sync/http11.py", line 217, in _receive_event
+    data = self._network_stream.read(
+  File "/root/autodl-tmp/miniconda3/envs/lerobot/lib/python3.10/site-packages/httpcore/_backends/sync.py", line 126, in read
+    with map_exceptions(exc_map):
+  File "/root/autodl-tmp/miniconda3/envs/lerobot/lib/python3.10/contextlib.py", line 153, in __exit__
+    self.gen.throw(typ, value, traceback)
+  File "/root/autodl-tmp/miniconda3/envs/lerobot/lib/python3.10/site-packages/httpcore/_exceptions.py", line 14, in map_exceptions
+    raise to_exc(exc) from exc
+httpcore.ReadTimeout: The read operation timed out
+
+The above exception was the direct cause of the following exception:
+
+Traceback (most recent call last):
+  File "/root/autodl-tmp/lerobot/src/lerobot/scripts/tlofVLA_train（v3）.py", line 911, in <module>
+    main()
+  File "/root/autodl-tmp/lerobot/src/lerobot/scripts/tlofVLA_train（v3）.py", line 907, in main
+    train()
+  File "/root/autodl-tmp/lerobot/src/lerobot/configs/parser.py", line 233, in wrapper_inner
+    response = fn(cfg, *args, **kwargs)
+  File "/root/autodl-tmp/lerobot/src/lerobot/scripts/tlofVLA_train（v3）.py", line 251, in train
+    policy = make_policy(
+  File "/root/autodl-tmp/lerobot/src/lerobot/policies/factory.py", line 492, in make_policy
+    policy = policy_cls.from_pretrained(**kwargs)
+  File "/root/autodl-tmp/lerobot/src/lerobot/policies/pretrained.py", line 108, in from_pretrained
+    instance = cls(config, **kwargs)
+  File "/root/autodl-tmp/lerobot/src/lerobot/policies/smolvla/modeling_smolvla.py", line 246, in __init__
+    self.model = VLAFlowMatching(config, rtc_processor=self.rtc_processor)
+  File "/root/autodl-tmp/lerobot/src/lerobot/policies/smolvla/modeling_smolvla.py", line 559, in __init__
+    self.vlm_with_expert = SmolVLMWithExpertModel(
+  File "/root/autodl-tmp/lerobot/src/lerobot/policies/smolvla/smolvlm_with_expert.py", line 88, in __init__
+    self.processor = AutoProcessor.from_pretrained(model_id)
+  File "/root/autodl-tmp/miniconda3/envs/lerobot/lib/python3.10/site-packages/transformers/models/auto/processing_auto.py", line 300, in from_pretrained
+    config_dict, _ = ProcessorMixin.get_processor_dict(pretrained_model_name_or_path, **kwargs)
+  File "/root/autodl-tmp/miniconda3/envs/lerobot/lib/python3.10/site-packages/transformers/processing_utils.py", line 949, in get_processor_dict
+    for template in list_repo_templates(
+  File "/root/autodl-tmp/miniconda3/envs/lerobot/lib/python3.10/site-packages/transformers/utils/hub.py", line 131, in list_repo_templates
+    return [
+  File "/root/autodl-tmp/miniconda3/envs/lerobot/lib/python3.10/site-packages/transformers/utils/hub.py", line 131, in <listcomp>
+    return [
+  File "/root/autodl-tmp/miniconda3/envs/lerobot/lib/python3.10/site-packages/huggingface_hub/hf_api.py", line 3321, in list_repo_tree
+    for path_info in paginate(path=tree_url, headers=headers, params={"recursive": recursive, "expand": expand}):
+  File "/root/autodl-tmp/miniconda3/envs/lerobot/lib/python3.10/site-packages/huggingface_hub/utils/_pagination.py", line 36, in paginate
+    r = session.get(path, params=params, headers=headers)
+  File "/root/autodl-tmp/miniconda3/envs/lerobot/lib/python3.10/site-packages/httpx/_client.py", line 1053, in get
+    return self.request(
+  File "/root/autodl-tmp/miniconda3/envs/lerobot/lib/python3.10/site-packages/httpx/_client.py", line 825, in request
+    return self.send(request, auth=auth, follow_redirects=follow_redirects)
+  File "/root/autodl-tmp/miniconda3/envs/lerobot/lib/python3.10/site-packages/httpx/_client.py", line 914, in send
+    response = self._send_handling_auth(
+  File "/root/autodl-tmp/miniconda3/envs/lerobot/lib/python3.10/site-packages/httpx/_client.py", line 942, in _send_handling_auth
+    response = self._send_handling_redirects(
+  File "/root/autodl-tmp/miniconda3/envs/lerobot/lib/python3.10/site-packages/httpx/_client.py", line 979, in _send_handling_redirects
+    response = self._send_single_request(request)
+  File "/root/autodl-tmp/miniconda3/envs/lerobot/lib/python3.10/site-packages/httpx/_client.py", line 1014, in _send_single_request
+    response = transport.handle_request(request)
+  File "/root/autodl-tmp/miniconda3/envs/lerobot/lib/python3.10/site-packages/httpx/_transports/default.py", line 249, in handle_request
+    with map_httpcore_exceptions():
+  File "/root/autodl-tmp/miniconda3/envs/lerobot/lib/python3.10/contextlib.py", line 153, in __exit__
+    self.gen.throw(typ, value, traceback)
+  File "/root/autodl-tmp/miniconda3/envs/lerobot/lib/python3.10/site-packages/httpx/_transports/default.py", line 118, in map_httpcore_exceptions
+    raise mapped_exc(message) from exc
+httpx.ReadTimeout: The read operation timed out
