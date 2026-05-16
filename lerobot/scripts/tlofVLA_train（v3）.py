@@ -85,6 +85,8 @@ def update_policy(
             output_dict["dorf/mean_sample_weight"] = sample_weights.mean().item()
             output_dict["dorf/max_sample_weight"] = sample_weights.max().item()
             output_dict["dorf/weight_min"] = sample_weights.min().item()
+            output_dict["dorf/online_weight_mean"] = sample_weights.mean().item()
+            output_dict["dorf/online_weight_max"] = sample_weights.max().item()
 
         else:
             # 预热期或无权重时，走标准的平均 Loss
@@ -121,7 +123,78 @@ def update_policy(
     train_metrics.grad_norm = grad_norm.item()
     train_metrics.lr = optimizer.param_groups[0]["lr"]
     train_metrics.update_s = time.perf_counter() - start_time
+    output_dict["policy/grad_norm"] = grad_norm.item()
     return train_metrics, output_dict
+
+
+def linear_warmup_ratio(step_delta: int, warmup_steps: int) -> float:
+    if warmup_steps <= 0:
+        return 1.0
+    return max(0.0, min(1.0, step_delta / warmup_steps))
+
+
+def compute_grad_norm(module: torch.nn.Module) -> float:
+    grad_norms = [param.grad.detach().norm(2) for param in module.parameters() if param.grad is not None]
+    if not grad_norms:
+        return 0.0
+    return torch.norm(torch.stack(grad_norms), 2).item()
+
+
+def compute_td_lambda_returns(
+    rewards: torch.Tensor,
+    values: torch.Tensor,
+    next_value: torch.Tensor,
+    dones: torch.Tensor,
+    gamma: float = 0.99,
+    lam: float = 0.95,
+) -> torch.Tensor:
+    returns = torch.zeros_like(rewards)
+    next_return = next_value
+
+    for t in reversed(range(rewards.shape[1])):
+        next_non_terminal = 1.0 - dones[:, t].float()
+        bootstrap = (1.0 - lam) * values[:, t] + lam * next_return
+        returns[:, t] = rewards[:, t] + gamma * next_non_terminal * bootstrap
+        next_return = returns[:, t]
+
+    return returns
+
+
+def normalize_tensor(values: torch.Tensor, eps: float = 1e-8) -> torch.Tensor:
+    std = values.std()
+    if torch.isnan(std) or std.item() < eps:
+        return values - values.mean()
+    return (values - values.mean()) / (std + eps)
+
+
+def resolve_task_template(batch: dict[str, Any], dataset: LeRobotDataset) -> str:
+    if "task" in batch and isinstance(batch["task"], list) and len(batch["task"]) > 0:
+        task_text = batch["task"][0]
+    elif "task_index" in batch and hasattr(dataset.meta, "tasks"):
+        task_idx = batch["task_index"][0].item()
+        task_text = dataset.meta.tasks[task_idx]
+    else:
+        task_text = "Complete the task"
+
+    if "<image>" not in task_text:
+        task_text = f"<image><image> {task_text}"
+    return task_text
+
+
+def ensure_batch_tasks(batch: dict[str, Any], dataset: LeRobotDataset) -> dict[str, Any]:
+    batch_size = len(batch["action"])
+    if "task" in batch and isinstance(batch["task"], list) and len(batch["task"]) == batch_size:
+        normalized_tasks = []
+        for task_text in batch["task"]:
+            if "<image>" not in task_text:
+                task_text = f"<image><image> {task_text}"
+            normalized_tasks.append(task_text)
+        batch["task"] = normalized_tasks
+        return batch
+
+    task_text = resolve_task_template(batch, dataset)
+    batch["task"] = [task_text] * batch_size
+    return batch
 
 def flatten_robot_state(d):
             """递归扁平化 robot_state 字典并拼接"""
@@ -477,6 +550,27 @@ def train(cfg: TrainPipelineConfig, accelerator: Accelerator | None = None):
         "lr": AverageMeter("lr", ":0.1e"),                 # VLA 学习率
         "update_s": AverageMeter("updt_s", ":.3f"),
         "dataloading_s": AverageMeter("data_s", ":.3f"),
+        "reward_grad_norm": AverageMeter("r_gn", ":.3f"),
+        "critic_grad_norm": AverageMeter("c_gn", ":.3f"),
+        "policy_grad_norm": AverageMeter("p_gn", ":.3f"),
+        "value_mean": AverageMeter("v_mu", ":.3f"),
+        "value_std": AverageMeter("v_std", ":.3f"),
+        "value_target_mse": AverageMeter("v_mse", ":.3f"),
+        "returns_target_mean": AverageMeter("ret_mu", ":.3f"),
+        "returns_target_std": AverageMeter("ret_std", ":.3f"),
+        "learned_reward_mean": AverageMeter("rw_mu", ":.3f"),
+        "learned_reward_std": AverageMeter("rw_std", ":.3f"),
+        "A_true_mean": AverageMeter("at_mu", ":.3f"),
+        "A_true_std": AverageMeter("at_std", ":.3f"),
+        "A_learned_mean": AverageMeter("al_mu", ":.3f"),
+        "A_learned_std": AverageMeter("al_std", ":.3f"),
+        "online_candidates": AverageMeter("cand", ":.1f"),
+        "selected_steps": AverageMeter("sel", ":.1f"),
+        "online_mix_ratio": AverageMeter("mix", ":.3f"),
+        "online_weight_mean": AverageMeter("ow_mu", ":.3f"),
+        "online_weight_max": AverageMeter("ow_mx", ":.3f"),
+        "alpha": AverageMeter("alpha", ":.3f"),
+        "stage": AverageMeter("stage", ":.1f"),
     }
 
     # Use effective batch size for proper epoch calculation in distributed training
@@ -516,7 +610,8 @@ def train(cfg: TrainPipelineConfig, accelerator: Accelerator | None = None):
         action_dim=policy.config.output_features["action"].shape[0]
     ).to(device)
     
-    opt_dorf = torch.optim.Adam(list(critic.parameters()) + list(dorf_reward.parameters()), lr=2e-5)# RL学习率
+    opt_critic = torch.optim.Adam(list(critic.parameters()), lr=2e-5)  # Critic 学习率
+    opt_reward = torch.optim.Adam(list(dorf_reward.parameters()), lr=2e-5)  # Reward 学习率
 
     # 尝试断点重续 DORF
     if cfg.resume and cfg.checkpoint_path is not None:
@@ -525,12 +620,31 @@ def train(cfg: TrainPipelineConfig, accelerator: Accelerator | None = None):
             checkpoint = torch.load(dorf_path, map_location=device)
             critic.load_state_dict(checkpoint['critic'])
             dorf_reward.load_state_dict(checkpoint['dorf_reward'])
-            opt_dorf.load_state_dict(checkpoint['opt_dorf'])
+            if 'opt_critic' in checkpoint:
+                opt_critic.load_state_dict(checkpoint['opt_critic'])
+            if 'opt_reward' in checkpoint:
+                opt_reward.load_state_dict(checkpoint['opt_reward'])
+            elif 'opt_dorf' in checkpoint:
+                logging.warning("Loaded legacy opt_dorf state; reward/critic optimizers will restart fresh for full decoupling.")
             if is_main_process:
                 logging.info("成功加载断点重续的 DORF 权重！")
 
     dorf_online_start_steps = 80  # 阶段 1 -> 2：奖励模型何时开始看在线数据
     vla_update_start_steps = 200  # 阶段 2 -> 3：VLA 何时开始利用在线数据微调
+    lambda_expert = 1.0
+    lambda_online = 0.1
+    lambda_critic = 0.2
+    alpha_warmup_steps = 1000
+    stage3_margin_threshold = 0.1
+    online_mix_ratio_max = 0.25
+    online_mix_warmup_steps = 1000
+    online_weight_scale = 0.5
+    selection_mode = "top_quantile"
+    selection_quantile = 0.75
+    reward_success_bonus = 0.1
+    reward_failure_penalty = 0.1
+    expert_decay_start = None
+    expert_decay_min = 1.0
     last_valid_margin = torch.tensor(0.0, device=device)
     for _ in range(step, cfg.steps):
         start_time = time.perf_counter()
@@ -582,7 +696,8 @@ def train(cfg: TrainPipelineConfig, accelerator: Accelerator | None = None):
         imgs = torch.cat([img_global, img_wrist], dim=2)
 
         policy.train()
-        opt_dorf.zero_grad()
+        opt_reward.zero_grad()
+        opt_critic.zero_grad()
 
         # 先获取离线 Batch 
         try:
@@ -611,20 +726,25 @@ def train(cfg: TrainPipelineConfig, accelerator: Accelerator | None = None):
         terminal_value = next_values[:, -1]
         # 2. 计算 Advantage
         A_learned = compute_gae(learned_dense_rewards, values, terminal_value, dones)
-        A_learned_norm = (A_learned - A_learned.mean()) / (A_learned.std() + 1e-8)
+        A_learned_norm = normalize_tensor(A_learned)
         A_true = compute_gae(true_rewards, values.detach(), terminal_value, dones)
-        A_true_norm = (A_true - A_true.mean()) / (A_true.std() + 1e-8)
+        A_true_norm = normalize_tensor(A_true)
+        learned_reward_scores_norm = normalize_tensor(learned_dense_rewards)
 
-        target_dorf_signal = A_true_norm.detach()
-        penalty_mask = (trajectory_success < 0.5).unsqueeze(1).expand_as(target_dorf_signal)
-        target_dorf_signal[penalty_mask] -= 0.2
+        online_reward_target = normalize_tensor(true_rewards).detach()
+        success_bonus = trajectory_success.unsqueeze(1).expand_as(online_reward_target) * reward_success_bonus
+        failure_penalty = (1.0 - trajectory_success).unsqueeze(1).expand_as(online_reward_target) * reward_failure_penalty
+        online_reward_target = online_reward_target + success_bonus - failure_penalty
         
-        returns_true = A_true.detach() + values.detach()
-        returns_norm = (returns_true - returns_true.mean()) / (returns_true.std() + 1e-8)
-        values_norm = (values - values.mean()) / (values.std() + 1e-8)
+        returns_target = compute_td_lambda_returns(
+            rewards=true_rewards,
+            values=values.detach(),
+            next_value=terminal_value.detach(),
+            dones=dones,
+        )
         # 在线部分：让 A_learned 拟合环境真实反馈 A_true
         # online_dorf_loss = torch.nn.functional.mse_loss(A_learned, A_true.detach())
-        online_dorf_loss = torch.nn.functional.mse_loss(A_learned_norm, target_dorf_signal)
+        online_dorf_loss = torch.nn.functional.mse_loss(learned_reward_scores_norm, online_reward_target)
         # 专家部分：强制让价值网络认出专家动作是满分 1.0
         with torch.no_grad():
             e_img_global = batch["observation.images.image"].to(device).float()
@@ -632,63 +752,136 @@ def train(cfg: TrainPipelineConfig, accelerator: Accelerator | None = None):
             e_imgs = torch.cat([e_img_global, e_img_wrist], dim=2)
             e_states = batch["observation.state"].to(device).float()
             e_actions = batch["action"][:, 0:1].to(device).float() 
-        e_A_learned = dorf_reward(e_imgs, e_states, e_actions)
-        expert_dorf_loss = torch.nn.functional.mse_loss(e_A_learned, torch.ones_like(e_A_learned) * 1.0)
-        critic_loss = torch.nn.functional.mse_loss(values_norm, returns_norm.detach())
-        if step < dorf_online_start_steps:
-            total_dorf_loss = expert_dorf_loss 
-            output_dict["dorf/stage"] = 1
-            output_dict["dorf/online_loss"] = 0.0
-            output_dict["dorf/critic_loss"] = 0.0
+        expert_reward_scores = dorf_reward(e_imgs, e_states, e_actions)
+        expert_dorf_loss = torch.nn.functional.mse_loss(expert_reward_scores, torch.ones_like(expert_reward_scores) * 1.0)
+        critic_loss = torch.nn.functional.mse_loss(values, returns_target.detach())
+        value_target_mse = torch.nn.functional.mse_loss(values.detach(), returns_target.detach())
+        if expert_decay_start is not None and step >= expert_decay_start:
+            decay_progress = linear_warmup_ratio(step - expert_decay_start, cfg.steps - expert_decay_start)
+            current_lambda_expert = max(
+                expert_decay_min,
+                lambda_expert - (lambda_expert - expert_decay_min) * decay_progress,
+            )
         else:
-            alpha = min(1.0, (step - dorf_online_start_steps) / 50.0) 
-            total_dorf_loss = (alpha * online_dorf_loss) + expert_dorf_loss + critic_loss
-            output_dict["dorf/stage"] = 2
-            output_dict["dorf/online_loss_weight"] = alpha
-        if "loss" in train_metrics:
-            train_metrics["loss"].update(total_dorf_loss.item())
+            current_lambda_expert = lambda_expert
+
+        alpha = 0.0
+        if step >= dorf_online_start_steps:
+            alpha = linear_warmup_ratio(step - dorf_online_start_steps, alpha_warmup_steps)
+
+        current_lambda_online = lambda_online if step >= dorf_online_start_steps else 0.0
+        current_lambda_critic = lambda_critic if step >= dorf_online_start_steps else 0.0
+        reward_loss = current_lambda_expert * expert_dorf_loss + current_lambda_online * alpha * online_dorf_loss
+        total_dorf_loss = reward_loss + current_lambda_critic * critic_loss
         if "expert_dorf_loss" in train_metrics:
             train_metrics["expert_dorf_loss"].update(expert_dorf_loss.item())
         if "total_dorf_loss" in train_metrics: # 防御性编程，如果名字叫这个
             train_metrics["total_dorf_loss"].update(total_dorf_loss.item())
-        total_dorf_loss.backward()
-        opt_dorf.step()
+        if current_lambda_online > 0.0 or current_lambda_expert > 0.0:
+            reward_loss.backward()
+        reward_grad_norm = compute_grad_norm(dorf_reward)
+        opt_reward.step()
+
+        if current_lambda_critic > 0.0:
+            critic_loss.backward()
+        critic_grad_norm = compute_grad_norm(critic)
+        opt_critic.step()
 
         train_tracker.expert_dorf_loss = expert_dorf_loss.item()
         train_tracker.online_dorf_loss = online_dorf_loss.item()
         train_tracker.critic_loss = critic_loss.item()
+        train_tracker.reward_grad_norm = reward_grad_norm
+        train_tracker.critic_grad_norm = critic_grad_norm
+        train_tracker.value_mean = values.mean().item()
+        train_tracker.value_std = values.std().item()
+        train_tracker.value_target_mse = value_target_mse.item()
+        train_tracker.returns_target_mean = returns_target.mean().item()
+        train_tracker.returns_target_std = returns_target.std().item()
+        train_tracker.learned_reward_mean = learned_dense_rewards.mean().item()
+        train_tracker.learned_reward_std = learned_dense_rewards.std().item()
+        train_tracker.A_true_mean = A_true.mean().item()
+        train_tracker.A_true_std = A_true.std().item()
+        train_tracker.A_learned_mean = A_learned.mean().item()
+        train_tracker.A_learned_std = A_learned.std().item()
+        train_tracker.alpha = alpha
         # ---------------------------------------------
         # 阶段 D：VLA 微调更新 
         # ---------------------------------------------
         # 1. 计算在线数据的平滑权重 w = exp(A / tau)
         tau = 0.5 # 温度超参数，控制权重的差异程度
-        w_online_full = torch.exp(A_learned_norm / tau)
-        w_online_full = torch.clamp(w_online_full, min = 0.01, max=5.0) # 截断，防止偶尔极端的优势值导致梯度爆炸
+        online_sample_weights_full = torch.exp(learned_reward_scores_norm / tau)
+        online_sample_weights_full = torch.clamp(online_sample_weights_full, min = 0.01, max=5.0) # 截断，防止偶尔极端的优势值导致梯度爆炸
 
         # 计算当前 Batch 轨迹级别的成败掩码
         success_mask = (trajectory_success > 0.5)
         fail_mask = ~success_mask
         valid_trajectory_mask = success_mask.unsqueeze(1).expand_as(A_learned_norm)
 
-        # mask = (A_learned_norm > 0)
-        mask = (A_learned_norm > 0) & valid_trajectory_mask
-        num_good = mask.sum().item()
+        selection_scores = learned_reward_scores_norm
+        selected_step_mask = valid_trajectory_mask.clone()
+        selection_threshold = None
+        if selection_mode == "top_quantile" and valid_trajectory_mask.any():
+            valid_scores = selection_scores[valid_trajectory_mask]
+            selection_threshold = torch.quantile(valid_scores, selection_quantile)
+            selected_step_mask = valid_trajectory_mask & (selection_scores >= selection_threshold)
+        candidate_count = int(selected_step_mask.sum().item())
+        num_good = candidate_count
         train_tracker.num_good.update(num_good)
         chunk_size = batch["action"].shape[1] # 获取当前 VLA 需要的序列长度 (通常为 280 或 50)
 
         # 安全计算 Margin，防止因单一样本群导致 NaN
         if success_mask.any() and fail_mask.any():
-            margin = A_learned_norm[success_mask].mean() - A_learned_norm[fail_mask].mean()
+            margin = selection_scores[success_mask].mean() - selection_scores[fail_mask].mean()
             last_valid_margin = margin.detach()
         else:
             margin = last_valid_margin
-            
+             
         output_dict["dorf/critic_margin"] = margin.item()
-        # 进入阶段 3 的条件：步数 > steps 且 裁判能分辨优劣 (Margin > 0.1)
-        is_stage_3 = (step > vla_update_start_steps) and (margin.item() > 0.1)
-        # 只有在阶段 3 才允许在线样本替换专家样本
-        num_to_replace = min(cfg.batch_size // 4, num_good) if (num_good > 0 and is_stage_3) else 0
+        output_dict["dorf/reward_margin"] = margin.item()
+        is_stage_3 = (step >= vla_update_start_steps) and (margin.item() > stage3_margin_threshold)
+        current_online_mix_ratio = (
+            online_mix_ratio_max * linear_warmup_ratio(step - vla_update_start_steps, online_mix_warmup_steps)
+            if is_stage_3
+            else 0.0
+        )
+        num_to_replace = min(int(cfg.batch_size * current_online_mix_ratio), candidate_count) if is_stage_3 else 0
+        current_stage = 1 if step < dorf_online_start_steps else (3 if is_stage_3 else 2)
+        train_tracker.margin = margin.item()
+        train_tracker.online_candidates = candidate_count
+        train_tracker.selected_steps = num_to_replace
+        train_tracker.online_mix_ratio = current_online_mix_ratio
+        train_tracker.stage = current_stage
+        output_dict["dorf/stage"] = current_stage
         output_dict["dorf/vla_updating"] = int(is_stage_3)
+        output_dict["dorf/online_loss_weight"] = alpha
+        output_dict["dorf/online_loss"] = online_dorf_loss.item() if step >= dorf_online_start_steps else 0.0
+        output_dict["dorf/critic_loss"] = critic_loss.item() if step >= dorf_online_start_steps else 0.0
+        output_dict["dorf/total_loss"] = total_dorf_loss.item()
+        output_dict["dorf/reward_grad_norm"] = reward_grad_norm
+        output_dict["dorf/critic_grad_norm"] = critic_grad_norm
+        output_dict["dorf/value_mean"] = values.mean().item()
+        output_dict["dorf/value_std"] = values.std().item()
+        output_dict["dorf/value_target_mse"] = value_target_mse.item()
+        output_dict["dorf/returns_target_mean"] = returns_target.mean().item()
+        output_dict["dorf/returns_target_std"] = returns_target.std().item()
+        output_dict["dorf/learned_reward_mean"] = learned_dense_rewards.mean().item()
+        output_dict["dorf/learned_reward_std"] = learned_dense_rewards.std().item()
+        output_dict["dorf/learned_reward_score_mean"] = learned_reward_scores_norm.mean().item()
+        output_dict["dorf/learned_reward_score_std"] = learned_reward_scores_norm.std().item()
+        output_dict["dorf/online_reward_target_mean"] = online_reward_target.mean().item()
+        output_dict["dorf/online_reward_target_std"] = online_reward_target.std().item()
+        output_dict["dorf/A_true_mean"] = A_true.mean().item()
+        output_dict["dorf/A_true_std"] = A_true.std().item()
+        output_dict["dorf/A_learned_mean"] = A_learned.mean().item()
+        output_dict["dorf/A_learned_std"] = A_learned.std().item()
+        output_dict["dorf/online_candidates"] = candidate_count
+        output_dict["dorf/selected_steps"] = num_to_replace
+        output_dict["dorf/online_mix_ratio"] = current_online_mix_ratio
+        output_dict["dorf/lambda_expert"] = current_lambda_expert
+        output_dict["dorf/lambda_online"] = current_lambda_online
+        output_dict["dorf/lambda_critic"] = current_lambda_critic
+        if selection_threshold is not None:
+            output_dict["dorf/selection_threshold"] = selection_threshold.item()
 
         inner_epochs = 3 # 内循环次数
         for inner_idx in range(inner_epochs):
@@ -700,14 +893,14 @@ def train(cfg: TrainPipelineConfig, accelerator: Accelerator | None = None):
                     batch = next(dl_iter)
             chunk_size = batch["action"].shape[1]
 
-            num_to_replace = min(cfg.batch_size // 4, num_good) if (num_good> 0 and is_stage_3) else 0
+            num_to_replace = min(int(cfg.batch_size * current_online_mix_ratio), candidate_count) if is_stage_3 else 0
 
             if num_to_replace > 0:
-                # 找到正优势值的索引，并随机选取 num_to_replace 个
-                b_idx, s_idx = torch.where(mask)
-                rand_perm = torch.randperm(num_good)[:num_to_replace]
+                b_idx, s_idx = torch.where(selected_step_mask)
+                rand_perm = torch.randperm(candidate_count, device=b_idx.device)[:num_to_replace]
                 sel_b = b_idx[rand_perm]
                 sel_s = s_idx[rand_perm]
+                current_task_template = resolve_task_template(batch, dataset)
                 
                 # 初始化存储在线提取数据的字典
                 online_data = {
@@ -738,9 +931,9 @@ def train(cfg: TrainPipelineConfig, accelerator: Accelerator | None = None):
                         online_data[img_key].append(img_resized)
                     
                     # 提取任务指令
-                    online_data["task"].append("Complete the task") 
+                    online_data["task"].append(current_task_template)
                     # 提取对应时刻的权重
-                    online_weights.append(w_online_full[b, s].item())
+                    online_weights.append(online_sample_weights_full[b, s].item())
                 
                 # 3. 构建全新的干净 Mixed Batch（绝对不修改原始的 batch）
                 mixed_batch = {}
@@ -765,9 +958,12 @@ def train(cfg: TrainPipelineConfig, accelerator: Accelerator | None = None):
                         offline_tasks = batch["task"][num_to_replace:]
                         mixed_batch["task"] = offline_tasks + online_data["task"]
 
+                if "task" not in mixed_batch:
+                    mixed_batch["task"] = [current_task_template] * cfg.batch_size
+
                 # 4. 构建拼接后的权重张量 (离线权重设为 1.0)
                 offline_w = torch.ones(cfg.batch_size - num_to_replace, dtype=torch.float32)
-                online_w = torch.tensor(online_weights, dtype=torch.float32) * 0.5
+                online_w = torch.tensor(online_weights, dtype=torch.float32) * online_weight_scale
                 mixed_weights = torch.cat([offline_w, online_w], dim=0).to(device)
                 # batch 均值归一化
                 mixed_weights = mixed_weights / (mixed_weights.mean() + 1e-8)
@@ -777,12 +973,13 @@ def train(cfg: TrainPipelineConfig, accelerator: Accelerator | None = None):
                 mixed_weights = torch.ones(cfg.batch_size, dtype=torch.float32).to(device)
 
             # 5. 安全地传入 preprocessor，根据最新的 task 和 images 重新生成 pixel_values 和 lang_tokens
+            mixed_batch = ensure_batch_tasks(mixed_batch, dataset)
             mixed_batch = preprocessor(mixed_batch)
 
             train_tracker.dataloading_s = time.perf_counter() - start_time
             
             # 6. 调用重写的 update_policy
-            train_tracker, output_dict = update_policy(
+            train_tracker, policy_output_dict = update_policy(
                 train_tracker,
                 policy,
                 mixed_batch,
@@ -792,6 +989,12 @@ def train(cfg: TrainPipelineConfig, accelerator: Accelerator | None = None):
                 lr_scheduler=lr_scheduler,
                 sample_weights=mixed_weights, # 注入平滑权重！
             )
+            train_tracker.policy_grad_norm = policy_output_dict["policy/grad_norm"]
+            train_tracker.online_weight_mean = mixed_weights.mean().item()
+            train_tracker.online_weight_max = mixed_weights.max().item()
+            output_dict["dorf/online_weight_mean"] = mixed_weights.mean().item()
+            output_dict["dorf/online_weight_max"] = mixed_weights.max().item()
+            output_dict.update(policy_output_dict)
         # 更新训练步数与状态
         step += 1
         train_tracker.step()
@@ -845,7 +1048,8 @@ def train(cfg: TrainPipelineConfig, accelerator: Accelerator | None = None):
                 torch.save({
                     'critic': critic.state_dict(),
                     'dorf_reward': dorf_reward.state_dict(),
-                    'opt_dorf': opt_dorf.state_dict()
+                    'opt_critic': opt_critic.state_dict(),
+                    'opt_reward': opt_reward.state_dict(),
                 }, dorf_state_path)
                 update_last_checkpoint(checkpoint_dir)
                 if is_main_process:
