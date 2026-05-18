@@ -571,6 +571,7 @@ def train(cfg: TrainPipelineConfig, accelerator: Accelerator | None = None):
         "online_weight_max": AverageMeter("ow_mx", ":.3f"),
         "alpha": AverageMeter("alpha", ":.3f"),
         "stage": AverageMeter("stage", ":.1f"),
+        "policy_updates_enabled": AverageMeter("p_on", ":.1f"),
     }
 
     # Use effective batch size for proper epoch calculation in distributed training
@@ -631,6 +632,9 @@ def train(cfg: TrainPipelineConfig, accelerator: Accelerator | None = None):
 
     dorf_online_start_steps = 80  # 阶段 1 -> 2：奖励模型何时开始看在线数据
     vla_update_start_steps = 200  # 阶段 2 -> 3：VLA 何时开始利用在线数据微调
+    experiment_name = "full_pipeline_default"
+    freeze_policy_updates = False
+    disable_online_mixing = False
     lambda_expert = 1.0
     lambda_online = 0.1
     lambda_critic = 0.2
@@ -645,6 +649,14 @@ def train(cfg: TrainPipelineConfig, accelerator: Accelerator | None = None):
     reward_failure_penalty = 0.1
     expert_decay_start = None
     expert_decay_min = 1.0
+
+    if is_main_process:
+        logging.info(
+            "Experiment profile: %s | freeze_policy_updates=%s | disable_online_mixing=%s",
+            experiment_name,
+            freeze_policy_updates,
+            disable_online_mixing,
+        )
     last_valid_margin = torch.tensor(0.0, device=device)
     for _ in range(step, cfg.steps):
         start_time = time.perf_counter()
@@ -844,6 +856,8 @@ def train(cfg: TrainPipelineConfig, accelerator: Accelerator | None = None):
             if is_stage_3
             else 0.0
         )
+        if disable_online_mixing:
+            current_online_mix_ratio = 0.0
         num_to_replace = min(int(cfg.batch_size * current_online_mix_ratio), candidate_count) if is_stage_3 else 0
         current_stage = 1 if step < dorf_online_start_steps else (3 if is_stage_3 else 2)
         train_tracker.margin = margin.item()
@@ -979,22 +993,34 @@ def train(cfg: TrainPipelineConfig, accelerator: Accelerator | None = None):
             train_tracker.dataloading_s = time.perf_counter() - start_time
             
             # 6. 调用重写的 update_policy
-            train_tracker, policy_output_dict = update_policy(
-                train_tracker,
-                policy,
-                mixed_batch,
-                optimizer,
-                cfg.optimizer.grad_clip_norm,
-                accelerator=accelerator,
-                lr_scheduler=lr_scheduler,
-                sample_weights=mixed_weights, # 注入平滑权重！
-            )
-            train_tracker.policy_grad_norm = policy_output_dict["policy/grad_norm"]
-            train_tracker.online_weight_mean = mixed_weights.mean().item()
-            train_tracker.online_weight_max = mixed_weights.max().item()
-            output_dict["dorf/online_weight_mean"] = mixed_weights.mean().item()
-            output_dict["dorf/online_weight_max"] = mixed_weights.max().item()
-            output_dict.update(policy_output_dict)
+            if freeze_policy_updates:
+                train_tracker.policy_grad_norm = 0.0
+                train_tracker.online_weight_mean = mixed_weights.mean().item()
+                train_tracker.online_weight_max = mixed_weights.max().item()
+                output_dict["dorf/online_weight_mean"] = mixed_weights.mean().item()
+                output_dict["dorf/online_weight_max"] = mixed_weights.max().item()
+                output_dict["policy/grad_norm"] = 0.0
+                output_dict["policy/updates_enabled"] = 0
+            else:
+                train_tracker, policy_output_dict = update_policy(
+                    train_tracker,
+                    policy,
+                    mixed_batch,
+                    optimizer,
+                    cfg.optimizer.grad_clip_norm,
+                    accelerator=accelerator,
+                    lr_scheduler=lr_scheduler,
+                    sample_weights=mixed_weights, # 注入平滑权重！
+                )
+                train_tracker.policy_grad_norm = policy_output_dict["policy/grad_norm"]
+                train_tracker.online_weight_mean = mixed_weights.mean().item()
+                train_tracker.online_weight_max = mixed_weights.max().item()
+                output_dict["dorf/online_weight_mean"] = mixed_weights.mean().item()
+                output_dict["dorf/online_weight_max"] = mixed_weights.max().item()
+                output_dict.update(policy_output_dict)
+                output_dict["policy/updates_enabled"] = 1
+
+            train_tracker.policy_updates_enabled = 0.0 if freeze_policy_updates else 1.0
         # 更新训练步数与状态
         step += 1
         train_tracker.step()
