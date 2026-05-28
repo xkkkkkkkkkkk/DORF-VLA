@@ -127,6 +127,8 @@ def load_nested_dataset(
         if episodes is None:
             return Dataset.from_parquet([str(path) for path in paths], features=features)
 
+        _raise_if_large_episode_filter_would_materialize_full_table(pq_dir, episodes)
+
         arrow_dataset = pa_ds.dataset(paths, format="parquet")
         filter_expr = pa_ds.field("episode_index").isin(episodes)
         table = arrow_dataset.to_table(filter=filter_expr)
@@ -140,6 +142,42 @@ def load_nested_dataset(
 def get_parquet_num_frames(parquet_path: str | Path) -> int:
     metadata = pq.read_metadata(parquet_path)
     return metadata.num_rows
+
+
+def _estimate_total_episode_count(root_dir: Path) -> int | None:
+    episodes_dir = root_dir / EPISODES_DIR
+    episode_paths = sorted(episodes_dir.glob("*/*.parquet"))
+    if not episode_paths:
+        return None
+
+    try:
+        return sum(pq.read_metadata(path).num_rows for path in episode_paths)
+    except OSError:
+        return None
+
+
+def _raise_if_large_episode_filter_would_materialize_full_table(
+    pq_dir: Path, episodes: list[int] | None
+) -> None:
+    if episodes is None or pq_dir.name != DATA_DIR:
+        return
+
+    unique_episode_count = len(set(int(ep) for ep in episodes))
+    if unique_episode_count < 256:
+        return
+
+    total_episode_count = _estimate_total_episode_count(pq_dir.parent)
+    if total_episode_count is None or total_episode_count <= 0:
+        return
+
+    coverage_ratio = unique_episode_count / total_episode_count
+    if coverage_ratio >= 0.8:
+        raise MemoryError(
+            "Refusing to materialize a large filtered parquet table into RAM: "
+            f"requested {unique_episode_count}/{total_episode_count} episodes (~{coverage_ratio:.1%} coverage). "
+            "For large/full local datasets, use streaming loading and keep episodes=None; "
+            "if you need a subset ablation, pass only a small explicit episode list."
+        )
 
 
 def get_file_size_in_mb(file_path: Path) -> float:

@@ -292,20 +292,36 @@ def train(cfg: TrainPipelineConfig, accelerator: Accelerator | None = None):
     max_ep_idx = int(df_last['episode_index'].max())
     logging.info(f"本地数据覆盖至 Episode {max_ep_idx}，将仅加载此范围内索引。")
 
-    # 2. 调用官方 LeRobotDataset 
-    '''dataset = LeRobotDataset(
-        repo_id="HuggingFaceVLA/libero",
-        root=local_dataset_root,
-        revision="None", # 锁死哈希，跳过版本查询
-        episodes=list(range(max_ep_idx + 1)),  
-        n_action_steps=cfg.policy.chunk_size if hasattr(cfg.policy, "chunk_size") else None,
-        n_obs_steps=cfg.policy.n_obs_steps if hasattr(cfg.policy, "n_obs_steps") else 1,          # 只请求本地有的 Episode
-        )'''
-    cfg.dataset.root = Path(latest_snapshot)
-    cfg.dataset.episodes = list(range(max_ep_idx + 1))
+    # 2. Prefer local streaming so full parquet filtering is never materialized into RAM.
+    requested_episodes = getattr(cfg.dataset, "episodes", None)
+    cfg.dataset.root = Path(local_dataset_root)
+    cfg.dataset.revision = None
+    cfg.dataset.streaming = True
     cfg.dataset.sequence_padding = True
-    dataset = make_dataset(cfg)
 
+    if requested_episodes is None:
+        cfg.dataset.episodes = None
+        logging.info(
+            "Full local offline dataset detected; forcing streaming with episodes=None to avoid RAM blow-up."
+        )
+        logging.info("For subset ablations, pass dataset.episodes explicitly instead of list(range(...)).")
+    else:
+        valid_episodes = sorted({int(ep) for ep in requested_episodes if int(ep) <= max_ep_idx})
+        if len(valid_episodes) != len(requested_episodes):
+            logging.warning(
+                "Some requested episodes exceed the local snapshot range (max_ep_idx=%s); trimmed to %s valid episodes.",
+                max_ep_idx,
+                len(valid_episodes),
+            )
+        if not valid_episodes:
+            raise ValueError(f"All requested dataset.episodes fall outside the local snapshot range 0..{max_ep_idx}.")
+        cfg.dataset.episodes = valid_episodes
+        logging.info(
+            "Subset training detected: keeping %s episodes and using streaming to control memory use.",
+            len(valid_episodes),
+        )
+
+    dataset = make_dataset(cfg)
     accelerator.wait_for_everyone()
 
     # Now all other processes can safely load the dataset
