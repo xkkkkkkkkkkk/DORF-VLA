@@ -1,0 +1,33 @@
+INFO 2026-05-19 13:55:27 db_utils.py:106 Logs will be synced with wandb.
+INFO 2026-05-19 13:55:27 db_utils.py:107 Track this run --> https://wandb.ai/x-k/Ablation-reward_full_no_policy/runs/ff3224ol
+INFO 2026-05-19 13:55:27 rain（v3）.py:279 正在初始化本地官方数据集加载器...
+INFO 2026-05-19 13:55:27 rain（v3）.py:292 本地数据覆盖至 Episode 19，将仅加载此范围内索引。
+INFO 2026-05-19 13:55:27 rain（v3）.py:319 Creating env
+[robosuite WARNING] No private macro file found! (__init__.py:7)
+WARNING 2026-05-19 13:55:27 e/__init__.py:7 No private macro file found!
+[robosuite WARNING] It is recommended to use a private macro file (__init__.py:8)
+WARNING 2026-05-19 13:55:27 e/__init__.py:8 It is recommended to use a private macro file
+[robosuite WARNING] To setup, run: python /root/autodl-tmp/miniconda3/envs/lerobot/lib/python3.10/site-packages/robosuite/scripts/setup_macros.py (__init__.py:9)
+WARNING 2026-05-19 13:55:27 e/__init__.py:9 To setup, run: python /root/autodl-tmp/miniconda3/envs/lerobot/lib/python3.10/site-packages/robosuite/scripts/setup_macros.py
+INFO 2026-05-19 13:55:28 tesupport.py:24 No OpenGL_accelerate module loaded: No module named 'OpenGL_accelerate'
+Creating LIBERO envs | suites=['libero_object'] | n_envs(per task)=4 | init_states=True
+[info] using task orders [0, 1, 2, 3, 4, 5, 6, 7, 8, 9]
+Built vec env | suite=libero_object | task_id=0 | n_envs=4
+Built vec env | suite=libero_object | task_id=1 | n_envs=4
+Built vec env | suite=libero_object | task_id=2 | n_envs=4
+Built vec env | suite=libero_object | task_id=3 | n_envs=4
+Built vec env | suite=libero_object | task_id=4 | n_envs=4
+Built vec env | suite=libero_object | task_id=5 | n_envs=4
+Built vec env | suite=libero_object | task_id=6 | n_envs=4
+Built vec env | suite=libero_object | task_id=7 | n_envs=4
+Built vec env | suite=libero_object | task_id=8 | n_envs=4
+Built vec env | suite=libero_object | task_id=9 | n_envs=4
+INFO 2026-05-19 13:56:53 rain（v3）.py:323 Creating policy
+Loading  HuggingFaceTB/SmolVLM2-500M-Video-Instruct weights ...
+INFO 2026-05-19 13:56:56 _client.py:1025 HTTP Request: HEAD https://hf-mirror.com/HuggingFaceTB/SmolVLM2-500M-Video-Instruct/resolve/main/config.json "HTTP/1.1 307 Temporary Redirect"
+INFO 2026-05-19 13:56:56 _client.py:1025 HTTP Request: HEAD https://hf-mirror.com/api/resolve-cache/models/HuggingFaceTB/SmolVLM2-500M-Video-Instruct/7b375e1b73b11138ff12fe22c8f2822d8fe03467/config.json "HTTP/1.1 200 OK"
+INFO 2026-05-19 13:56:57 _client.py:1025 HTTP Request: GET https://hf-mirror.com/api/resolve-cache/models/HuggingFaceTB/SmolVLM2-500M-Video-Instruct/7b375e1b73b11138ff12fe22c8f2822d8fe03467/config.json "HTTP/1.1 200 OK"
+`torch_dtype` is deprecated! Use `dtype` instead!
+INFO 2026-05-19 13:56:57 _client.py:1025 HTTP Request: HEAD https://hf-mirror.com/HuggingFaceTB/SmolVLM2-500M-Video-Instruct/resolve/main/model.safetensors "HTTP/1.1 302 Found"
+INFO 2026-05-19 13:56:58 _client.py:1025 HTTP Request: GET https://cas-bridge.xethub.hf.co/xet-bridge-us/67aaf6fe385da1f07cd40b05/cdf91161e1806650da2ac31bd5b9510127bd901ca9e2d34b9ae4548fd1ec291b?X-Amz-Algorithm=AWS4-HMAC-SHA256&X-Amz-Content-Sha256=UNSIGNED-PAYLOAD&X-Amz-Credential=cas%2F20260519%2Fus-east-1%2Fs3%2Faws4_request&X-Amz-Date=20260519T055657Z&X-Amz-Expires=3600&X-Amz-Signature=a4ddefec57bfc9ff26d7d0ac5dedf2335ebfb91f194e040a0ed9a5d56a935f8b&X-Amz-SignedHeaders=host&X-Xet-Cas-Uid=62171e3b6a99db28e0b3159d&response-content-disposition=inline%3B+filename*%3DUTF-8%27%27model.safetensors%3B+filename%3D%22model.safetensors%22%3B&x-amz-checksum-mode=ENABLED&x-id=GetObject&Expires=1779173817&Policy=eyJTdGF0ZW1lbnQiOlt7IkNvbmRpdGlvbiI6eyJEYXRlTGVzc1RoYW4iOnsiQVdTOkVwb2NoVGltZSI6MTc3OTE3MzgxN319LCJSZXNvdXJjZSI6Imh0dHBzOi8vY2FzLWJyaWRnZS54ZXRodWIuaGYuY28veGV0LWJyaWRnZS11cy82N2FhZjZmZTM4NWRhMWYwN2NkNDBiMDUvY2RmOTExNjFlMTgwNjY1MGRhMmFjMzFiZDViOTUxMDEyN2JkOTAxY2E5ZTJkMzRiOWFlNDU0OGZkMWVjMjkxYioifV19&Signature=B527IOJ8eFz-aFuWZaKntsArzLxNiS89HMqyqTU10Qqo8zsau-5VQP5MIov90FBqKfOya0VE33nBhISRZQX7yiTjcjyO6YxACk-c7f5NtVKTyzTxOG0fCbmPxBEamDXzo-ynWp7s3ifKpxqSgFZUNX5o45EVZQorZ7xDkEQxdKDejILs0G0rwWz2m-Y4zNUQqyej3dtyQXMO%7ExmguqC0JNuXN5Y2fTEkDCiuMtIDU5FS1W6gArlbao0UloAplvCucucRKg-eOl2lmL-M5aFe-xXOTuf9OMMaye9nx42KlQ1ccVc2d6RL2BL0ftIhzmZ61DfJOB0SeA7nVhkBkshrDw__&Key-Pair-Id=K2L8F4GPSG1IFC "HTTP/1.1 200 OK"
+Exception ignored in atexit callback: <OpenGL.platform.baseplatform.eglTerminate object at 0x7fe428328790>Exception ignored in sys.unraisablehook: <built-in function unraisablehook>

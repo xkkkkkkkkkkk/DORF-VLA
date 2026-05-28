@@ -1,0 +1,39 @@
+从训练流程排查：这段组合里最容易出问题的点
+1. 三项直接相加，通常缺「尺度与系数」
+expert_dorf_loss + alpha*online_dorf_loss + critic_loss 若三项量级差一个数量级以上，梯度几乎被某一项劫持，表现就是：总 loss「看起来」不降或乱抖，策略反而比 baseline 差。
+
+建议：在日志里分别打 标量值 和 梯度范数（或对各子模块的 grad norm），再给 online / critic 显式系数，例如：
+
+total = expert + λ_on * alpha * online + λ_c * critic
+
+用网格或先固定 λ_on 很小再慢慢加大，而不是默认系数都是 1。
+
+2. alpha 在 50 step 内拉到 1，可能过陡
+dorf_online_start_steps=80 之后，50 个 optimizer step 就把 online 权重拉满，对 VLA 这种大模型往往太猛；很多工作会 几千到几万 step 的 curriculum 或 cosine schedule。
+
+3. expert_dorf_loss 是否应「全程满强度」
+后期仍是 full-weight 的 expert_dorf_loss，若它和 online 目标在分布上冲突，网络会在两个目标间拉扯，比 baseline 差很常见。常见缓解：
+
+后期 降低 expert 权重，或
+对 policy 加 KL 到 frozen reference（比单纯堆多个 loss 更稳）。
+4. critic_loss 和谁共用计算图、是否该进同一次 backward
+若 critic_loss 是 拟合 return / GAE target，而 expert_dorf_loss/online_dorf_loss 又对 同一批 policy 输出 求 margin，容易出现：
+
+同一前向里既训 value 又强推 policy，或
+某处 .detach() 不一致（例如 target 该 detach 没 detach），导致方差爆炸或错误 credit assignment。
+需要确认：critic 只应收到「价值头 / critic 网络」的梯度，还是你把它和 VLA 主干的 loss 捆在一起反传了（很多实现会对 policy 的 value loss 和 policy loss 分开 backward 或 stop_grad 在 target 上）。
+
+5. 和你脚本里另一段逻辑对齐：vla_update_start_steps
+你之前脚本里有 vla_update_start_steps（例如 200）和 dorf_online_start_steps（例如 80）。若 DORF 的 backward 已经作用在 VLA 上，但数据/权重调度与「何时用 online 训 VLA」不一致，会出现：loss 在训 DORF 模块，但 VLA 更新节奏不对，或反之 early stage 梯度噪声过大。
+
+建议画一张表：step 区间 × 哪些 loss 打开 × 哪些参数 requires_grad，对照一次实现。
+
+6. 「不收敛」不一定等于「训练错了」
+VLA RL 里更常见的是：主指标应是 rollout 成功率 / 平均回报，而不是合成 total_dorf_loss。若 margin 或 ranking loss 与真实任务奖励不对齐，loss 下降也可能 伤害 策略。
+
+建议的排查顺序（从流程到实现）
+消融：只 expert_dorf_loss 跑长一些，确认能复现接近 baseline；再只加 critic_loss；再加 online，每次只加一个变量。
+记录：expert_dorf_loss、online_dorf_loss、critic_loss、各自梯度范数、alpha、lr。
+系数与 schedule：给 online/critic 单独 λ，放缓 alpha（例如按 epoch 或 环境步数 而不是几十个 update）。
+对齐目标：online 项是否和「用于 rollout 的 policy」是同一套权重、同一 eval()/train() 模式、无 hidden detach。
+锚定：若仍比 baseline 差，优先试 KL 到 reference 或 减小对 policy 的 RL 梯度、保留较强 BC/expert 项。

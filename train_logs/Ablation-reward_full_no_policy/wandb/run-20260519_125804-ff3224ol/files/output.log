@@ -1,0 +1,22 @@
+INFO 2026-05-19 12:58:07 db_utils.py:106 Logs will be synced with wandb.
+INFO 2026-05-19 12:58:07 db_utils.py:107 Track this run --> https://wandb.ai/x-k/Ablation-reward_full_no_policy/runs/ff3224ol
+INFO 2026-05-19 12:58:07 rain（v3）.py:279 正在初始化本地官方数据集加载器...
+INFO 2026-05-19 12:58:07 rain（v3）.py:292 本地数据覆盖至 Episode 19，将仅加载此范围内索引。
+INFO 2026-05-19 12:58:08 rain（v3）.py:319 Creating env
+[robosuite WARNING] No private macro file found! (__init__.py:7)
+WARNING 2026-05-19 12:58:08 e/__init__.py:7 No private macro file found!
+[robosuite WARNING] It is recommended to use a private macro file (__init__.py:8)
+WARNING 2026-05-19 12:58:08 e/__init__.py:8 It is recommended to use a private macro file
+[robosuite WARNING] To setup, run: python /root/autodl-tmp/miniconda3/envs/lerobot/lib/python3.10/site-packages/robosuite/scripts/setup_macros.py (__init__.py:9)
+WARNING 2026-05-19 12:58:08 e/__init__.py:9 To setup, run: python /root/autodl-tmp/miniconda3/envs/lerobot/lib/python3.10/site-packages/robosuite/scripts/setup_macros.py
+INFO 2026-05-19 12:58:08 tesupport.py:24 No OpenGL_accelerate module loaded: No module named 'OpenGL_accelerate'
+Creating LIBERO envs | suites=['libero_object'] | n_envs(per task)=4 | init_states=True
+[info] using task orders [0, 1, 2, 3, 4, 5, 6, 7, 8, 9]
+Exception ignored in: <function MjRenderContext.__del__ at 0x7fef72c6dcf0>Exception ignored in sys.unraisablehook: <built-in function unraisablehook>Exception ignored in: <function EGLGLContext.__del__ at 0x7fef72c6db40>Exception ignored in sys.unraisablehook: <built-in function unraisablehook>Exception ignored in: <function MjRenderContext.__del__ at 0x7fef72c6dcf0>Exception ignored in sys.unraisablehook: <built-in function unraisablehook>Exception ignored in atexit callback: <OpenGL.platform.baseplatform.eglTerminate object at 0x7fef72c4cd00>Exception ignored in sys.unraisablehook: <built-in function unraisablehook>
+Built vec env | suite=libero_object | task_id=0 | n_envs=4
+Built vec env | suite=libero_object | task_id=1 | n_envs=4
+Built vec env | suite=libero_object | task_id=2 | n_envs=4
+Built vec env | suite=libero_object | task_id=3 | n_envs=4
+Built vec env | suite=libero_object | task_id=4 | n_envs=4
+Built vec env | suite=libero_object | task_id=5 | n_envs=4
+Built vec env | suite=libero_object | task_id=6 | n_envs=4

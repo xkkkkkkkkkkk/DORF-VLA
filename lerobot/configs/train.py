@@ -86,13 +86,16 @@ class TrainPipelineConfig(HubMixin):
         # 4.8修改 断点重续模式优先级最高，防止被 base policy 覆盖权重路径
         if self.resume and self.checkpoint_path is not None:
             self.checkpoint_path = Path(self.checkpoint_path)
-            # 加载 baseline 的网络架构配置
-            if policy_path and self.policy is None:
-                cli_overrides = parser.get_cli_overrides("policy")
-                self.policy = PreTrainedConfig.from_pretrained(policy_path, cli_overrides=cli_overrides)
-            # 强制将权重挂载路径指向 checkpoint 目录
-            if self.policy is not None:
-                self.policy.pretrained_path = self.checkpoint_path / "pretrained_model"
+            cli_overrides = parser.get_cli_overrides("policy")
+            checkpoint_policy_path = self.checkpoint_path / "pretrained_model"
+
+            if self.policy is None:
+                self.policy = PreTrainedConfig.from_pretrained(
+                    checkpoint_policy_path,
+                    cli_overrides=cli_overrides,
+                )
+
+            self.policy.pretrained_path = checkpoint_policy_path
         elif policy_path:
             # Only load the policy config
             cli_overrides = parser.get_cli_overrides("policy")

@@ -1,0 +1,161 @@
+INFO 2026-05-20 15:20:20 db_utils.py:106 Logs will be synced with wandb.
+INFO 2026-05-20 15:20:20 db_utils.py:107 Track this run --> https://wandb.ai/x-k/Ablation-offline_policy_only/runs/2x08dtcu
+INFO 2026-05-20 15:20:20 rain（v3）.py:279 正在初始化本地官方数据集加载器...
+INFO 2026-05-20 15:20:21 rain（v3）.py:292 本地数据覆盖至 Episode 19，将仅加载此范围内索引。
+INFO 2026-05-20 15:20:21 rain（v3）.py:319 Creating env
+[robosuite WARNING] No private macro file found! (__init__.py:7)
+WARNING 2026-05-20 15:20:21 e/__init__.py:7 No private macro file found!
+[robosuite WARNING] It is recommended to use a private macro file (__init__.py:8)
+WARNING 2026-05-20 15:20:21 e/__init__.py:8 It is recommended to use a private macro file
+[robosuite WARNING] To setup, run: python /root/autodl-tmp/miniconda3/envs/lerobot/lib/python3.10/site-packages/robosuite/scripts/setup_macros.py (__init__.py:9)
+WARNING 2026-05-20 15:20:21 e/__init__.py:9 To setup, run: python /root/autodl-tmp/miniconda3/envs/lerobot/lib/python3.10/site-packages/robosuite/scripts/setup_macros.py
+INFO 2026-05-20 15:20:21 tesupport.py:24 No OpenGL_accelerate module loaded: No module named 'OpenGL_accelerate'
+Creating LIBERO envs | suites=['libero_object'] | n_envs(per task)=4 | init_states=True
+[info] using task orders [0, 1, 2, 3, 4, 5, 6, 7, 8, 9]
+Built vec env | suite=libero_object | task_id=0 | n_envs=4
+Built vec env | suite=libero_object | task_id=1 | n_envs=4
+Built vec env | suite=libero_object | task_id=2 | n_envs=4
+Built vec env | suite=libero_object | task_id=3 | n_envs=4
+Built vec env | suite=libero_object | task_id=4 | n_envs=4
+Built vec env | suite=libero_object | task_id=5 | n_envs=4
+Built vec env | suite=libero_object | task_id=6 | n_envs=4
+Built vec env | suite=libero_object | task_id=7 | n_envs=4
+Built vec env | suite=libero_object | task_id=8 | n_envs=4
+Built vec env | suite=libero_object | task_id=9 | n_envs=4
+INFO 2026-05-20 15:21:43 rain（v3）.py:323 Creating policy
+Loading  HuggingFaceTB/SmolVLM2-500M-Instruct weights ...
+INFO 2026-05-20 15:21:44 _client.py:1025 HTTP Request: HEAD https://hf-mirror.com/HuggingFaceTB/SmolVLM2-500M-Instruct/resolve/main/config.json "HTTP/1.1 307 Temporary Redirect"
+INFO 2026-05-20 15:21:44 _client.py:1025 HTTP Request: HEAD https://hf-mirror.com/HuggingFaceTB/SmolVLM2-500M-Video-Instruct/resolve/main/config.json "HTTP/1.1 307 Temporary Redirect"
+INFO 2026-05-20 15:21:44 _client.py:1025 HTTP Request: HEAD https://hf-mirror.com/api/resolve-cache/models/HuggingFaceTB/SmolVLM2-500M-Video-Instruct/7b375e1b73b11138ff12fe22c8f2822d8fe03467/config.json "HTTP/1.1 200 OK"
+`torch_dtype` is deprecated! Use `dtype` instead!
+INFO 2026-05-20 15:21:46 _client.py:1025 HTTP Request: HEAD https://hf-mirror.com/HuggingFaceTB/SmolVLM2-500M-Instruct/resolve/main/generation_config.json "HTTP/1.1 307 Temporary Redirect"
+INFO 2026-05-20 15:21:46 _client.py:1025 HTTP Request: HEAD https://hf-mirror.com/HuggingFaceTB/SmolVLM2-500M-Video-Instruct/resolve/main/generation_config.json "HTTP/1.1 307 Temporary Redirect"
+INFO 2026-05-20 15:21:47 _client.py:1025 HTTP Request: HEAD https://hf-mirror.com/api/resolve-cache/models/HuggingFaceTB/SmolVLM2-500M-Video-Instruct/7b375e1b73b11138ff12fe22c8f2822d8fe03467/generation_config.json "HTTP/1.1 200 OK"
+INFO 2026-05-20 15:21:47 _client.py:1025 HTTP Request: HEAD https://hf-mirror.com/HuggingFaceTB/SmolVLM2-500M-Instruct/resolve/main/processor_config.json "HTTP/1.1 307 Temporary Redirect"
+INFO 2026-05-20 15:21:47 _client.py:1025 HTTP Request: HEAD https://hf-mirror.com/HuggingFaceTB/SmolVLM2-500M-Video-Instruct/resolve/main/processor_config.json "HTTP/1.1 307 Temporary Redirect"
+INFO 2026-05-20 15:21:47 _client.py:1025 HTTP Request: HEAD https://hf-mirror.com/api/resolve-cache/models/HuggingFaceTB/SmolVLM2-500M-Video-Instruct/7b375e1b73b11138ff12fe22c8f2822d8fe03467/processor_config.json "HTTP/1.1 200 OK"
+INFO 2026-05-20 15:21:48 _client.py:1025 HTTP Request: GET https://hf-mirror.com/api/models/HuggingFaceTB/SmolVLM2-500M-Instruct/tree/main/additional_chat_templates?recursive=false&expand=false "HTTP/1.1 307 Temporary Redirect"
+INFO 2026-05-20 15:21:48 _client.py:1025 HTTP Request: GET https://hf-mirror.com/api/models/HuggingFaceTB/SmolVLM2-500M-Video-Instruct/tree/main/additional_chat_templates?recursive=false&expand=false "HTTP/1.1 404 Not Found"
+INFO 2026-05-20 15:21:48 _client.py:1025 HTTP Request: HEAD https://hf-mirror.com/HuggingFaceTB/SmolVLM2-500M-Instruct/resolve/main/processor_config.json "HTTP/1.1 307 Temporary Redirect"
+INFO 2026-05-20 15:21:49 _client.py:1025 HTTP Request: HEAD https://hf-mirror.com/HuggingFaceTB/SmolVLM2-500M-Video-Instruct/resolve/main/processor_config.json "HTTP/1.1 307 Temporary Redirect"
+INFO 2026-05-20 15:21:49 _client.py:1025 HTTP Request: HEAD https://hf-mirror.com/api/resolve-cache/models/HuggingFaceTB/SmolVLM2-500M-Video-Instruct/7b375e1b73b11138ff12fe22c8f2822d8fe03467/processor_config.json "HTTP/1.1 200 OK"
+INFO 2026-05-20 15:21:50 _client.py:1025 HTTP Request: HEAD https://hf-mirror.com/HuggingFaceTB/SmolVLM2-500M-Instruct/resolve/main/chat_template.json "HTTP/1.1 307 Temporary Redirect"
+INFO 2026-05-20 15:21:50 _client.py:1025 HTTP Request: HEAD https://hf-mirror.com/HuggingFaceTB/SmolVLM2-500M-Video-Instruct/resolve/main/chat_template.json "HTTP/1.1 307 Temporary Redirect"
+INFO 2026-05-20 15:21:51 _client.py:1025 HTTP Request: HEAD https://hf-mirror.com/api/resolve-cache/models/HuggingFaceTB/SmolVLM2-500M-Video-Instruct/7b375e1b73b11138ff12fe22c8f2822d8fe03467/chat_template.json "HTTP/1.1 200 OK"
+INFO 2026-05-20 15:21:51 _client.py:1025 HTTP Request: HEAD https://hf-mirror.com/HuggingFaceTB/SmolVLM2-500M-Instruct/resolve/main/chat_template.jinja "HTTP/1.1 307 Temporary Redirect"
+INFO 2026-05-20 15:21:51 _client.py:1025 HTTP Request: HEAD https://hf-mirror.com/HuggingFaceTB/SmolVLM2-500M-Video-Instruct/resolve/main/chat_template.jinja "HTTP/1.1 404 Not Found"
+INFO 2026-05-20 15:21:52 _client.py:1025 HTTP Request: HEAD https://hf-mirror.com/HuggingFaceTB/SmolVLM2-500M-Instruct/resolve/main/audio_tokenizer_config.json "HTTP/1.1 307 Temporary Redirect"
+INFO 2026-05-20 15:21:52 _client.py:1025 HTTP Request: HEAD https://hf-mirror.com/HuggingFaceTB/SmolVLM2-500M-Video-Instruct/resolve/main/audio_tokenizer_config.json "HTTP/1.1 404 Not Found"
+INFO 2026-05-20 15:21:52 _client.py:1025 HTTP Request: GET https://hf-mirror.com/api/models/HuggingFaceTB/SmolVLM2-500M-Instruct/tree/main/additional_chat_templates?recursive=false&expand=false "HTTP/1.1 307 Temporary Redirect"
+INFO 2026-05-20 15:21:52 _client.py:1025 HTTP Request: GET https://hf-mirror.com/api/models/HuggingFaceTB/SmolVLM2-500M-Video-Instruct/tree/main/additional_chat_templates?recursive=false&expand=false "HTTP/1.1 404 Not Found"
+INFO 2026-05-20 15:21:53 _client.py:1025 HTTP Request: HEAD https://hf-mirror.com/HuggingFaceTB/SmolVLM2-500M-Instruct/resolve/main/processor_config.json "HTTP/1.1 307 Temporary Redirect"
+INFO 2026-05-20 15:21:53 _client.py:1025 HTTP Request: HEAD https://hf-mirror.com/HuggingFaceTB/SmolVLM2-500M-Video-Instruct/resolve/main/processor_config.json "HTTP/1.1 307 Temporary Redirect"
+INFO 2026-05-20 15:21:54 _client.py:1025 HTTP Request: HEAD https://hf-mirror.com/api/resolve-cache/models/HuggingFaceTB/SmolVLM2-500M-Video-Instruct/7b375e1b73b11138ff12fe22c8f2822d8fe03467/processor_config.json "HTTP/1.1 200 OK"
+INFO 2026-05-20 15:21:55 _client.py:1025 HTTP Request: HEAD https://hf-mirror.com/HuggingFaceTB/SmolVLM2-500M-Instruct/resolve/main/chat_template.json "HTTP/1.1 307 Temporary Redirect"
+INFO 2026-05-20 15:21:55 _client.py:1025 HTTP Request: HEAD https://hf-mirror.com/HuggingFaceTB/SmolVLM2-500M-Video-Instruct/resolve/main/chat_template.json "HTTP/1.1 307 Temporary Redirect"
+INFO 2026-05-20 15:21:55 _client.py:1025 HTTP Request: HEAD https://hf-mirror.com/api/resolve-cache/models/HuggingFaceTB/SmolVLM2-500M-Video-Instruct/7b375e1b73b11138ff12fe22c8f2822d8fe03467/chat_template.json "HTTP/1.1 200 OK"
+INFO 2026-05-20 15:21:55 _client.py:1025 HTTP Request: HEAD https://hf-mirror.com/HuggingFaceTB/SmolVLM2-500M-Instruct/resolve/main/chat_template.jinja "HTTP/1.1 307 Temporary Redirect"
+INFO 2026-05-20 15:21:56 _client.py:1025 HTTP Request: HEAD https://hf-mirror.com/HuggingFaceTB/SmolVLM2-500M-Video-Instruct/resolve/main/chat_template.jinja "HTTP/1.1 404 Not Found"
+INFO 2026-05-20 15:21:56 _client.py:1025 HTTP Request: HEAD https://hf-mirror.com/HuggingFaceTB/SmolVLM2-500M-Instruct/resolve/main/audio_tokenizer_config.json "HTTP/1.1 307 Temporary Redirect"
+INFO 2026-05-20 15:21:56 _client.py:1025 HTTP Request: HEAD https://hf-mirror.com/HuggingFaceTB/SmolVLM2-500M-Video-Instruct/resolve/main/audio_tokenizer_config.json "HTTP/1.1 404 Not Found"
+INFO 2026-05-20 15:21:57 _client.py:1025 HTTP Request: HEAD https://hf-mirror.com/HuggingFaceTB/SmolVLM2-500M-Instruct/resolve/main/processor_config.json "HTTP/1.1 307 Temporary Redirect"
+INFO 2026-05-20 15:21:57 _client.py:1025 HTTP Request: HEAD https://hf-mirror.com/HuggingFaceTB/SmolVLM2-500M-Video-Instruct/resolve/main/processor_config.json "HTTP/1.1 307 Temporary Redirect"
+INFO 2026-05-20 15:21:57 _client.py:1025 HTTP Request: HEAD https://hf-mirror.com/api/resolve-cache/models/HuggingFaceTB/SmolVLM2-500M-Video-Instruct/7b375e1b73b11138ff12fe22c8f2822d8fe03467/processor_config.json "HTTP/1.1 200 OK"
+INFO 2026-05-20 15:21:57 _client.py:1025 HTTP Request: HEAD https://hf-mirror.com/HuggingFaceTB/SmolVLM2-500M-Instruct/resolve/main/preprocessor_config.json "HTTP/1.1 307 Temporary Redirect"
+INFO 2026-05-20 15:21:58 _client.py:1025 HTTP Request: HEAD https://hf-mirror.com/HuggingFaceTB/SmolVLM2-500M-Video-Instruct/resolve/main/preprocessor_config.json "HTTP/1.1 307 Temporary Redirect"
+INFO 2026-05-20 15:21:58 _client.py:1025 HTTP Request: HEAD https://hf-mirror.com/api/resolve-cache/models/HuggingFaceTB/SmolVLM2-500M-Video-Instruct/7b375e1b73b11138ff12fe22c8f2822d8fe03467/preprocessor_config.json "HTTP/1.1 200 OK"
+INFO 2026-05-20 15:21:58 _client.py:1025 HTTP Request: HEAD https://hf-mirror.com/HuggingFaceTB/SmolVLM2-500M-Instruct/resolve/main/processor_config.json "HTTP/1.1 307 Temporary Redirect"
+INFO 2026-05-20 15:21:59 _client.py:1025 HTTP Request: HEAD https://hf-mirror.com/HuggingFaceTB/SmolVLM2-500M-Video-Instruct/resolve/main/processor_config.json "HTTP/1.1 307 Temporary Redirect"
+INFO 2026-05-20 15:21:59 _client.py:1025 HTTP Request: HEAD https://hf-mirror.com/api/resolve-cache/models/HuggingFaceTB/SmolVLM2-500M-Video-Instruct/7b375e1b73b11138ff12fe22c8f2822d8fe03467/processor_config.json "HTTP/1.1 200 OK"
+INFO 2026-05-20 15:22:00 _client.py:1025 HTTP Request: HEAD https://hf-mirror.com/HuggingFaceTB/SmolVLM2-500M-Instruct/resolve/main/preprocessor_config.json "HTTP/1.1 307 Temporary Redirect"
+INFO 2026-05-20 15:22:00 _client.py:1025 HTTP Request: HEAD https://hf-mirror.com/HuggingFaceTB/SmolVLM2-500M-Video-Instruct/resolve/main/preprocessor_config.json "HTTP/1.1 307 Temporary Redirect"
+INFO 2026-05-20 15:22:00 _client.py:1025 HTTP Request: HEAD https://hf-mirror.com/api/resolve-cache/models/HuggingFaceTB/SmolVLM2-500M-Video-Instruct/7b375e1b73b11138ff12fe22c8f2822d8fe03467/preprocessor_config.json "HTTP/1.1 200 OK"
+INFO 2026-05-20 15:22:00 _client.py:1025 HTTP Request: HEAD https://hf-mirror.com/HuggingFaceTB/SmolVLM2-500M-Instruct/resolve/main/config.json "HTTP/1.1 307 Temporary Redirect"
+INFO 2026-05-20 15:22:01 _client.py:1025 HTTP Request: HEAD https://hf-mirror.com/HuggingFaceTB/SmolVLM2-500M-Video-Instruct/resolve/main/config.json "HTTP/1.1 307 Temporary Redirect"
+INFO 2026-05-20 15:22:01 _client.py:1025 HTTP Request: HEAD https://hf-mirror.com/api/resolve-cache/models/HuggingFaceTB/SmolVLM2-500M-Video-Instruct/7b375e1b73b11138ff12fe22c8f2822d8fe03467/config.json "HTTP/1.1 200 OK"
+INFO 2026-05-20 15:22:02 _client.py:1025 HTTP Request: HEAD https://hf-mirror.com/HuggingFaceTB/SmolVLM2-500M-Instruct/resolve/main/tokenizer_config.json "HTTP/1.1 307 Temporary Redirect"
+INFO 2026-05-20 15:22:02 _client.py:1025 HTTP Request: HEAD https://hf-mirror.com/HuggingFaceTB/SmolVLM2-500M-Video-Instruct/resolve/main/tokenizer_config.json "HTTP/1.1 307 Temporary Redirect"
+INFO 2026-05-20 15:22:03 _client.py:1025 HTTP Request: HEAD https://hf-mirror.com/api/resolve-cache/models/HuggingFaceTB/SmolVLM2-500M-Video-Instruct/7b375e1b73b11138ff12fe22c8f2822d8fe03467/tokenizer_config.json "HTTP/1.1 200 OK"
+INFO 2026-05-20 15:22:03 _client.py:1025 HTTP Request: HEAD https://hf-mirror.com/HuggingFaceTB/SmolVLM2-500M-Instruct/resolve/main/tokenizer_config.json "HTTP/1.1 307 Temporary Redirect"
+INFO 2026-05-20 15:22:04 _client.py:1025 HTTP Request: HEAD https://hf-mirror.com/HuggingFaceTB/SmolVLM2-500M-Video-Instruct/resolve/main/tokenizer_config.json "HTTP/1.1 307 Temporary Redirect"
+INFO 2026-05-20 15:22:04 _client.py:1025 HTTP Request: HEAD https://hf-mirror.com/api/resolve-cache/models/HuggingFaceTB/SmolVLM2-500M-Video-Instruct/7b375e1b73b11138ff12fe22c8f2822d8fe03467/tokenizer_config.json "HTTP/1.1 200 OK"
+INFO 2026-05-20 15:22:04 _client.py:1025 HTTP Request: GET https://hf-mirror.com/api/models/HuggingFaceTB/SmolVLM2-500M-Instruct/tree/main/additional_chat_templates?recursive=false&expand=false "HTTP/1.1 307 Temporary Redirect"
+INFO 2026-05-20 15:22:04 _client.py:1025 HTTP Request: GET https://hf-mirror.com/api/models/HuggingFaceTB/SmolVLM2-500M-Video-Instruct/tree/main/additional_chat_templates?recursive=false&expand=false "HTTP/1.1 404 Not Found"
+INFO 2026-05-20 15:22:05 _client.py:1025 HTTP Request: GET https://hf-mirror.com/api/models/HuggingFaceTB/SmolVLM2-500M-Instruct/tree/main?recursive=true&expand=false "HTTP/1.1 307 Temporary Redirect"
+INFO 2026-05-20 15:22:06 _client.py:1025 HTTP Request: GET https://hf-mirror.com/api/models/HuggingFaceTB/SmolVLM2-500M-Video-Instruct/tree/main?recursive=true&expand=false "HTTP/1.1 200 OK"
+INFO 2026-05-20 15:22:06 _client.py:1025 HTTP Request: HEAD https://hf-mirror.com/HuggingFaceTB/SmolVLM2-500M-Instruct/resolve/main/processor_config.json "HTTP/1.1 307 Temporary Redirect"
+INFO 2026-05-20 15:22:07 _client.py:1025 HTTP Request: HEAD https://hf-mirror.com/HuggingFaceTB/SmolVLM2-500M-Video-Instruct/resolve/main/processor_config.json "HTTP/1.1 307 Temporary Redirect"
+INFO 2026-05-20 15:22:07 _client.py:1025 HTTP Request: HEAD https://hf-mirror.com/api/resolve-cache/models/HuggingFaceTB/SmolVLM2-500M-Video-Instruct/7b375e1b73b11138ff12fe22c8f2822d8fe03467/processor_config.json "HTTP/1.1 200 OK"
+INFO 2026-05-20 15:22:07 _client.py:1025 HTTP Request: HEAD https://hf-mirror.com/HuggingFaceTB/SmolVLM2-500M-Instruct/resolve/main/video_preprocessor_config.json "HTTP/1.1 307 Temporary Redirect"
+INFO 2026-05-20 15:22:07 _client.py:1025 HTTP Request: HEAD https://hf-mirror.com/HuggingFaceTB/SmolVLM2-500M-Video-Instruct/resolve/main/video_preprocessor_config.json "HTTP/1.1 404 Not Found"
+INFO 2026-05-20 15:22:08 _client.py:1025 HTTP Request: HEAD https://hf-mirror.com/HuggingFaceTB/SmolVLM2-500M-Instruct/resolve/main/preprocessor_config.json "HTTP/1.1 307 Temporary Redirect"
+INFO 2026-05-20 15:22:08 _client.py:1025 HTTP Request: HEAD https://hf-mirror.com/HuggingFaceTB/SmolVLM2-500M-Video-Instruct/resolve/main/preprocessor_config.json "HTTP/1.1 307 Temporary Redirect"
+INFO 2026-05-20 15:22:08 _client.py:1025 HTTP Request: HEAD https://hf-mirror.com/api/resolve-cache/models/HuggingFaceTB/SmolVLM2-500M-Video-Instruct/7b375e1b73b11138ff12fe22c8f2822d8fe03467/preprocessor_config.json "HTTP/1.1 200 OK"
+INFO 2026-05-20 15:22:09 _client.py:1025 HTTP Request: HEAD https://hf-mirror.com/HuggingFaceTB/SmolVLM2-500M-Instruct/resolve/main/processor_config.json "HTTP/1.1 307 Temporary Redirect"
+INFO 2026-05-20 15:22:09 _client.py:1025 HTTP Request: HEAD https://hf-mirror.com/HuggingFaceTB/SmolVLM2-500M-Video-Instruct/resolve/main/processor_config.json "HTTP/1.1 307 Temporary Redirect"
+INFO 2026-05-20 15:22:09 _client.py:1025 HTTP Request: HEAD https://hf-mirror.com/api/resolve-cache/models/HuggingFaceTB/SmolVLM2-500M-Video-Instruct/7b375e1b73b11138ff12fe22c8f2822d8fe03467/processor_config.json "HTTP/1.1 200 OK"
+INFO 2026-05-20 15:22:10 _client.py:1025 HTTP Request: HEAD https://hf-mirror.com/HuggingFaceTB/SmolVLM2-500M-Instruct/resolve/main/video_preprocessor_config.json "HTTP/1.1 307 Temporary Redirect"
+INFO 2026-05-20 15:22:10 _client.py:1025 HTTP Request: HEAD https://hf-mirror.com/HuggingFaceTB/SmolVLM2-500M-Video-Instruct/resolve/main/video_preprocessor_config.json "HTTP/1.1 404 Not Found"
+INFO 2026-05-20 15:22:10 _client.py:1025 HTTP Request: HEAD https://hf-mirror.com/HuggingFaceTB/SmolVLM2-500M-Instruct/resolve/main/preprocessor_config.json "HTTP/1.1 307 Temporary Redirect"
+INFO 2026-05-20 15:22:10 _client.py:1025 HTTP Request: HEAD https://hf-mirror.com/HuggingFaceTB/SmolVLM2-500M-Video-Instruct/resolve/main/preprocessor_config.json "HTTP/1.1 307 Temporary Redirect"
+INFO 2026-05-20 15:22:11 _client.py:1025 HTTP Request: HEAD https://hf-mirror.com/api/resolve-cache/models/HuggingFaceTB/SmolVLM2-500M-Video-Instruct/7b375e1b73b11138ff12fe22c8f2822d8fe03467/preprocessor_config.json "HTTP/1.1 200 OK"
+INFO 2026-05-20 15:22:15 _client.py:1025 HTTP Request: HEAD https://hf-mirror.com/HuggingFaceVLA/smolvla_libero/resolve/main/model.safetensors "HTTP/1.1 302 Found"
+INFO 2026-05-20 15:22:16 _client.py:1025 HTTP Request: HEAD https://hf-mirror.com/HuggingFaceVLA/smolvla_libero/resolve/main/policy_preprocessor.json "HTTP/1.1 307 Temporary Redirect"
+INFO 2026-05-20 15:22:17 _client.py:1025 HTTP Request: HEAD https://hf-mirror.com/api/resolve-cache/models/HuggingFaceVLA/smolvla_libero/6721902bc4d61e50a3bfdb11dfb4cb626f05d102/policy_preprocessor.json "HTTP/1.1 200 OK"
+INFO 2026-05-20 15:22:17 _client.py:1025 HTTP Request: HEAD https://hf-mirror.com/HuggingFaceTB/SmolVLM2-500M-Instruct/resolve/main/config.json "HTTP/1.1 307 Temporary Redirect"
+INFO 2026-05-20 15:22:17 _client.py:1025 HTTP Request: HEAD https://hf-mirror.com/HuggingFaceTB/SmolVLM2-500M-Video-Instruct/resolve/main/config.json "HTTP/1.1 307 Temporary Redirect"
+INFO 2026-05-20 15:22:17 _client.py:1025 HTTP Request: HEAD https://hf-mirror.com/api/resolve-cache/models/HuggingFaceTB/SmolVLM2-500M-Video-Instruct/7b375e1b73b11138ff12fe22c8f2822d8fe03467/config.json "HTTP/1.1 200 OK"
+INFO 2026-05-20 15:22:18 _client.py:1025 HTTP Request: HEAD https://hf-mirror.com/HuggingFaceTB/SmolVLM2-500M-Instruct/resolve/main/tokenizer_config.json "HTTP/1.1 307 Temporary Redirect"
+INFO 2026-05-20 15:22:18 _client.py:1025 HTTP Request: HEAD https://hf-mirror.com/HuggingFaceTB/SmolVLM2-500M-Video-Instruct/resolve/main/tokenizer_config.json "HTTP/1.1 307 Temporary Redirect"
+INFO 2026-05-20 15:22:18 _client.py:1025 HTTP Request: HEAD https://hf-mirror.com/api/resolve-cache/models/HuggingFaceTB/SmolVLM2-500M-Video-Instruct/7b375e1b73b11138ff12fe22c8f2822d8fe03467/tokenizer_config.json "HTTP/1.1 200 OK"
+INFO 2026-05-20 15:22:19 _client.py:1025 HTTP Request: HEAD https://hf-mirror.com/HuggingFaceTB/SmolVLM2-500M-Instruct/resolve/main/tokenizer_config.json "HTTP/1.1 307 Temporary Redirect"
+INFO 2026-05-20 15:22:19 _client.py:1025 HTTP Request: HEAD https://hf-mirror.com/HuggingFaceTB/SmolVLM2-500M-Video-Instruct/resolve/main/tokenizer_config.json "HTTP/1.1 307 Temporary Redirect"
+INFO 2026-05-20 15:22:19 _client.py:1025 HTTP Request: HEAD https://hf-mirror.com/api/resolve-cache/models/HuggingFaceTB/SmolVLM2-500M-Video-Instruct/7b375e1b73b11138ff12fe22c8f2822d8fe03467/tokenizer_config.json "HTTP/1.1 200 OK"
+INFO 2026-05-20 15:22:19 _client.py:1025 HTTP Request: GET https://hf-mirror.com/api/models/HuggingFaceTB/SmolVLM2-500M-Instruct/tree/main/additional_chat_templates?recursive=false&expand=false "HTTP/1.1 307 Temporary Redirect"
+INFO 2026-05-20 15:22:19 _client.py:1025 HTTP Request: GET https://hf-mirror.com/api/models/HuggingFaceTB/SmolVLM2-500M-Video-Instruct/tree/main/additional_chat_templates?recursive=false&expand=false "HTTP/1.1 404 Not Found"
+INFO 2026-05-20 15:22:20 _client.py:1025 HTTP Request: GET https://hf-mirror.com/api/models/HuggingFaceTB/SmolVLM2-500M-Instruct/tree/main?recursive=true&expand=false "HTTP/1.1 307 Temporary Redirect"
+INFO 2026-05-20 15:22:20 _client.py:1025 HTTP Request: GET https://hf-mirror.com/api/models/HuggingFaceTB/SmolVLM2-500M-Video-Instruct/tree/main?recursive=true&expand=false "HTTP/1.1 200 OK"
+INFO 2026-05-20 15:22:21 _client.py:1025 HTTP Request: HEAD https://hf-mirror.com/HuggingFaceVLA/smolvla_libero/resolve/main/policy_postprocessor.json "HTTP/1.1 307 Temporary Redirect"
+INFO 2026-05-20 15:22:21 _client.py:1025 HTTP Request: HEAD https://hf-mirror.com/api/resolve-cache/models/HuggingFaceVLA/smolvla_libero/6721902bc4d61e50a3bfdb11dfb4cb626f05d102/policy_postprocessor.json "HTTP/1.1 200 OK"
+INFO 2026-05-20 15:22:21 rain（v3）.py:378 Creating optimizer and scheduler
+WARNING 2026-05-20 15:22:21 rain（v3）.py:410 检测到 --resume=True 但未提供 --checkpoint_path。将从新开始训练。
+INFO 2026-05-20 15:22:21 rain（v3）.py:416 Output dir: train_logs/Ablation-offline_policy_only
+INFO 2026-05-20 15:22:21 rain（v3）.py:418 cfg.env.task='libero_object'
+INFO 2026-05-20 15:22:21 rain（v3）.py:419 Creating environment processors
+INFO 2026-05-20 15:22:21 rain（v3）.py:423 cfg.steps=400 (400)
+INFO 2026-05-20 15:22:21 rain（v3）.py:424 dataset.num_frames=273465 (273K)
+INFO 2026-05-20 15:22:21 rain（v3）.py:425 dataset.num_episodes=1693
+INFO 2026-05-20 15:22:21 rain（v3）.py:428 Effective batch size: 4 x 1 = 4
+INFO 2026-05-20 15:22:21 rain（v3）.py:429 num_learnable_params=97451872 (97M)
+INFO 2026-05-20 15:22:21 rain（v3）.py:430 num_total_params=604934176 (605M)
+INFO 2026-05-20 15:22:21 rain（v3）.py:449 DEBUG: DataLoader 实际使用 Workers 数量: 2
+INFO 2026-05-20 15:22:21 rain（v3）.py:589 Start offline training on a fixed dataset, with effective batch size: 4
+INFO 2026-05-20 15:22:21 rain（v3）.py:601 Initializing Vision-DORF RL modules...
+INFO 2026-05-20 15:22:21 rain（v3）.py:606 --- [DORF 适配] 确认使用策略同分布状态维度: 8
+INFO 2026-05-20 15:22:21 rain（v3）.py:654 Experiment profile: reward_full_no_policy | freeze_policy_updates=False | disable_online_mixing=True
+INFO 2026-05-20 15:26:41 ain（v3）.py:1038 step:2 smpl:8 ep:0 epch:0.00 loss:0.081 expert_dorf_loss:1.002 online_dorf_loss:1.834 total_dorf_loss:1.002 margin:0.908 critic_loss:0.024 grdn:0.770 good:210.0 rwrd:3.00 lr:1.0e-05 updt_s:0.224 data_s:129.524 r_gn:3.471 c_gn:0.000 p_gn:0.770 v_mu:-0.014 v_std:0.004 v_mse:0.024 ret_mu:0.038 ret_std:0.145 rw_mu:-0.008 rw_std:0.008 at_mu:0.052 at_std:0.147 al_mu:-0.084 al_std:0.134 cand:210.0 sel:0.0 mix:0.000 ow_mu:1.000 ow_mx:1.000 alpha:0.000 stage:1.0 p_on:1.0
+--- [Step 0] Rollout True Reward Sum: 3.00 (Active Envs: 4)
+--- [Step 1] Rollout True Reward Sum: 3.00 (Active Envs: 4)
+WARNING 2026-05-20 15:26:41 db_utils.py:170 WandB logging of key "losses_after_forward" was ignored as its type "<class 'torch.Tensor'>" is not handled by this wrapper.
+WARNING 2026-05-20 15:26:41 db_utils.py:170 WandB logging of key "losses_after_rm_padding" was ignored as its type "<class 'torch.Tensor'>" is not handled by this wrapper.
+INFO 2026-05-20 15:29:26 ain（v3）.py:1038 step:4 smpl:16 ep:0 epch:0.00 loss:0.096 expert_dorf_loss:0.864 online_dorf_loss:1.883 total_dorf_loss:0.864 margin:1.180 critic_loss:0.054 grdn:0.839 good:168.0 rwrd:4.00 lr:1.0e-05 updt_s:0.213 data_s:82.109 r_gn:3.258 c_gn:0.000 p_gn:0.839 v_mu:-0.016 v_std:0.004 v_mse:0.054 ret_mu:0.089 ret_std:0.206 rw_mu:0.042 rw_std:0.009 at_mu:0.105 at_std:0.208 al_mu:0.576 al_std:0.215 cand:168.0 sel:0.0 mix:0.000 ow_mu:1.000 ow_mx:1.000 alpha:0.000 stage:1.0 p_on:1.0
+--- [Step 2] Rollout True Reward Sum: 4.00 (Active Envs: 4)
+--- [Step 3] Rollout True Reward Sum: 4.00 (Active Envs: 4)
+WARNING 2026-05-20 15:29:26 db_utils.py:170 WandB logging of key "losses_after_forward" was ignored as its type "<class 'torch.Tensor'>" is not handled by this wrapper.
+WARNING 2026-05-20 15:29:26 db_utils.py:170 WandB logging of key "losses_after_rm_padding" was ignored as its type "<class 'torch.Tensor'>" is not handled by this wrapper.
+INFO 2026-05-20 15:32:55 ain（v3）.py:1038 step:6 smpl:24 ep:0 epch:0.00 loss:0.097 expert_dorf_loss:0.788 online_dorf_loss:1.902 total_dorf_loss:0.788 margin:0.760 critic_loss:0.038 grdn:0.801 good:191.5 rwrd:3.50 lr:1.0e-05 updt_s:0.215 data_s:104.057 r_gn:3.463 c_gn:0.000 p_gn:0.801 v_mu:-0.015 v_std:0.004 v_mse:0.038 ret_mu:0.061 ret_std:0.174 rw_mu:0.097 rw_std:0.010 at_mu:0.077 at_std:0.177 al_mu:1.256 al_std:0.517 cand:191.5 sel:0.0 mix:0.000 ow_mu:1.000 ow_mx:1.000 alpha:0.000 stage:1.0 p_on:1.0
+--- [Step 4] Rollout True Reward Sum: 3.00 (Active Envs: 4)
+--- [Step 5] Rollout True Reward Sum: 4.00 (Active Envs: 4)
+WARNING 2026-05-20 15:32:55 db_utils.py:170 WandB logging of key "losses_after_forward" was ignored as its type "<class 'torch.Tensor'>" is not handled by this wrapper.
+WARNING 2026-05-20 15:32:55 db_utils.py:170 WandB logging of key "losses_after_rm_padding" was ignored as its type "<class 'torch.Tensor'>" is not handled by this wrapper.
+INFO 2026-05-20 15:35:55 ain（v3）.py:1038 step:8 smpl:32 ep:0 epch:0.00 loss:0.090 expert_dorf_loss:0.678 online_dorf_loss:2.025 total_dorf_loss:0.678 margin:0.760 critic_loss:0.049 grdn:0.634 good:185.0 rwrd:4.00 lr:1.0e-05 updt_s:0.207 data_s:89.232 r_gn:4.084 c_gn:0.000 p_gn:0.634 v_mu:-0.016 v_std:0.004 v_mse:0.049 ret_mu:0.080 ret_std:0.198 rw_mu:0.167 rw_std:0.010 at_mu:0.096 at_std:0.200 al_mu:2.254 al_std:0.873 cand:185.0 sel:0.0 mix:0.000 ow_mu:1.000 ow_mx:1.000 alpha:0.000 stage:1.0 p_on:1.0
+--- [Step 6] Rollout True Reward Sum: 4.00 (Active Envs: 4)
+--- [Step 7] Rollout True Reward Sum: 4.00 (Active Envs: 4)
+WARNING 2026-05-20 15:35:55 db_utils.py:170 WandB logging of key "losses_after_forward" was ignored as its type "<class 'torch.Tensor'>" is not handled by this wrapper.
+WARNING 2026-05-20 15:35:55 db_utils.py:170 WandB logging of key "losses_after_rm_padding" was ignored as its type "<class 'torch.Tensor'>" is not handled by this wrapper.
+INFO 2026-05-20 15:39:23 ain（v3）.py:1038 step:10 smpl:40 ep:0 epch:0.00 loss:0.096 expert_dorf_loss:0.584 online_dorf_loss:1.919 total_dorf_loss:0.584 margin:0.929 critic_loss:0.040 grdn:0.792 good:188.0 rwrd:3.50 lr:1.0e-05 updt_s:0.211 data_s:103.575 r_gn:4.616 c_gn:0.000 p_gn:0.792 v_mu:-0.015 v_std:0.004 v_mse:0.040 ret_mu:0.064 ret_std:0.176 rw_mu:0.252 rw_std:0.011 at_mu:0.079 at_std:0.178 al_mu:3.039 al_std:1.527 cand:188.0 sel:0.0 mix:0.000 ow_mu:1.000 ow_mx:1.000 alpha:0.000 stage:1.0 p_on:1.0
+--- [Step 8] Rollout True Reward Sum: 4.00 (Active Envs: 4)
+--- [Step 9] Rollout True Reward Sum: 3.00 (Active Envs: 4)
+WARNING 2026-05-20 15:39:23 db_utils.py:170 WandB logging of key "losses_after_forward" was ignored as its type "<class 'torch.Tensor'>" is not handled by this wrapper.
+WARNING 2026-05-20 15:39:23 db_utils.py:170 WandB logging of key "losses_after_rm_padding" was ignored as its type "<class 'torch.Tensor'>" is not handled by this wrapper.
+Running rollout with at most 280 steps:  14%|█▍        | 39/280 [00:15<01:34,  2.55it/s, running_success_rate=0.0%]

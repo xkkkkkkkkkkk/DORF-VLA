@@ -1,0 +1,491 @@
+INFO 2026-05-23 22:38:05 db_utils.py:106 Logs will be synced with wandb.
+INFO 2026-05-23 22:38:05 db_utils.py:107 Track this run --> https://wandb.ai/x-k/Ablation-full_pipeline_default/runs/mz5s0cwp
+INFO 2026-05-23 22:38:05 rain（v3）.py:279 正在初始化本地官方数据集加载器...
+INFO 2026-05-23 22:38:05 rain（v3）.py:292 本地数据覆盖至 Episode 19，将仅加载此范围内索引。
+INFO 2026-05-23 22:38:05 rain（v3）.py:319 Creating env
+[robosuite WARNING] No private macro file found! (__init__.py:7)
+WARNING 2026-05-23 22:38:05 e/__init__.py:7 No private macro file found!
+[robosuite WARNING] It is recommended to use a private macro file (__init__.py:8)
+WARNING 2026-05-23 22:38:05 e/__init__.py:8 It is recommended to use a private macro file
+[robosuite WARNING] To setup, run: python /root/autodl-tmp/miniconda3/envs/lerobot/lib/python3.10/site-packages/robosuite/scripts/setup_macros.py (__init__.py:9)
+WARNING 2026-05-23 22:38:05 e/__init__.py:9 To setup, run: python /root/autodl-tmp/miniconda3/envs/lerobot/lib/python3.10/site-packages/robosuite/scripts/setup_macros.py
+INFO 2026-05-23 22:38:05 tesupport.py:24 No OpenGL_accelerate module loaded: No module named 'OpenGL_accelerate'
+Creating LIBERO envs | suites=['libero_object'] | n_envs(per task)=4 | init_states=True
+[info] using task orders [0, 1, 2, 3, 4, 5, 6, 7, 8, 9]
+Built vec env | suite=libero_object | task_id=0 | n_envs=4
+Built vec env | suite=libero_object | task_id=1 | n_envs=4
+Built vec env | suite=libero_object | task_id=2 | n_envs=4
+Built vec env | suite=libero_object | task_id=3 | n_envs=4
+Built vec env | suite=libero_object | task_id=4 | n_envs=4
+Built vec env | suite=libero_object | task_id=5 | n_envs=4
+Built vec env | suite=libero_object | task_id=6 | n_envs=4
+Built vec env | suite=libero_object | task_id=7 | n_envs=4
+Built vec env | suite=libero_object | task_id=8 | n_envs=4
+Built vec env | suite=libero_object | task_id=9 | n_envs=4
+INFO 2026-05-23 22:39:22 rain（v3）.py:323 Creating policy
+Loading  HuggingFaceTB/SmolVLM2-500M-Instruct weights ...
+INFO 2026-05-23 22:39:23 _client.py:1025 HTTP Request: HEAD https://hf-mirror.com/HuggingFaceTB/SmolVLM2-500M-Instruct/resolve/main/config.json "HTTP/1.1 307 Temporary Redirect"
+INFO 2026-05-23 22:39:23 _client.py:1025 HTTP Request: HEAD https://hf-mirror.com/HuggingFaceTB/SmolVLM2-500M-Video-Instruct/resolve/main/config.json "HTTP/1.1 307 Temporary Redirect"
+INFO 2026-05-23 22:39:23 _client.py:1025 HTTP Request: HEAD https://hf-mirror.com/api/resolve-cache/models/HuggingFaceTB/SmolVLM2-500M-Video-Instruct/7b375e1b73b11138ff12fe22c8f2822d8fe03467/config.json "HTTP/1.1 200 OK"
+`torch_dtype` is deprecated! Use `dtype` instead!
+INFO 2026-05-23 22:39:25 _client.py:1025 HTTP Request: HEAD https://hf-mirror.com/HuggingFaceTB/SmolVLM2-500M-Instruct/resolve/main/generation_config.json "HTTP/1.1 307 Temporary Redirect"
+INFO 2026-05-23 22:39:25 _client.py:1025 HTTP Request: HEAD https://hf-mirror.com/HuggingFaceTB/SmolVLM2-500M-Video-Instruct/resolve/main/generation_config.json "HTTP/1.1 307 Temporary Redirect"
+INFO 2026-05-23 22:39:25 _client.py:1025 HTTP Request: HEAD https://hf-mirror.com/api/resolve-cache/models/HuggingFaceTB/SmolVLM2-500M-Video-Instruct/7b375e1b73b11138ff12fe22c8f2822d8fe03467/generation_config.json "HTTP/1.1 200 OK"
+INFO 2026-05-23 22:39:26 _client.py:1025 HTTP Request: HEAD https://hf-mirror.com/HuggingFaceTB/SmolVLM2-500M-Instruct/resolve/main/processor_config.json "HTTP/1.1 307 Temporary Redirect"
+INFO 2026-05-23 22:39:26 _client.py:1025 HTTP Request: HEAD https://hf-mirror.com/HuggingFaceTB/SmolVLM2-500M-Video-Instruct/resolve/main/processor_config.json "HTTP/1.1 307 Temporary Redirect"
+INFO 2026-05-23 22:39:26 _client.py:1025 HTTP Request: HEAD https://hf-mirror.com/api/resolve-cache/models/HuggingFaceTB/SmolVLM2-500M-Video-Instruct/7b375e1b73b11138ff12fe22c8f2822d8fe03467/processor_config.json "HTTP/1.1 200 OK"
+INFO 2026-05-23 22:39:26 _client.py:1025 HTTP Request: GET https://hf-mirror.com/api/models/HuggingFaceTB/SmolVLM2-500M-Instruct/tree/main/additional_chat_templates?recursive=false&expand=false "HTTP/1.1 307 Temporary Redirect"
+INFO 2026-05-23 22:39:27 _client.py:1025 HTTP Request: GET https://hf-mirror.com/api/models/HuggingFaceTB/SmolVLM2-500M-Video-Instruct/tree/main/additional_chat_templates?recursive=false&expand=false "HTTP/1.1 404 Not Found"
+INFO 2026-05-23 22:39:27 _client.py:1025 HTTP Request: HEAD https://hf-mirror.com/HuggingFaceTB/SmolVLM2-500M-Instruct/resolve/main/processor_config.json "HTTP/1.1 307 Temporary Redirect"
+INFO 2026-05-23 22:39:27 _client.py:1025 HTTP Request: HEAD https://hf-mirror.com/HuggingFaceTB/SmolVLM2-500M-Video-Instruct/resolve/main/processor_config.json "HTTP/1.1 307 Temporary Redirect"
+INFO 2026-05-23 22:39:28 _client.py:1025 HTTP Request: HEAD https://hf-mirror.com/api/resolve-cache/models/HuggingFaceTB/SmolVLM2-500M-Video-Instruct/7b375e1b73b11138ff12fe22c8f2822d8fe03467/processor_config.json "HTTP/1.1 200 OK"
+INFO 2026-05-23 22:39:28 _client.py:1025 HTTP Request: HEAD https://hf-mirror.com/HuggingFaceTB/SmolVLM2-500M-Instruct/resolve/main/chat_template.json "HTTP/1.1 307 Temporary Redirect"
+INFO 2026-05-23 22:39:28 _client.py:1025 HTTP Request: HEAD https://hf-mirror.com/HuggingFaceTB/SmolVLM2-500M-Video-Instruct/resolve/main/chat_template.json "HTTP/1.1 307 Temporary Redirect"
+INFO 2026-05-23 22:39:29 _client.py:1025 HTTP Request: HEAD https://hf-mirror.com/api/resolve-cache/models/HuggingFaceTB/SmolVLM2-500M-Video-Instruct/7b375e1b73b11138ff12fe22c8f2822d8fe03467/chat_template.json "HTTP/1.1 200 OK"
+INFO 2026-05-23 22:39:29 _client.py:1025 HTTP Request: HEAD https://hf-mirror.com/HuggingFaceTB/SmolVLM2-500M-Instruct/resolve/main/chat_template.jinja "HTTP/1.1 307 Temporary Redirect"
+INFO 2026-05-23 22:39:30 _client.py:1025 HTTP Request: HEAD https://hf-mirror.com/HuggingFaceTB/SmolVLM2-500M-Video-Instruct/resolve/main/chat_template.jinja "HTTP/1.1 404 Not Found"
+INFO 2026-05-23 22:39:30 _client.py:1025 HTTP Request: HEAD https://hf-mirror.com/HuggingFaceTB/SmolVLM2-500M-Instruct/resolve/main/audio_tokenizer_config.json "HTTP/1.1 307 Temporary Redirect"
+INFO 2026-05-23 22:39:30 _client.py:1025 HTTP Request: HEAD https://hf-mirror.com/HuggingFaceTB/SmolVLM2-500M-Video-Instruct/resolve/main/audio_tokenizer_config.json "HTTP/1.1 404 Not Found"
+INFO 2026-05-23 22:39:30 _client.py:1025 HTTP Request: GET https://hf-mirror.com/api/models/HuggingFaceTB/SmolVLM2-500M-Instruct/tree/main/additional_chat_templates?recursive=false&expand=false "HTTP/1.1 307 Temporary Redirect"
+INFO 2026-05-23 22:39:31 _client.py:1025 HTTP Request: GET https://hf-mirror.com/api/models/HuggingFaceTB/SmolVLM2-500M-Video-Instruct/tree/main/additional_chat_templates?recursive=false&expand=false "HTTP/1.1 404 Not Found"
+INFO 2026-05-23 22:39:31 _client.py:1025 HTTP Request: HEAD https://hf-mirror.com/HuggingFaceTB/SmolVLM2-500M-Instruct/resolve/main/processor_config.json "HTTP/1.1 307 Temporary Redirect"
+INFO 2026-05-23 22:39:32 _client.py:1025 HTTP Request: HEAD https://hf-mirror.com/HuggingFaceTB/SmolVLM2-500M-Video-Instruct/resolve/main/processor_config.json "HTTP/1.1 307 Temporary Redirect"
+INFO 2026-05-23 22:39:32 _client.py:1025 HTTP Request: HEAD https://hf-mirror.com/api/resolve-cache/models/HuggingFaceTB/SmolVLM2-500M-Video-Instruct/7b375e1b73b11138ff12fe22c8f2822d8fe03467/processor_config.json "HTTP/1.1 200 OK"
+INFO 2026-05-23 22:39:33 _client.py:1025 HTTP Request: HEAD https://hf-mirror.com/HuggingFaceTB/SmolVLM2-500M-Instruct/resolve/main/chat_template.json "HTTP/1.1 307 Temporary Redirect"
+INFO 2026-05-23 22:39:33 _client.py:1025 HTTP Request: HEAD https://hf-mirror.com/HuggingFaceTB/SmolVLM2-500M-Video-Instruct/resolve/main/chat_template.json "HTTP/1.1 307 Temporary Redirect"
+INFO 2026-05-23 22:39:33 _client.py:1025 HTTP Request: HEAD https://hf-mirror.com/api/resolve-cache/models/HuggingFaceTB/SmolVLM2-500M-Video-Instruct/7b375e1b73b11138ff12fe22c8f2822d8fe03467/chat_template.json "HTTP/1.1 200 OK"
+INFO 2026-05-23 22:39:34 _client.py:1025 HTTP Request: HEAD https://hf-mirror.com/HuggingFaceTB/SmolVLM2-500M-Instruct/resolve/main/chat_template.jinja "HTTP/1.1 307 Temporary Redirect"
+INFO 2026-05-23 22:39:34 _client.py:1025 HTTP Request: HEAD https://hf-mirror.com/HuggingFaceTB/SmolVLM2-500M-Video-Instruct/resolve/main/chat_template.jinja "HTTP/1.1 404 Not Found"
+INFO 2026-05-23 22:39:34 _client.py:1025 HTTP Request: HEAD https://hf-mirror.com/HuggingFaceTB/SmolVLM2-500M-Instruct/resolve/main/audio_tokenizer_config.json "HTTP/1.1 307 Temporary Redirect"
+INFO 2026-05-23 22:39:35 _client.py:1025 HTTP Request: HEAD https://hf-mirror.com/HuggingFaceTB/SmolVLM2-500M-Video-Instruct/resolve/main/audio_tokenizer_config.json "HTTP/1.1 404 Not Found"
+INFO 2026-05-23 22:39:35 _client.py:1025 HTTP Request: HEAD https://hf-mirror.com/HuggingFaceTB/SmolVLM2-500M-Instruct/resolve/main/processor_config.json "HTTP/1.1 307 Temporary Redirect"
+INFO 2026-05-23 22:39:35 _client.py:1025 HTTP Request: HEAD https://hf-mirror.com/HuggingFaceTB/SmolVLM2-500M-Video-Instruct/resolve/main/processor_config.json "HTTP/1.1 307 Temporary Redirect"
+INFO 2026-05-23 22:39:36 _client.py:1025 HTTP Request: HEAD https://hf-mirror.com/api/resolve-cache/models/HuggingFaceTB/SmolVLM2-500M-Video-Instruct/7b375e1b73b11138ff12fe22c8f2822d8fe03467/processor_config.json "HTTP/1.1 200 OK"
+INFO 2026-05-23 22:39:36 _client.py:1025 HTTP Request: HEAD https://hf-mirror.com/HuggingFaceTB/SmolVLM2-500M-Instruct/resolve/main/preprocessor_config.json "HTTP/1.1 307 Temporary Redirect"
+INFO 2026-05-23 22:39:36 _client.py:1025 HTTP Request: HEAD https://hf-mirror.com/HuggingFaceTB/SmolVLM2-500M-Video-Instruct/resolve/main/preprocessor_config.json "HTTP/1.1 307 Temporary Redirect"
+INFO 2026-05-23 22:39:37 _client.py:1025 HTTP Request: HEAD https://hf-mirror.com/api/resolve-cache/models/HuggingFaceTB/SmolVLM2-500M-Video-Instruct/7b375e1b73b11138ff12fe22c8f2822d8fe03467/preprocessor_config.json "HTTP/1.1 200 OK"
+INFO 2026-05-23 22:39:38 _client.py:1025 HTTP Request: HEAD https://hf-mirror.com/HuggingFaceTB/SmolVLM2-500M-Instruct/resolve/main/processor_config.json "HTTP/1.1 307 Temporary Redirect"
+INFO 2026-05-23 22:39:38 _client.py:1025 HTTP Request: HEAD https://hf-mirror.com/HuggingFaceTB/SmolVLM2-500M-Video-Instruct/resolve/main/processor_config.json "HTTP/1.1 307 Temporary Redirect"
+INFO 2026-05-23 22:39:39 _client.py:1025 HTTP Request: HEAD https://hf-mirror.com/api/resolve-cache/models/HuggingFaceTB/SmolVLM2-500M-Video-Instruct/7b375e1b73b11138ff12fe22c8f2822d8fe03467/processor_config.json "HTTP/1.1 200 OK"
+INFO 2026-05-23 22:39:39 _client.py:1025 HTTP Request: HEAD https://hf-mirror.com/HuggingFaceTB/SmolVLM2-500M-Instruct/resolve/main/preprocessor_config.json "HTTP/1.1 307 Temporary Redirect"
+INFO 2026-05-23 22:39:39 _client.py:1025 HTTP Request: HEAD https://hf-mirror.com/HuggingFaceTB/SmolVLM2-500M-Video-Instruct/resolve/main/preprocessor_config.json "HTTP/1.1 307 Temporary Redirect"
+INFO 2026-05-23 22:39:39 _client.py:1025 HTTP Request: HEAD https://hf-mirror.com/api/resolve-cache/models/HuggingFaceTB/SmolVLM2-500M-Video-Instruct/7b375e1b73b11138ff12fe22c8f2822d8fe03467/preprocessor_config.json "HTTP/1.1 200 OK"
+INFO 2026-05-23 22:39:40 _client.py:1025 HTTP Request: HEAD https://hf-mirror.com/HuggingFaceTB/SmolVLM2-500M-Instruct/resolve/main/config.json "HTTP/1.1 307 Temporary Redirect"
+INFO 2026-05-23 22:39:40 _client.py:1025 HTTP Request: HEAD https://hf-mirror.com/HuggingFaceTB/SmolVLM2-500M-Video-Instruct/resolve/main/config.json "HTTP/1.1 307 Temporary Redirect"
+INFO 2026-05-23 22:39:41 _client.py:1025 HTTP Request: HEAD https://hf-mirror.com/api/resolve-cache/models/HuggingFaceTB/SmolVLM2-500M-Video-Instruct/7b375e1b73b11138ff12fe22c8f2822d8fe03467/config.json "HTTP/1.1 200 OK"
+INFO 2026-05-23 22:39:41 _client.py:1025 HTTP Request: HEAD https://hf-mirror.com/HuggingFaceTB/SmolVLM2-500M-Instruct/resolve/main/tokenizer_config.json "HTTP/1.1 307 Temporary Redirect"
+INFO 2026-05-23 22:39:41 _client.py:1025 HTTP Request: HEAD https://hf-mirror.com/HuggingFaceTB/SmolVLM2-500M-Video-Instruct/resolve/main/tokenizer_config.json "HTTP/1.1 307 Temporary Redirect"
+INFO 2026-05-23 22:39:41 _client.py:1025 HTTP Request: HEAD https://hf-mirror.com/api/resolve-cache/models/HuggingFaceTB/SmolVLM2-500M-Video-Instruct/7b375e1b73b11138ff12fe22c8f2822d8fe03467/tokenizer_config.json "HTTP/1.1 200 OK"
+INFO 2026-05-23 22:39:42 _client.py:1025 HTTP Request: HEAD https://hf-mirror.com/HuggingFaceTB/SmolVLM2-500M-Instruct/resolve/main/tokenizer_config.json "HTTP/1.1 307 Temporary Redirect"
+INFO 2026-05-23 22:39:42 _client.py:1025 HTTP Request: HEAD https://hf-mirror.com/HuggingFaceTB/SmolVLM2-500M-Video-Instruct/resolve/main/tokenizer_config.json "HTTP/1.1 307 Temporary Redirect"
+INFO 2026-05-23 22:39:42 _client.py:1025 HTTP Request: HEAD https://hf-mirror.com/api/resolve-cache/models/HuggingFaceTB/SmolVLM2-500M-Video-Instruct/7b375e1b73b11138ff12fe22c8f2822d8fe03467/tokenizer_config.json "HTTP/1.1 200 OK"
+INFO 2026-05-23 22:39:42 _client.py:1025 HTTP Request: GET https://hf-mirror.com/api/models/HuggingFaceTB/SmolVLM2-500M-Instruct/tree/main/additional_chat_templates?recursive=false&expand=false "HTTP/1.1 307 Temporary Redirect"
+INFO 2026-05-23 22:39:42 _client.py:1025 HTTP Request: GET https://hf-mirror.com/api/models/HuggingFaceTB/SmolVLM2-500M-Video-Instruct/tree/main/additional_chat_templates?recursive=false&expand=false "HTTP/1.1 404 Not Found"
+INFO 2026-05-23 22:39:43 _client.py:1025 HTTP Request: GET https://hf-mirror.com/api/models/HuggingFaceTB/SmolVLM2-500M-Instruct/tree/main?recursive=true&expand=false "HTTP/1.1 307 Temporary Redirect"
+INFO 2026-05-23 22:39:43 _client.py:1025 HTTP Request: GET https://hf-mirror.com/api/models/HuggingFaceTB/SmolVLM2-500M-Video-Instruct/tree/main?recursive=true&expand=false "HTTP/1.1 200 OK"
+INFO 2026-05-23 22:39:44 _client.py:1025 HTTP Request: HEAD https://hf-mirror.com/HuggingFaceTB/SmolVLM2-500M-Instruct/resolve/main/processor_config.json "HTTP/1.1 307 Temporary Redirect"
+INFO 2026-05-23 22:39:44 _client.py:1025 HTTP Request: HEAD https://hf-mirror.com/HuggingFaceTB/SmolVLM2-500M-Video-Instruct/resolve/main/processor_config.json "HTTP/1.1 307 Temporary Redirect"
+INFO 2026-05-23 22:39:45 _client.py:1025 HTTP Request: HEAD https://hf-mirror.com/api/resolve-cache/models/HuggingFaceTB/SmolVLM2-500M-Video-Instruct/7b375e1b73b11138ff12fe22c8f2822d8fe03467/processor_config.json "HTTP/1.1 200 OK"
+INFO 2026-05-23 22:39:46 _client.py:1025 HTTP Request: HEAD https://hf-mirror.com/HuggingFaceTB/SmolVLM2-500M-Instruct/resolve/main/video_preprocessor_config.json "HTTP/1.1 307 Temporary Redirect"
+INFO 2026-05-23 22:39:46 _client.py:1025 HTTP Request: HEAD https://hf-mirror.com/HuggingFaceTB/SmolVLM2-500M-Video-Instruct/resolve/main/video_preprocessor_config.json "HTTP/1.1 404 Not Found"
+INFO 2026-05-23 22:39:46 _client.py:1025 HTTP Request: HEAD https://hf-mirror.com/HuggingFaceTB/SmolVLM2-500M-Instruct/resolve/main/preprocessor_config.json "HTTP/1.1 307 Temporary Redirect"
+INFO 2026-05-23 22:39:47 _client.py:1025 HTTP Request: HEAD https://hf-mirror.com/HuggingFaceTB/SmolVLM2-500M-Video-Instruct/resolve/main/preprocessor_config.json "HTTP/1.1 307 Temporary Redirect"
+INFO 2026-05-23 22:39:47 _client.py:1025 HTTP Request: HEAD https://hf-mirror.com/api/resolve-cache/models/HuggingFaceTB/SmolVLM2-500M-Video-Instruct/7b375e1b73b11138ff12fe22c8f2822d8fe03467/preprocessor_config.json "HTTP/1.1 200 OK"
+INFO 2026-05-23 22:39:47 _client.py:1025 HTTP Request: HEAD https://hf-mirror.com/HuggingFaceTB/SmolVLM2-500M-Instruct/resolve/main/processor_config.json "HTTP/1.1 307 Temporary Redirect"
+INFO 2026-05-23 22:39:48 _client.py:1025 HTTP Request: HEAD https://hf-mirror.com/HuggingFaceTB/SmolVLM2-500M-Video-Instruct/resolve/main/processor_config.json "HTTP/1.1 307 Temporary Redirect"
+INFO 2026-05-23 22:39:49 _client.py:1025 HTTP Request: HEAD https://hf-mirror.com/api/resolve-cache/models/HuggingFaceTB/SmolVLM2-500M-Video-Instruct/7b375e1b73b11138ff12fe22c8f2822d8fe03467/processor_config.json "HTTP/1.1 200 OK"
+INFO 2026-05-23 22:39:49 _client.py:1025 HTTP Request: HEAD https://hf-mirror.com/HuggingFaceTB/SmolVLM2-500M-Instruct/resolve/main/video_preprocessor_config.json "HTTP/1.1 307 Temporary Redirect"
+INFO 2026-05-23 22:39:49 _client.py:1025 HTTP Request: HEAD https://hf-mirror.com/HuggingFaceTB/SmolVLM2-500M-Video-Instruct/resolve/main/video_preprocessor_config.json "HTTP/1.1 404 Not Found"
+INFO 2026-05-23 22:39:50 _client.py:1025 HTTP Request: HEAD https://hf-mirror.com/HuggingFaceTB/SmolVLM2-500M-Instruct/resolve/main/preprocessor_config.json "HTTP/1.1 307 Temporary Redirect"
+INFO 2026-05-23 22:39:50 _client.py:1025 HTTP Request: HEAD https://hf-mirror.com/HuggingFaceTB/SmolVLM2-500M-Video-Instruct/resolve/main/preprocessor_config.json "HTTP/1.1 307 Temporary Redirect"
+INFO 2026-05-23 22:39:50 _client.py:1025 HTTP Request: HEAD https://hf-mirror.com/api/resolve-cache/models/HuggingFaceTB/SmolVLM2-500M-Video-Instruct/7b375e1b73b11138ff12fe22c8f2822d8fe03467/preprocessor_config.json "HTTP/1.1 200 OK"
+Loading weights from local directory
+INFO 2026-05-23 22:39:55 _client.py:1025 HTTP Request: HEAD https://hf-mirror.com/HuggingFaceTB/SmolVLM2-500M-Instruct/resolve/main/config.json "HTTP/1.1 307 Temporary Redirect"
+INFO 2026-05-23 22:39:55 _client.py:1025 HTTP Request: HEAD https://hf-mirror.com/HuggingFaceTB/SmolVLM2-500M-Video-Instruct/resolve/main/config.json "HTTP/1.1 307 Temporary Redirect"
+INFO 2026-05-23 22:39:55 _client.py:1025 HTTP Request: HEAD https://hf-mirror.com/api/resolve-cache/models/HuggingFaceTB/SmolVLM2-500M-Video-Instruct/7b375e1b73b11138ff12fe22c8f2822d8fe03467/config.json "HTTP/1.1 200 OK"
+INFO 2026-05-23 22:39:56 _client.py:1025 HTTP Request: HEAD https://hf-mirror.com/HuggingFaceTB/SmolVLM2-500M-Instruct/resolve/main/tokenizer_config.json "HTTP/1.1 307 Temporary Redirect"
+INFO 2026-05-23 22:39:56 _client.py:1025 HTTP Request: HEAD https://hf-mirror.com/HuggingFaceTB/SmolVLM2-500M-Video-Instruct/resolve/main/tokenizer_config.json "HTTP/1.1 307 Temporary Redirect"
+INFO 2026-05-23 22:39:56 _client.py:1025 HTTP Request: HEAD https://hf-mirror.com/api/resolve-cache/models/HuggingFaceTB/SmolVLM2-500M-Video-Instruct/7b375e1b73b11138ff12fe22c8f2822d8fe03467/tokenizer_config.json "HTTP/1.1 200 OK"
+INFO 2026-05-23 22:39:57 _client.py:1025 HTTP Request: HEAD https://hf-mirror.com/HuggingFaceTB/SmolVLM2-500M-Instruct/resolve/main/tokenizer_config.json "HTTP/1.1 307 Temporary Redirect"
+INFO 2026-05-23 22:39:58 _client.py:1025 HTTP Request: HEAD https://hf-mirror.com/HuggingFaceTB/SmolVLM2-500M-Video-Instruct/resolve/main/tokenizer_config.json "HTTP/1.1 307 Temporary Redirect"
+INFO 2026-05-23 22:39:58 _client.py:1025 HTTP Request: HEAD https://hf-mirror.com/api/resolve-cache/models/HuggingFaceTB/SmolVLM2-500M-Video-Instruct/7b375e1b73b11138ff12fe22c8f2822d8fe03467/tokenizer_config.json "HTTP/1.1 200 OK"
+INFO 2026-05-23 22:39:58 _client.py:1025 HTTP Request: GET https://hf-mirror.com/api/models/HuggingFaceTB/SmolVLM2-500M-Instruct/tree/main/additional_chat_templates?recursive=false&expand=false "HTTP/1.1 307 Temporary Redirect"
+INFO 2026-05-23 22:39:58 _client.py:1025 HTTP Request: GET https://hf-mirror.com/api/models/HuggingFaceTB/SmolVLM2-500M-Video-Instruct/tree/main/additional_chat_templates?recursive=false&expand=false "HTTP/1.1 404 Not Found"
+INFO 2026-05-23 22:39:58 _client.py:1025 HTTP Request: GET https://hf-mirror.com/api/models/HuggingFaceTB/SmolVLM2-500M-Instruct/tree/main?recursive=true&expand=false "HTTP/1.1 307 Temporary Redirect"
+INFO 2026-05-23 22:39:59 _client.py:1025 HTTP Request: GET https://hf-mirror.com/api/models/HuggingFaceTB/SmolVLM2-500M-Video-Instruct/tree/main?recursive=true&expand=false "HTTP/1.1 200 OK"
+INFO 2026-05-23 22:39:59 rain（v3）.py:378 Creating optimizer and scheduler
+INFO 2026-05-23 22:39:59 rain（v3）.py:416 Output dir: train_logs/Ablation-full_pipeline_default
+INFO 2026-05-23 22:39:59 rain（v3）.py:418 cfg.env.task='libero_object'
+INFO 2026-05-23 22:39:59 rain（v3）.py:419 Creating environment processors
+INFO 2026-05-23 22:39:59 rain（v3）.py:423 cfg.steps=600 (600)
+INFO 2026-05-23 22:39:59 rain（v3）.py:424 dataset.num_frames=273465 (273K)
+INFO 2026-05-23 22:39:59 rain（v3）.py:425 dataset.num_episodes=1693
+INFO 2026-05-23 22:39:59 rain（v3）.py:428 Effective batch size: 4 x 1 = 4
+INFO 2026-05-23 22:39:59 rain（v3）.py:429 num_learnable_params=97451872 (97M)
+INFO 2026-05-23 22:39:59 rain（v3）.py:430 num_total_params=604934176 (605M)
+INFO 2026-05-23 22:39:59 rain（v3）.py:449 DEBUG: DataLoader 实际使用 Workers 数量: 2
+INFO 2026-05-23 22:39:59 rain（v3）.py:589 Start offline training on a fixed dataset, with effective batch size: 4
+INFO 2026-05-23 22:39:59 rain（v3）.py:601 Initializing Vision-DORF RL modules...
+INFO 2026-05-23 22:39:59 rain（v3）.py:606 --- [DORF 适配] 确认使用策略同分布状态维度: 8
+INFO 2026-05-23 22:40:00 rain（v3）.py:631 成功加载断点重续的 DORF 权重！
+INFO 2026-05-23 22:40:00 rain（v3）.py:654 Experiment profile: full_pipeline_default | freeze_policy_updates=False | disable_online_mixing=False
+INFO 2026-05-23 22:50:22 ain（v3）.py:1038 step:205 smpl:820 ep:5 epch:0.00 loss:0.074 expert_dorf_loss:0.001 online_dorf_loss:1.571 total_dorf_loss:0.067 margin:0.362 critic_loss:0.012 grdn:0.948 good:140.0 rwrd:2.20 lr:1.0e-05 updt_s:0.214 data_s:123.945 r_gn:0.753 c_gn:0.271 p_gn:0.948 v_mu:0.143 v_std:0.164 v_mse:0.012 ret_mu:0.128 ret_std:0.182 rw_mu:0.955 rw_std:0.013 at_mu:-0.014 at_std:0.108 al_mu:11.984 al_std:6.106 cand:140.0 sel:0.0 mix:0.001 ow_mu:1.000 ow_mx:1.000 alpha:0.407 stage:2.8 p_on:1.0
+--- [Step 200] Rollout True Reward Sum: 3.00 (Active Envs: 4)
+--- [Step 201] Rollout True Reward Sum: 1.00 (Active Envs: 4)
+--- [Step 202] Rollout True Reward Sum: 2.00 (Active Envs: 4)
+--- [Step 203] Rollout True Reward Sum: 3.00 (Active Envs: 4)
+--- [Step 204] Rollout True Reward Sum: 2.00 (Active Envs: 4)
+WARNING 2026-05-23 22:50:22 db_utils.py:170 WandB logging of key "losses_after_forward" was ignored as its type "<class 'torch.Tensor'>" is not handled by this wrapper.
+WARNING 2026-05-23 22:50:22 db_utils.py:170 WandB logging of key "losses_after_rm_padding" was ignored as its type "<class 'torch.Tensor'>" is not handled by this wrapper.
+INFO 2026-05-23 23:00:26 ain（v3）.py:1038 step:210 smpl:840 ep:5 epch:0.00 loss:0.084 expert_dorf_loss:0.001 online_dorf_loss:1.518 total_dorf_loss:0.067 margin:0.754 critic_loss:0.013 grdn:0.777 good:176.2 rwrd:2.80 lr:1.0e-05 updt_s:0.226 data_s:120.488 r_gn:0.434 c_gn:0.394 p_gn:0.777 v_mu:0.130 v_std:0.179 v_mse:0.013 ret_mu:0.139 ret_std:0.212 rw_mu:0.980 rw_std:0.014 at_mu:0.011 at_std:0.103 al_mu:11.789 al_std:6.363 cand:176.2 sel:0.0 mix:0.006 ow_mu:1.000 ow_mx:1.000 alpha:0.423 stage:3.0 p_on:1.0
+--- [Step 205] Rollout True Reward Sum: 3.00 (Active Envs: 4)
+--- [Step 206] Rollout True Reward Sum: 3.00 (Active Envs: 4)
+--- [Step 207] Rollout True Reward Sum: 3.00 (Active Envs: 4)
+--- [Step 208] Rollout True Reward Sum: 4.00 (Active Envs: 4)
+--- [Step 209] Rollout True Reward Sum: 1.00 (Active Envs: 4)
+WARNING 2026-05-23 23:00:26 db_utils.py:170 WandB logging of key "losses_after_forward" was ignored as its type "<class 'torch.Tensor'>" is not handled by this wrapper.
+WARNING 2026-05-23 23:00:26 db_utils.py:170 WandB logging of key "losses_after_rm_padding" was ignored as its type "<class 'torch.Tensor'>" is not handled by this wrapper.
+INFO 2026-05-23 23:11:08 ain（v3）.py:1038 step:215 smpl:860 ep:5 epch:0.00 loss:0.072 expert_dorf_loss:0.001 online_dorf_loss:1.377 total_dorf_loss:0.063 margin:0.612 critic_loss:0.008 grdn:0.759 good:126.0 rwrd:1.80 lr:1.0e-05 updt_s:0.221 data_s:127.774 r_gn:0.825 c_gn:0.170 p_gn:0.759 v_mu:0.097 v_std:0.131 v_mse:0.008 ret_mu:0.092 ret_std:0.156 rw_mu:0.971 rw_std:0.010 at_mu:-0.005 at_std:0.081 al_mu:12.599 al_std:5.538 cand:126.0 sel:0.0 mix:0.008 ow_mu:1.000 ow_mx:1.000 alpha:0.440 stage:2.8 p_on:1.0
+--- [Step 210] Rollout True Reward Sum: 0.00 (Active Envs: 4)
+--- [Step 211] Rollout True Reward Sum: 3.00 (Active Envs: 4)
+--- [Step 212] Rollout True Reward Sum: 1.00 (Active Envs: 4)
+--- [Step 213] Rollout True Reward Sum: 2.00 (Active Envs: 4)
+--- [Step 214] Rollout True Reward Sum: 3.00 (Active Envs: 4)
+WARNING 2026-05-23 23:11:08 db_utils.py:170 WandB logging of key "losses_after_forward" was ignored as its type "<class 'torch.Tensor'>" is not handled by this wrapper.
+WARNING 2026-05-23 23:11:08 db_utils.py:170 WandB logging of key "losses_after_rm_padding" was ignored as its type "<class 'torch.Tensor'>" is not handled by this wrapper.
+INFO 2026-05-23 23:21:00 ain（v3）.py:1038 step:220 smpl:880 ep:5 epch:0.00 loss:0.077 expert_dorf_loss:0.001 online_dorf_loss:1.476 total_dorf_loss:0.070 margin:0.469 critic_loss:0.011 grdn:0.642 good:196.6 rwrd:3.20 lr:1.0e-05 updt_s:0.221 data_s:118.079 r_gn:0.709 c_gn:0.375 p_gn:0.642 v_mu:0.146 v_std:0.190 v_mse:0.011 ret_mu:0.162 ret_std:0.227 rw_mu:0.973 rw_std:0.012 at_mu:0.017 at_std:0.100 al_mu:11.639 al_std:6.408 cand:196.6 sel:0.0 mix:0.011 ow_mu:1.000 ow_mx:1.000 alpha:0.457 stage:2.8 p_on:1.0
+--- [Step 215] Rollout True Reward Sum: 2.00 (Active Envs: 4)
+--- [Step 216] Rollout True Reward Sum: 3.00 (Active Envs: 4)
+--- [Step 217] Rollout True Reward Sum: 3.00 (Active Envs: 4)
+--- [Step 218] Rollout True Reward Sum: 4.00 (Active Envs: 4)
+--- [Step 219] Rollout True Reward Sum: 4.00 (Active Envs: 4)
+WARNING 2026-05-23 23:21:00 db_utils.py:170 WandB logging of key "losses_after_forward" was ignored as its type "<class 'torch.Tensor'>" is not handled by this wrapper.
+WARNING 2026-05-23 23:21:00 db_utils.py:170 WandB logging of key "losses_after_rm_padding" was ignored as its type "<class 'torch.Tensor'>" is not handled by this wrapper.
+INFO 2026-05-23 23:29:12 ain（v3）.py:1038 step:225 smpl:900 ep:6 epch:0.00 loss:0.074 expert_dorf_loss:0.001 online_dorf_loss:1.280 total_dorf_loss:0.063 margin:0.084 critic_loss:0.009 grdn:0.788 good:187.2 rwrd:3.80 lr:1.0e-05 updt_s:0.216 data_s:97.870 r_gn:1.028 c_gn:0.606 p_gn:0.788 v_mu:0.253 v_std:0.227 v_mse:0.009 ret_mu:0.278 ret_std:0.261 rw_mu:1.006 rw_std:0.011 at_mu:0.028 at_std:0.089 al_mu:13.269 al_std:5.642 cand:187.2 sel:0.0 mix:0.000 ow_mu:1.000 ow_mx:1.000 alpha:0.473 stage:2.0 p_on:1.0
+--- [Step 220] Rollout True Reward Sum: 3.00 (Active Envs: 4)
+--- [Step 221] Rollout True Reward Sum: 4.00 (Active Envs: 4)
+--- [Step 222] Rollout True Reward Sum: 4.00 (Active Envs: 4)
+--- [Step 223] Rollout True Reward Sum: 4.00 (Active Envs: 4)
+--- [Step 224] Rollout True Reward Sum: 4.00 (Active Envs: 4)
+WARNING 2026-05-23 23:29:12 db_utils.py:170 WandB logging of key "losses_after_forward" was ignored as its type "<class 'torch.Tensor'>" is not handled by this wrapper.
+WARNING 2026-05-23 23:29:12 db_utils.py:170 WandB logging of key "losses_after_rm_padding" was ignored as its type "<class 'torch.Tensor'>" is not handled by this wrapper.
+INFO 2026-05-23 23:37:56 ain（v3）.py:1038 step:230 smpl:920 ep:6 epch:0.00 loss:0.072 expert_dorf_loss:0.001 online_dorf_loss:1.125 total_dorf_loss:0.060 margin:0.811 critic_loss:0.019 grdn:0.615 good:189.4 rwrd:3.60 lr:1.0e-05 updt_s:0.226 data_s:104.360 r_gn:1.169 c_gn:1.000 p_gn:0.615 v_mu:0.346 v_std:0.229 v_mse:0.019 ret_mu:0.314 ret_std:0.262 rw_mu:0.984 rw_std:0.011 at_mu:-0.029 at_std:0.117 al_mu:12.173 al_std:6.107 cand:189.4 sel:0.0 mix:0.018 ow_mu:1.000 ow_mx:1.000 alpha:0.490 stage:2.8 p_on:1.0
+--- [Step 225] Rollout True Reward Sum: 4.00 (Active Envs: 4)
+--- [Step 226] Rollout True Reward Sum: 3.00 (Active Envs: 4)
+--- [Step 227] Rollout True Reward Sum: 3.00 (Active Envs: 4)
+--- [Step 228] Rollout True Reward Sum: 4.00 (Active Envs: 4)
+--- [Step 229] Rollout True Reward Sum: 4.00 (Active Envs: 4)
+WARNING 2026-05-23 23:37:56 db_utils.py:170 WandB logging of key "losses_after_forward" was ignored as its type "<class 'torch.Tensor'>" is not handled by this wrapper.
+WARNING 2026-05-23 23:37:56 db_utils.py:170 WandB logging of key "losses_after_rm_padding" was ignored as its type "<class 'torch.Tensor'>" is not handled by this wrapper.
+INFO 2026-05-23 23:47:35 ain（v3）.py:1038 step:235 smpl:940 ep:6 epch:0.00 loss:0.071 expert_dorf_loss:0.000 online_dorf_loss:1.440 total_dorf_loss:0.077 margin:0.075 critic_loss:0.017 grdn:0.641 good:200.6 rwrd:3.60 lr:1.0e-05 updt_s:0.225 data_s:115.362 r_gn:1.254 c_gn:0.848 p_gn:0.641 v_mu:0.247 v_std:0.221 v_mse:0.017 ret_mu:0.235 ret_std:0.252 rw_mu:1.002 rw_std:0.011 at_mu:-0.010 at_std:0.117 al_mu:12.105 al_std:6.412 cand:200.6 sel:0.0 mix:0.022 ow_mu:1.000 ow_mx:1.000 alpha:0.507 stage:2.8 p_on:1.0
+--- [Step 230] Rollout True Reward Sum: 3.00 (Active Envs: 4)
+--- [Step 231] Rollout True Reward Sum: 4.00 (Active Envs: 4)
+--- [Step 232] Rollout True Reward Sum: 4.00 (Active Envs: 4)
+--- [Step 233] Rollout True Reward Sum: 3.00 (Active Envs: 4)
+--- [Step 234] Rollout True Reward Sum: 4.00 (Active Envs: 4)
+WARNING 2026-05-23 23:47:35 db_utils.py:170 WandB logging of key "losses_after_forward" was ignored as its type "<class 'torch.Tensor'>" is not handled by this wrapper.
+WARNING 2026-05-23 23:47:35 db_utils.py:170 WandB logging of key "losses_after_rm_padding" was ignored as its type "<class 'torch.Tensor'>" is not handled by this wrapper.
+INFO 2026-05-23 23:55:23 ain（v3）.py:1038 step:240 smpl:960 ep:6 epch:0.00 loss:0.073 expert_dorf_loss:0.001 online_dorf_loss:1.133 total_dorf_loss:0.062 margin:0.115 critic_loss:0.010 grdn:0.670 good:189.2 rwrd:4.00 lr:1.0e-05 updt_s:0.221 data_s:93.136 r_gn:0.904 c_gn:0.813 p_gn:0.670 v_mu:0.198 v_std:0.234 v_mse:0.010 ret_mu:0.249 ret_std:0.272 rw_mu:0.990 rw_std:0.010 at_mu:0.054 at_std:0.084 al_mu:12.904 al_std:5.800 cand:189.2 sel:0.0 mix:0.031 ow_mu:1.000 ow_mx:1.000 alpha:0.523 stage:3.0 p_on:1.0
+--- [Step 235] Rollout True Reward Sum: 4.00 (Active Envs: 4)
+--- [Step 236] Rollout True Reward Sum: 4.00 (Active Envs: 4)
+--- [Step 237] Rollout True Reward Sum: 4.00 (Active Envs: 4)
+--- [Step 238] Rollout True Reward Sum: 4.00 (Active Envs: 4)
+--- [Step 239] Rollout True Reward Sum: 4.00 (Active Envs: 4)
+WARNING 2026-05-23 23:55:23 db_utils.py:170 WandB logging of key "losses_after_forward" was ignored as its type "<class 'torch.Tensor'>" is not handled by this wrapper.
+WARNING 2026-05-23 23:55:23 db_utils.py:170 WandB logging of key "losses_after_rm_padding" was ignored as its type "<class 'torch.Tensor'>" is not handled by this wrapper.
+INFO 2026-05-24 00:03:57 ain（v3）.py:1038 step:245 smpl:980 ep:6 epch:0.00 loss:0.080 expert_dorf_loss:0.001 online_dorf_loss:1.334 total_dorf_loss:0.078 margin:0.265 critic_loss:0.024 grdn:0.733 good:184.6 rwrd:3.60 lr:1.0e-05 updt_s:0.219 data_s:102.222 r_gn:1.216 c_gn:1.241 p_gn:0.733 v_mu:0.336 v_std:0.227 v_mse:0.024 ret_mu:0.308 ret_std:0.260 rw_mu:0.974 rw_std:0.010 at_mu:-0.025 at_std:0.122 al_mu:12.331 al_std:5.695 cand:184.6 sel:0.0 mix:0.035 ow_mu:1.000 ow_mx:1.000 alpha:0.540 stage:3.0 p_on:1.0
+--- [Step 240] Rollout True Reward Sum: 4.00 (Active Envs: 4)
+--- [Step 241] Rollout True Reward Sum: 4.00 (Active Envs: 4)
+--- [Step 242] Rollout True Reward Sum: 4.00 (Active Envs: 4)
+--- [Step 243] Rollout True Reward Sum: 3.00 (Active Envs: 4)
+--- [Step 244] Rollout True Reward Sum: 3.00 (Active Envs: 4)
+WARNING 2026-05-24 00:03:57 db_utils.py:170 WandB logging of key "losses_after_forward" was ignored as its type "<class 'torch.Tensor'>" is not handled by this wrapper.
+WARNING 2026-05-24 00:03:57 db_utils.py:170 WandB logging of key "losses_after_rm_padding" was ignored as its type "<class 'torch.Tensor'>" is not handled by this wrapper.
+INFO 2026-05-24 00:14:04 ain（v3）.py:1038 step:250 smpl:1K ep:6 epch:0.00 loss:0.070 expert_dorf_loss:0.002 online_dorf_loss:1.294 total_dorf_loss:0.078 margin:-0.024 critic_loss:0.022 grdn:0.649 good:199.6 rwrd:3.20 lr:1.0e-05 updt_s:0.219 data_s:120.971 r_gn:1.248 c_gn:0.899 p_gn:0.649 v_mu:0.342 v_std:0.233 v_mse:0.022 ret_mu:0.290 ret_std:0.258 rw_mu:0.984 rw_std:0.011 at_mu:-0.050 at_std:0.134 al_mu:11.760 al_std:6.604 cand:199.6 sel:0.0 mix:0.032 ow_mu:1.000 ow_mx:1.000 alpha:0.557 stage:2.8 p_on:1.0
+--- [Step 245] Rollout True Reward Sum: 4.00 (Active Envs: 4)
+--- [Step 246] Rollout True Reward Sum: 3.00 (Active Envs: 4)
+--- [Step 247] Rollout True Reward Sum: 2.00 (Active Envs: 4)
+--- [Step 248] Rollout True Reward Sum: 4.00 (Active Envs: 4)
+--- [Step 249] Rollout True Reward Sum: 3.00 (Active Envs: 4)
+WARNING 2026-05-24 00:14:04 db_utils.py:170 WandB logging of key "losses_after_forward" was ignored as its type "<class 'torch.Tensor'>" is not handled by this wrapper.
+WARNING 2026-05-24 00:14:04 db_utils.py:170 WandB logging of key "losses_after_rm_padding" was ignored as its type "<class 'torch.Tensor'>" is not handled by this wrapper.
+INFO 2026-05-24 00:21:48 ain（v3）.py:1038 step:255 smpl:1K ep:6 epch:0.00 loss:0.073 expert_dorf_loss:0.001 online_dorf_loss:1.226 total_dorf_loss:0.074 margin:0.479 critic_loss:0.014 grdn:0.779 good:174.2 rwrd:3.80 lr:1.0e-05 updt_s:0.225 data_s:92.317 r_gn:0.942 c_gn:0.740 p_gn:0.779 v_mu:0.163 v_std:0.190 v_mse:0.014 ret_mu:0.218 ret_std:0.251 rw_mu:0.989 rw_std:0.010 at_mu:0.058 at_std:0.101 al_mu:13.121 al_std:5.367 cand:174.2 sel:0.0 mix:0.043 ow_mu:1.000 ow_mx:1.000 alpha:0.573 stage:3.0 p_on:1.0
+--- [Step 250] Rollout True Reward Sum: 4.00 (Active Envs: 4)
+--- [Step 251] Rollout True Reward Sum: 4.00 (Active Envs: 4)
+--- [Step 252] Rollout True Reward Sum: 4.00 (Active Envs: 4)
+--- [Step 253] Rollout True Reward Sum: 3.00 (Active Envs: 4)
+--- [Step 254] Rollout True Reward Sum: 4.00 (Active Envs: 4)
+WARNING 2026-05-24 00:21:48 db_utils.py:170 WandB logging of key "losses_after_forward" was ignored as its type "<class 'torch.Tensor'>" is not handled by this wrapper.
+WARNING 2026-05-24 00:21:48 db_utils.py:170 WandB logging of key "losses_after_rm_padding" was ignored as its type "<class 'torch.Tensor'>" is not handled by this wrapper.
+INFO 2026-05-24 00:30:13 ain（v3）.py:1038 step:260 smpl:1K ep:6 epch:0.00 loss:0.076 expert_dorf_loss:0.001 online_dorf_loss:1.502 total_dorf_loss:0.092 margin:0.705 critic_loss:0.015 grdn:0.814 good:192.0 rwrd:3.80 lr:1.0e-05 updt_s:0.223 data_s:100.602 r_gn:1.181 c_gn:0.652 p_gn:0.814 v_mu:0.213 v_std:0.195 v_mse:0.015 ret_mu:0.241 ret_std:0.247 rw_mu:0.963 rw_std:0.010 at_mu:0.029 at_std:0.110 al_mu:12.296 al_std:5.817 cand:192.0 sel:0.0 mix:0.038 ow_mu:1.000 ow_mx:1.000 alpha:0.590 stage:2.8 p_on:1.0
+--- [Step 255] Rollout True Reward Sum: 4.00 (Active Envs: 4)
+--- [Step 256] Rollout True Reward Sum: 4.00 (Active Envs: 4)
+--- [Step 257] Rollout True Reward Sum: 4.00 (Active Envs: 4)
+--- [Step 258] Rollout True Reward Sum: 4.00 (Active Envs: 4)
+--- [Step 259] Rollout True Reward Sum: 3.00 (Active Envs: 4)
+WARNING 2026-05-24 00:30:13 db_utils.py:170 WandB logging of key "losses_after_forward" was ignored as its type "<class 'torch.Tensor'>" is not handled by this wrapper.
+WARNING 2026-05-24 00:30:13 db_utils.py:170 WandB logging of key "losses_after_rm_padding" was ignored as its type "<class 'torch.Tensor'>" is not handled by this wrapper.
+INFO 2026-05-24 00:37:24 ain（v3）.py:1038 step:265 smpl:1K ep:7 epch:0.00 loss:0.073 expert_dorf_loss:0.000 online_dorf_loss:1.166 total_dorf_loss:0.073 margin:-0.154 critic_loss:0.008 grdn:0.631 good:170.2 rwrd:4.00 lr:1.0e-05 updt_s:0.223 data_s:85.759 r_gn:1.185 c_gn:0.401 p_gn:0.631 v_mu:0.313 v_std:0.213 v_mse:0.008 ret_mu:0.339 ret_std:0.253 rw_mu:0.987 rw_std:0.012 at_mu:0.029 at_std:0.085 al_mu:13.768 al_std:4.891 cand:170.2 sel:0.0 mix:0.000 ow_mu:1.000 ow_mx:1.000 alpha:0.607 stage:2.0 p_on:1.0
+--- [Step 260] Rollout True Reward Sum: 4.00 (Active Envs: 4)
+--- [Step 261] Rollout True Reward Sum: 4.00 (Active Envs: 4)
+--- [Step 262] Rollout True Reward Sum: 4.00 (Active Envs: 4)
+--- [Step 263] Rollout True Reward Sum: 4.00 (Active Envs: 4)
+--- [Step 264] Rollout True Reward Sum: 4.00 (Active Envs: 4)
+WARNING 2026-05-24 00:37:24 db_utils.py:170 WandB logging of key "losses_after_forward" was ignored as its type "<class 'torch.Tensor'>" is not handled by this wrapper.
+WARNING 2026-05-24 00:37:24 db_utils.py:170 WandB logging of key "losses_after_rm_padding" was ignored as its type "<class 'torch.Tensor'>" is not handled by this wrapper.
+INFO 2026-05-24 00:44:50 ain（v3）.py:1038 step:270 smpl:1K ep:7 epch:0.00 loss:0.078 expert_dorf_loss:0.001 online_dorf_loss:1.123 total_dorf_loss:0.073 margin:-0.154 critic_loss:0.009 grdn:0.614 good:178.6 rwrd:4.00 lr:1.0e-05 updt_s:0.218 data_s:88.817 r_gn:1.300 c_gn:0.247 p_gn:0.614 v_mu:0.425 v_std:0.229 v_mse:0.009 ret_mu:0.412 ret_std:0.260 rw_mu:0.992 rw_std:0.010 at_mu:-0.011 at_std:0.093 al_mu:13.310 al_std:5.500 cand:178.6 sel:0.0 mix:0.000 ow_mu:1.000 ow_mx:1.000 alpha:0.623 stage:2.0 p_on:1.0
+--- [Step 265] Rollout True Reward Sum: 4.00 (Active Envs: 4)
+--- [Step 266] Rollout True Reward Sum: 4.00 (Active Envs: 4)
+--- [Step 267] Rollout True Reward Sum: 4.00 (Active Envs: 4)
+--- [Step 268] Rollout True Reward Sum: 4.00 (Active Envs: 4)
+--- [Step 269] Rollout True Reward Sum: 4.00 (Active Envs: 4)
+WARNING 2026-05-24 00:44:50 db_utils.py:170 WandB logging of key "losses_after_forward" was ignored as its type "<class 'torch.Tensor'>" is not handled by this wrapper.
+WARNING 2026-05-24 00:44:50 db_utils.py:170 WandB logging of key "losses_after_rm_padding" was ignored as its type "<class 'torch.Tensor'>" is not handled by this wrapper.
+INFO 2026-05-24 00:54:14 ain（v3）.py:1038 step:275 smpl:1K ep:7 epch:0.00 loss:0.073 expert_dorf_loss:0.001 online_dorf_loss:1.388 total_dorf_loss:0.099 margin:0.555 critic_loss:0.045 grdn:0.833 good:190.6 rwrd:3.80 lr:1.0e-05 updt_s:0.219 data_s:112.378 r_gn:1.288 c_gn:1.554 p_gn:0.833 v_mu:0.385 v_std:0.222 v_mse:0.045 ret_mu:0.307 ret_std:0.258 rw_mu:0.939 rw_std:0.011 at_mu:-0.075 at_std:0.167 al_mu:10.952 al_std:5.975 cand:190.6 sel:0.0 mix:0.060 ow_mu:1.000 ow_mx:1.000 alpha:0.640 stage:3.0 p_on:1.0
+--- [Step 270] Rollout True Reward Sum: 3.00 (Active Envs: 4)
+--- [Step 271] Rollout True Reward Sum: 4.00 (Active Envs: 4)
+--- [Step 272] Rollout True Reward Sum: 3.00 (Active Envs: 4)
+--- [Step 273] Rollout True Reward Sum: 5.00 (Active Envs: 4)
+--- [Step 274] Rollout True Reward Sum: 4.00 (Active Envs: 4)
+WARNING 2026-05-24 00:54:14 db_utils.py:170 WandB logging of key "losses_after_forward" was ignored as its type "<class 'torch.Tensor'>" is not handled by this wrapper.
+WARNING 2026-05-24 00:54:14 db_utils.py:170 WandB logging of key "losses_after_rm_padding" was ignored as its type "<class 'torch.Tensor'>" is not handled by this wrapper.
+INFO 2026-05-24 01:02:18 ain（v3）.py:1038 step:280 smpl:1K ep:7 epch:0.00 loss:0.084 expert_dorf_loss:0.001 online_dorf_loss:1.055 total_dorf_loss:0.072 margin:0.431 critic_loss:0.011 grdn:0.719 good:181.4 rwrd:3.80 lr:1.0e-05 updt_s:0.215 data_s:96.253 r_gn:1.454 c_gn:0.583 p_gn:0.719 v_mu:0.215 v_std:0.219 v_mse:0.011 ret_mu:0.253 ret_std:0.256 rw_mu:0.988 rw_std:0.012 at_mu:0.041 at_std:0.090 al_mu:13.059 al_std:5.407 cand:181.4 sel:0.0 mix:0.025 ow_mu:1.000 ow_mx:1.000 alpha:0.657 stage:2.4 p_on:1.0
+--- [Step 275] Rollout True Reward Sum: 4.00 (Active Envs: 4)
+--- [Step 276] Rollout True Reward Sum: 4.00 (Active Envs: 4)
+--- [Step 277] Rollout True Reward Sum: 3.00 (Active Envs: 4)
+--- [Step 278] Rollout True Reward Sum: 4.00 (Active Envs: 4)
+--- [Step 279] Rollout True Reward Sum: 4.00 (Active Envs: 4)
+WARNING 2026-05-24 01:02:18 db_utils.py:170 WandB logging of key "losses_after_forward" was ignored as its type "<class 'torch.Tensor'>" is not handled by this wrapper.
+WARNING 2026-05-24 01:02:18 db_utils.py:170 WandB logging of key "losses_after_rm_padding" was ignored as its type "<class 'torch.Tensor'>" is not handled by this wrapper.
+INFO 2026-05-24 01:10:34 ain（v3）.py:1038 step:285 smpl:1K ep:7 epch:0.00 loss:0.079 expert_dorf_loss:0.001 online_dorf_loss:0.994 total_dorf_loss:0.070 margin:-0.040 critic_loss:0.010 grdn:0.958 good:187.4 rwrd:3.80 lr:1.0e-05 updt_s:0.225 data_s:98.823 r_gn:1.445 c_gn:0.557 p_gn:0.958 v_mu:0.192 v_std:0.209 v_mse:0.010 ret_mu:0.238 ret_std:0.251 rw_mu:0.972 rw_std:0.011 at_mu:0.048 at_std:0.089 al_mu:13.204 al_std:5.208 cand:187.4 sel:0.0 mix:0.000 ow_mu:1.000 ow_mx:1.000 alpha:0.673 stage:2.0 p_on:1.0
+--- [Step 280] Rollout True Reward Sum: 3.00 (Active Envs: 4)
+--- [Step 281] Rollout True Reward Sum: 4.00 (Active Envs: 4)
+--- [Step 282] Rollout True Reward Sum: 4.00 (Active Envs: 4)
+--- [Step 283] Rollout True Reward Sum: 4.00 (Active Envs: 4)
+--- [Step 284] Rollout True Reward Sum: 4.00 (Active Envs: 4)
+WARNING 2026-05-24 01:10:34 db_utils.py:170 WandB logging of key "losses_after_forward" was ignored as its type "<class 'torch.Tensor'>" is not handled by this wrapper.
+WARNING 2026-05-24 01:10:34 db_utils.py:170 WandB logging of key "losses_after_rm_padding" was ignored as its type "<class 'torch.Tensor'>" is not handled by this wrapper.
+INFO 2026-05-24 01:18:29 ain（v3）.py:1038 step:290 smpl:1K ep:7 epch:0.00 loss:0.079 expert_dorf_loss:0.001 online_dorf_loss:1.191 total_dorf_loss:0.085 margin:-0.160 critic_loss:0.013 grdn:0.707 good:164.8 rwrd:3.60 lr:1.0e-05 updt_s:0.224 data_s:94.483 r_gn:1.928 c_gn:0.657 p_gn:0.707 v_mu:0.270 v_std:0.209 v_mse:0.013 ret_mu:0.288 ret_std:0.252 rw_mu:0.968 rw_std:0.010 at_mu:0.020 at_std:0.100 al_mu:12.752 al_std:5.487 cand:164.8 sel:0.0 mix:0.000 ow_mu:1.000 ow_mx:1.000 alpha:0.690 stage:2.0 p_on:1.0
+--- [Step 285] Rollout True Reward Sum: 4.00 (Active Envs: 4)
+--- [Step 286] Rollout True Reward Sum: 4.00 (Active Envs: 4)
+--- [Step 287] Rollout True Reward Sum: 2.00 (Active Envs: 4)
+--- [Step 288] Rollout True Reward Sum: 4.00 (Active Envs: 4)
+--- [Step 289] Rollout True Reward Sum: 4.00 (Active Envs: 4)
+WARNING 2026-05-24 01:18:29 db_utils.py:170 WandB logging of key "losses_after_forward" was ignored as its type "<class 'torch.Tensor'>" is not handled by this wrapper.
+WARNING 2026-05-24 01:18:29 db_utils.py:170 WandB logging of key "losses_after_rm_padding" was ignored as its type "<class 'torch.Tensor'>" is not handled by this wrapper.
+INFO 2026-05-24 01:26:26 ain（v3）.py:1038 step:295 smpl:1K ep:7 epch:0.00 loss:0.086 expert_dorf_loss:0.001 online_dorf_loss:1.030 total_dorf_loss:0.076 margin:-0.239 critic_loss:0.009 grdn:0.971 good:191.8 rwrd:4.00 lr:1.0e-05 updt_s:0.220 data_s:94.926 r_gn:1.943 c_gn:0.295 p_gn:0.971 v_mu:0.371 v_std:0.223 v_mse:0.009 ret_mu:0.371 ret_std:0.253 rw_mu:0.978 rw_std:0.011 at_mu:0.002 at_std:0.091 al_mu:13.171 al_std:5.371 cand:191.8 sel:0.0 mix:0.000 ow_mu:1.000 ow_mx:1.000 alpha:0.707 stage:2.0 p_on:1.0
+--- [Step 290] Rollout True Reward Sum: 4.00 (Active Envs: 4)
+--- [Step 291] Rollout True Reward Sum: 4.00 (Active Envs: 4)
+--- [Step 292] Rollout True Reward Sum: 4.00 (Active Envs: 4)
+--- [Step 293] Rollout True Reward Sum: 4.00 (Active Envs: 4)
+--- [Step 294] Rollout True Reward Sum: 4.00 (Active Envs: 4)
+WARNING 2026-05-24 01:26:26 db_utils.py:170 WandB logging of key "losses_after_forward" was ignored as its type "<class 'torch.Tensor'>" is not handled by this wrapper.
+WARNING 2026-05-24 01:26:26 db_utils.py:170 WandB logging of key "losses_after_rm_padding" was ignored as its type "<class 'torch.Tensor'>" is not handled by this wrapper.
+INFO 2026-05-24 01:35:35 ain（v3）.py:1038 step:300 smpl:1K ep:7 epch:0.00 loss:0.078 expert_dorf_loss:0.001 online_dorf_loss:0.940 total_dorf_loss:0.073 margin:-0.452 critic_loss:0.019 grdn:0.705 good:210.8 rwrd:3.80 lr:1.0e-05 updt_s:0.225 data_s:109.263 r_gn:1.594 c_gn:0.604 p_gn:0.705 v_mu:0.392 v_std:0.226 v_mse:0.019 ret_mu:0.349 ret_std:0.265 rw_mu:0.959 rw_std:0.012 at_mu:-0.040 at_std:0.121 al_mu:11.883 al_std:6.065 cand:210.8 sel:0.0 mix:0.000 ow_mu:1.000 ow_mx:1.000 alpha:0.723 stage:2.0 p_on:1.0
+--- [Step 295] Rollout True Reward Sum: 4.00 (Active Envs: 4)
+--- [Step 296] Rollout True Reward Sum: 4.00 (Active Envs: 4)
+--- [Step 297] Rollout True Reward Sum: 4.00 (Active Envs: 4)
+--- [Step 298] Rollout True Reward Sum: 3.00 (Active Envs: 4)
+--- [Step 299] Rollout True Reward Sum: 4.00 (Active Envs: 4)
+WARNING 2026-05-24 01:35:35 db_utils.py:170 WandB logging of key "losses_after_forward" was ignored as its type "<class 'torch.Tensor'>" is not handled by this wrapper.
+WARNING 2026-05-24 01:35:35 db_utils.py:170 WandB logging of key "losses_after_rm_padding" was ignored as its type "<class 'torch.Tensor'>" is not handled by this wrapper.
+INFO 2026-05-24 01:35:35 ain（v3）.py:1060 Checkpoint policy after step 300
+INFO 2026-05-24 01:35:37 ain（v3）.py:1082 DORF 状态已保存至: train_logs/Ablation-full_pipeline_default/checkpoints/000300/dorf_state.pt
+/root/autodl-tmp/miniconda3/envs/lerobot/lib/python3.10/site-packages/wandb/analytics/sentry.py:279: DeprecationWarning: The `Scope.user` setter is deprecated in favor of `Scope.set_user()`.
+  self.scope.user = {"email": email}
+INFO 2026-05-24 01:43:55 ain（v3）.py:1038 step:305 smpl:1K ep:8 epch:0.00 loss:0.081 expert_dorf_loss:0.001 online_dorf_loss:0.914 total_dorf_loss:0.071 margin:-0.810 critic_loss:0.015 grdn:0.718 good:186.0 rwrd:3.80 lr:1.0e-05 updt_s:0.234 data_s:97.956 r_gn:1.572 c_gn:0.581 p_gn:0.718 v_mu:0.320 v_std:0.236 v_mse:0.015 ret_mu:0.319 ret_std:0.267 rw_mu:0.986 rw_std:0.012 at_mu:0.002 at_std:0.102 al_mu:12.701 al_std:5.813 cand:186.0 sel:0.0 mix:0.000 ow_mu:1.000 ow_mx:1.000 alpha:0.740 stage:2.0 p_on:1.0
+--- [Step 300] Rollout True Reward Sum: 3.00 (Active Envs: 4)
+--- [Step 301] Rollout True Reward Sum: 4.00 (Active Envs: 4)
+--- [Step 302] Rollout True Reward Sum: 4.00 (Active Envs: 4)
+--- [Step 303] Rollout True Reward Sum: 4.00 (Active Envs: 4)
+--- [Step 304] Rollout True Reward Sum: 4.00 (Active Envs: 4)
+WARNING 2026-05-24 01:43:55 db_utils.py:170 WandB logging of key "losses_after_forward" was ignored as its type "<class 'torch.Tensor'>" is not handled by this wrapper.
+WARNING 2026-05-24 01:43:55 db_utils.py:170 WandB logging of key "losses_after_rm_padding" was ignored as its type "<class 'torch.Tensor'>" is not handled by this wrapper.
+INFO 2026-05-24 01:53:29 ain（v3）.py:1038 step:310 smpl:1K ep:8 epch:0.00 loss:0.077 expert_dorf_loss:0.001 online_dorf_loss:0.997 total_dorf_loss:0.078 margin:-0.105 critic_loss:0.011 grdn:0.628 good:196.6 rwrd:3.40 lr:1.0e-05 updt_s:0.223 data_s:114.290 r_gn:1.698 c_gn:0.406 p_gn:0.628 v_mu:0.289 v_std:0.239 v_mse:0.011 ret_mu:0.284 ret_std:0.254 rw_mu:0.980 rw_std:0.011 at_mu:-0.003 at_std:0.101 al_mu:12.572 al_std:6.005 cand:196.6 sel:0.0 mix:0.054 ow_mu:1.000 ow_mx:1.000 alpha:0.757 stage:2.6 p_on:1.0
+--- [Step 305] Rollout True Reward Sum: 4.00 (Active Envs: 4)
+--- [Step 306] Rollout True Reward Sum: 4.00 (Active Envs: 4)
+--- [Step 307] Rollout True Reward Sum: 3.00 (Active Envs: 4)
+--- [Step 308] Rollout True Reward Sum: 4.00 (Active Envs: 4)
+--- [Step 309] Rollout True Reward Sum: 2.00 (Active Envs: 4)
+WARNING 2026-05-24 01:53:29 db_utils.py:170 WandB logging of key "losses_after_forward" was ignored as its type "<class 'torch.Tensor'>" is not handled by this wrapper.
+WARNING 2026-05-24 01:53:29 db_utils.py:170 WandB logging of key "losses_after_rm_padding" was ignored as its type "<class 'torch.Tensor'>" is not handled by this wrapper.
+INFO 2026-05-24 02:03:17 ain（v3）.py:1038 step:315 smpl:1K ep:8 epch:0.00 loss:0.076 expert_dorf_loss:0.001 online_dorf_loss:1.123 total_dorf_loss:0.090 margin:0.468 critic_loss:0.015 grdn:0.623 good:203.4 rwrd:3.40 lr:1.0e-05 updt_s:0.227 data_s:117.201 r_gn:1.472 c_gn:0.440 p_gn:0.623 v_mu:0.224 v_std:0.222 v_mse:0.015 ret_mu:0.223 ret_std:0.248 rw_mu:0.962 rw_std:0.012 at_mu:0.001 at_std:0.114 al_mu:11.568 al_std:6.310 cand:203.4 sel:0.0 mix:0.074 ow_mu:1.000 ow_mx:1.000 alpha:0.773 stage:2.8 p_on:1.0
+--- [Step 310] Rollout True Reward Sum: 3.00 (Active Envs: 4)
+--- [Step 311] Rollout True Reward Sum: 3.00 (Active Envs: 4)
+--- [Step 312] Rollout True Reward Sum: 4.00 (Active Envs: 4)
+--- [Step 313] Rollout True Reward Sum: 4.00 (Active Envs: 4)
+--- [Step 314] Rollout True Reward Sum: 3.00 (Active Envs: 4)
+WARNING 2026-05-24 02:03:17 db_utils.py:170 WandB logging of key "losses_after_forward" was ignored as its type "<class 'torch.Tensor'>" is not handled by this wrapper.
+WARNING 2026-05-24 02:03:17 db_utils.py:170 WandB logging of key "losses_after_rm_padding" was ignored as its type "<class 'torch.Tensor'>" is not handled by this wrapper.
+INFO 2026-05-24 02:12:32 ain（v3）.py:1038 step:320 smpl:1K ep:8 epch:0.00 loss:0.076 expert_dorf_loss:0.001 online_dorf_loss:0.967 total_dorf_loss:0.079 margin:1.043 critic_loss:0.011 grdn:0.640 good:213.2 rwrd:3.80 lr:1.0e-05 updt_s:0.222 data_s:110.474 r_gn:1.593 c_gn:0.360 p_gn:0.640 v_mu:0.215 v_std:0.221 v_mse:0.011 ret_mu:0.237 ret_std:0.254 rw_mu:0.970 rw_std:0.012 at_mu:0.024 at_std:0.098 al_mu:12.156 al_std:5.976 cand:213.2 sel:0.0 mix:0.098 ow_mu:1.000 ow_mx:1.000 alpha:0.790 stage:3.0 p_on:1.0
+--- [Step 315] Rollout True Reward Sum: 3.00 (Active Envs: 4)
+--- [Step 316] Rollout True Reward Sum: 4.00 (Active Envs: 4)
+--- [Step 317] Rollout True Reward Sum: 4.00 (Active Envs: 4)
+--- [Step 318] Rollout True Reward Sum: 4.00 (Active Envs: 4)
+--- [Step 319] Rollout True Reward Sum: 4.00 (Active Envs: 4)
+WARNING 2026-05-24 02:12:32 db_utils.py:170 WandB logging of key "losses_after_forward" was ignored as its type "<class 'torch.Tensor'>" is not handled by this wrapper.
+WARNING 2026-05-24 02:12:32 db_utils.py:170 WandB logging of key "losses_after_rm_padding" was ignored as its type "<class 'torch.Tensor'>" is not handled by this wrapper.
+INFO 2026-05-24 02:20:27 ain（v3）.py:1038 step:325 smpl:1K ep:8 epch:0.00 loss:0.078 expert_dorf_loss:0.001 online_dorf_loss:1.039 total_dorf_loss:0.087 margin:1.043 critic_loss:0.008 grdn:0.941 good:191.8 rwrd:4.00 lr:1.0e-05 updt_s:0.220 data_s:94.645 r_gn:1.844 c_gn:0.418 p_gn:0.941 v_mu:0.253 v_std:0.242 v_mse:0.008 ret_mu:0.287 ret_std:0.271 rw_mu:1.008 rw_std:0.011 at_mu:0.036 at_std:0.084 al_mu:13.260 al_std:5.811 cand:191.8 sel:0.0 mix:0.102 ow_mu:1.000 ow_mx:1.000 alpha:0.807 stage:3.0 p_on:1.0
+--- [Step 320] Rollout True Reward Sum: 4.00 (Active Envs: 4)
+--- [Step 321] Rollout True Reward Sum: 4.00 (Active Envs: 4)
+--- [Step 322] Rollout True Reward Sum: 4.00 (Active Envs: 4)
+--- [Step 323] Rollout True Reward Sum: 4.00 (Active Envs: 4)
+--- [Step 324] Rollout True Reward Sum: 4.00 (Active Envs: 4)
+WARNING 2026-05-24 02:20:27 db_utils.py:170 WandB logging of key "losses_after_forward" was ignored as its type "<class 'torch.Tensor'>" is not handled by this wrapper.
+WARNING 2026-05-24 02:20:27 db_utils.py:170 WandB logging of key "losses_after_rm_padding" was ignored as its type "<class 'torch.Tensor'>" is not handled by this wrapper.
+INFO 2026-05-24 02:28:28 ain（v3）.py:1038 step:330 smpl:1K ep:8 epch:0.00 loss:0.084 expert_dorf_loss:0.000 online_dorf_loss:1.116 total_dorf_loss:0.094 margin:1.043 critic_loss:0.008 grdn:1.058 good:195.0 rwrd:4.00 lr:1.0e-05 updt_s:0.224 data_s:95.734 r_gn:1.430 c_gn:0.195 p_gn:1.058 v_mu:0.353 v_std:0.258 v_mse:0.008 ret_mu:0.360 ret_std:0.272 rw_mu:0.968 rw_std:0.009 at_mu:0.009 at_std:0.085 al_mu:13.016 al_std:5.249 cand:195.0 sel:0.0 mix:0.106 ow_mu:1.000 ow_mx:1.000 alpha:0.823 stage:3.0 p_on:1.0
+--- [Step 325] Rollout True Reward Sum: 4.00 (Active Envs: 4)
+--- [Step 326] Rollout True Reward Sum: 4.00 (Active Envs: 4)
+--- [Step 327] Rollout True Reward Sum: 4.00 (Active Envs: 4)
+--- [Step 328] Rollout True Reward Sum: 4.00 (Active Envs: 4)
+--- [Step 329] Rollout True Reward Sum: 4.00 (Active Envs: 4)
+WARNING 2026-05-24 02:28:28 db_utils.py:170 WandB logging of key "losses_after_forward" was ignored as its type "<class 'torch.Tensor'>" is not handled by this wrapper.
+WARNING 2026-05-24 02:28:28 db_utils.py:170 WandB logging of key "losses_after_rm_padding" was ignored as its type "<class 'torch.Tensor'>" is not handled by this wrapper.
+INFO 2026-05-24 02:36:16 ain（v3）.py:1038 step:335 smpl:1K ep:8 epch:0.00 loss:0.081 expert_dorf_loss:0.001 online_dorf_loss:0.938 total_dorf_loss:0.081 margin:1.043 critic_loss:0.009 grdn:1.091 good:188.6 rwrd:4.00 lr:1.0e-05 updt_s:0.224 data_s:93.139 r_gn:1.397 c_gn:0.278 p_gn:1.091 v_mu:0.425 v_std:0.259 v_mse:0.009 ret_mu:0.413 ret_std:0.273 rw_mu:0.975 rw_std:0.010 at_mu:-0.009 at_std:0.089 al_mu:13.119 al_std:5.341 cand:188.6 sel:0.0 mix:0.110 ow_mu:1.000 ow_mx:1.000 alpha:0.840 stage:3.0 p_on:1.0
+--- [Step 330] Rollout True Reward Sum: 4.00 (Active Envs: 4)
+--- [Step 331] Rollout True Reward Sum: 4.00 (Active Envs: 4)
+--- [Step 332] Rollout True Reward Sum: 4.00 (Active Envs: 4)
+--- [Step 333] Rollout True Reward Sum: 4.00 (Active Envs: 4)
+--- [Step 334] Rollout True Reward Sum: 4.00 (Active Envs: 4)
+WARNING 2026-05-24 02:36:16 db_utils.py:170 WandB logging of key "losses_after_forward" was ignored as its type "<class 'torch.Tensor'>" is not handled by this wrapper.
+WARNING 2026-05-24 02:36:16 db_utils.py:170 WandB logging of key "losses_after_rm_padding" was ignored as its type "<class 'torch.Tensor'>" is not handled by this wrapper.
+INFO 2026-05-24 02:46:46 ain（v3）.py:1038 step:340 smpl:1K ep:8 epch:0.00 loss:0.082 expert_dorf_loss:0.001 online_dorf_loss:1.278 total_dorf_loss:0.117 margin:0.657 critic_loss:0.029 grdn:0.697 good:195.6 rwrd:3.00 lr:1.0e-05 updt_s:0.220 data_s:125.419 r_gn:2.171 c_gn:0.994 p_gn:0.697 v_mu:0.339 v_std:0.222 v_mse:0.029 ret_mu:0.269 ret_std:0.251 rw_mu:0.989 rw_std:0.012 at_mu:-0.069 at_std:0.147 al_mu:11.795 al_std:6.662 cand:195.6 sel:0.0 mix:0.114 ow_mu:1.000 ow_mx:1.000 alpha:0.857 stage:3.0 p_on:1.0
+--- [Step 335] Rollout True Reward Sum: 3.00 (Active Envs: 4)
+--- [Step 336] Rollout True Reward Sum: 3.00 (Active Envs: 4)
+--- [Step 337] Rollout True Reward Sum: 4.00 (Active Envs: 4)
+--- [Step 338] Rollout True Reward Sum: 2.00 (Active Envs: 4)
+--- [Step 339] Rollout True Reward Sum: 3.00 (Active Envs: 4)
+WARNING 2026-05-24 02:46:46 db_utils.py:170 WandB logging of key "losses_after_forward" was ignored as its type "<class 'torch.Tensor'>" is not handled by this wrapper.
+WARNING 2026-05-24 02:46:46 db_utils.py:170 WandB logging of key "losses_after_rm_padding" was ignored as its type "<class 'torch.Tensor'>" is not handled by this wrapper.
+INFO 2026-05-24 02:55:46 ain（v3）.py:1038 step:345 smpl:1K ep:9 epch:0.01 loss:0.073 expert_dorf_loss:0.001 online_dorf_loss:1.381 total_dorf_loss:0.123 margin:0.536 critic_loss:0.011 grdn:0.652 good:195.8 rwrd:3.60 lr:1.0e-05 updt_s:0.224 data_s:107.634 r_gn:1.221 c_gn:0.342 p_gn:0.652 v_mu:0.221 v_std:0.210 v_mse:0.011 ret_mu:0.237 ret_std:0.246 rw_mu:0.956 rw_std:0.014 at_mu:0.017 at_std:0.098 al_mu:11.888 al_std:6.037 cand:195.8 sel:0.0 mix:0.118 ow_mu:1.000 ow_mx:1.000 alpha:0.873 stage:3.0 p_on:1.0
+--- [Step 340] Rollout True Reward Sum: 4.00 (Active Envs: 4)
+--- [Step 341] Rollout True Reward Sum: 2.00 (Active Envs: 4)
+--- [Step 342] Rollout True Reward Sum: 4.00 (Active Envs: 4)
+--- [Step 343] Rollout True Reward Sum: 4.00 (Active Envs: 4)
+--- [Step 344] Rollout True Reward Sum: 4.00 (Active Envs: 4)
+WARNING 2026-05-24 02:55:46 db_utils.py:170 WandB logging of key "losses_after_forward" was ignored as its type "<class 'torch.Tensor'>" is not handled by this wrapper.
+WARNING 2026-05-24 02:55:46 db_utils.py:170 WandB logging of key "losses_after_rm_padding" was ignored as its type "<class 'torch.Tensor'>" is not handled by this wrapper.
+INFO 2026-05-24 03:03:57 ain（v3）.py:1038 step:350 smpl:1K ep:9 epch:0.01 loss:0.078 expert_dorf_loss:0.001 online_dorf_loss:1.216 total_dorf_loss:0.111 margin:-0.796 critic_loss:0.013 grdn:0.852 good:184.0 rwrd:3.80 lr:1.0e-05 updt_s:0.229 data_s:97.652 r_gn:1.791 c_gn:0.542 p_gn:0.852 v_mu:0.184 v_std:0.215 v_mse:0.013 ret_mu:0.230 ret_std:0.256 rw_mu:0.974 rw_std:0.012 at_mu:0.048 at_std:0.095 al_mu:12.686 al_std:5.496 cand:184.0 sel:0.0 mix:0.000 ow_mu:1.000 ow_mx:1.000 alpha:0.890 stage:2.0 p_on:1.0
+--- [Step 345] Rollout True Reward Sum: 3.00 (Active Envs: 4)
+--- [Step 346] Rollout True Reward Sum: 4.00 (Active Envs: 4)
+--- [Step 347] Rollout True Reward Sum: 4.00 (Active Envs: 4)
+--- [Step 348] Rollout True Reward Sum: 4.00 (Active Envs: 4)
+--- [Step 349] Rollout True Reward Sum: 4.00 (Active Envs: 4)
+WARNING 2026-05-24 03:03:57 db_utils.py:170 WandB logging of key "losses_after_forward" was ignored as its type "<class 'torch.Tensor'>" is not handled by this wrapper.
+WARNING 2026-05-24 03:03:57 db_utils.py:170 WandB logging of key "losses_after_rm_padding" was ignored as its type "<class 'torch.Tensor'>" is not handled by this wrapper.
+INFO 2026-05-24 03:11:29 ain（v3）.py:1038 step:355 smpl:1K ep:9 epch:0.01 loss:0.068 expert_dorf_loss:0.001 online_dorf_loss:1.088 total_dorf_loss:0.101 margin:-0.796 critic_loss:0.009 grdn:0.763 good:182.4 rwrd:4.00 lr:1.0e-05 updt_s:0.217 data_s:89.996 r_gn:2.996 c_gn:0.496 p_gn:0.763 v_mu:0.249 v_std:0.232 v_mse:0.009 ret_mu:0.293 ret_std:0.263 rw_mu:0.992 rw_std:0.011 at_mu:0.046 at_std:0.084 al_mu:13.574 al_std:5.235 cand:182.4 sel:0.0 mix:0.000 ow_mu:1.000 ow_mx:1.000 alpha:0.907 stage:2.0 p_on:1.0
+--- [Step 350] Rollout True Reward Sum: 4.00 (Active Envs: 4)
+--- [Step 351] Rollout True Reward Sum: 4.00 (Active Envs: 4)
+--- [Step 352] Rollout True Reward Sum: 4.00 (Active Envs: 4)
+--- [Step 353] Rollout True Reward Sum: 4.00 (Active Envs: 4)
+--- [Step 354] Rollout True Reward Sum: 4.00 (Active Envs: 4)
+WARNING 2026-05-24 03:11:29 db_utils.py:170 WandB logging of key "losses_after_forward" was ignored as its type "<class 'torch.Tensor'>" is not handled by this wrapper.
+WARNING 2026-05-24 03:11:29 db_utils.py:170 WandB logging of key "losses_after_rm_padding" was ignored as its type "<class 'torch.Tensor'>" is not handled by this wrapper.
+INFO 2026-05-24 03:19:04 ain（v3）.py:1038 step:360 smpl:1K ep:9 epch:0.01 loss:0.074 expert_dorf_loss:0.001 online_dorf_loss:1.033 total_dorf_loss:0.098 margin:-0.796 critic_loss:0.008 grdn:0.679 good:184.0 rwrd:4.00 lr:1.0e-05 updt_s:0.233 data_s:90.518 r_gn:2.427 c_gn:0.251 p_gn:0.679 v_mu:0.357 v_std:0.243 v_mse:0.008 ret_mu:0.366 ret_std:0.265 rw_mu:0.959 rw_std:0.010 at_mu:0.012 at_std:0.086 al_mu:12.963 al_std:5.188 cand:184.0 sel:0.0 mix:0.000 ow_mu:1.000 ow_mx:1.000 alpha:0.923 stage:2.0 p_on:1.0
+--- [Step 355] Rollout True Reward Sum: 4.00 (Active Envs: 4)
+--- [Step 356] Rollout True Reward Sum: 4.00 (Active Envs: 4)
+--- [Step 357] Rollout True Reward Sum: 4.00 (Active Envs: 4)
+--- [Step 358] Rollout True Reward Sum: 4.00 (Active Envs: 4)
+--- [Step 359] Rollout True Reward Sum: 4.00 (Active Envs: 4)
+WARNING 2026-05-24 03:19:04 db_utils.py:170 WandB logging of key "losses_after_forward" was ignored as its type "<class 'torch.Tensor'>" is not handled by this wrapper.
+WARNING 2026-05-24 03:19:04 db_utils.py:170 WandB logging of key "losses_after_rm_padding" was ignored as its type "<class 'torch.Tensor'>" is not handled by this wrapper.
+INFO 2026-05-24 03:29:22 ain（v3）.py:1038 step:365 smpl:1K ep:9 epch:0.01 loss:0.077 expert_dorf_loss:0.001 online_dorf_loss:1.153 total_dorf_loss:0.115 margin:0.235 critic_loss:0.031 grdn:0.721 good:190.6 rwrd:3.00 lr:1.0e-05 updt_s:0.228 data_s:123.115 r_gn:1.999 c_gn:1.121 p_gn:0.721 v_mu:0.349 v_std:0.228 v_mse:0.031 ret_mu:0.275 ret_std:0.257 rw_mu:0.985 rw_std:0.011 at_mu:-0.072 at_std:0.150 al_mu:11.486 al_std:6.669 cand:190.6 sel:0.0 mix:0.082 ow_mu:1.000 ow_mx:1.000 alpha:0.940 stage:2.6 p_on:1.0
+--- [Step 360] Rollout True Reward Sum: 3.00 (Active Envs: 4)
+--- [Step 361] Rollout True Reward Sum: 3.00 (Active Envs: 4)
+--- [Step 362] Rollout True Reward Sum: 2.00 (Active Envs: 4)
+--- [Step 363] Rollout True Reward Sum: 4.00 (Active Envs: 4)
+--- [Step 364] Rollout True Reward Sum: 3.00 (Active Envs: 4)
+WARNING 2026-05-24 03:29:22 db_utils.py:170 WandB logging of key "losses_after_forward" was ignored as its type "<class 'torch.Tensor'>" is not handled by this wrapper.
+WARNING 2026-05-24 03:29:22 db_utils.py:170 WandB logging of key "losses_after_rm_padding" was ignored as its type "<class 'torch.Tensor'>" is not handled by this wrapper.
+INFO 2026-05-24 03:38:27 ain（v3）.py:1038 step:370 smpl:1K ep:9 epch:0.01 loss:0.079 expert_dorf_loss:0.001 online_dorf_loss:1.029 total_dorf_loss:0.102 margin:0.594 critic_loss:0.014 grdn:0.729 good:179.0 rwrd:3.40 lr:1.0e-05 updt_s:0.223 data_s:108.547 r_gn:2.100 c_gn:0.542 p_gn:0.729 v_mu:0.244 v_std:0.216 v_mse:0.014 ret_mu:0.243 ret_std:0.250 rw_mu:0.970 rw_std:0.011 at_mu:0.001 at_std:0.106 al_mu:12.168 al_std:6.017 cand:179.0 sel:0.0 mix:0.139 ow_mu:1.000 ow_mx:1.000 alpha:0.957 stage:3.0 p_on:1.0
+--- [Step 365] Rollout True Reward Sum: 3.00 (Active Envs: 4)
+--- [Step 366] Rollout True Reward Sum: 2.00 (Active Envs: 4)
+--- [Step 367] Rollout True Reward Sum: 4.00 (Active Envs: 4)
+--- [Step 368] Rollout True Reward Sum: 4.00 (Active Envs: 4)
+--- [Step 369] Rollout True Reward Sum: 4.00 (Active Envs: 4)
+WARNING 2026-05-24 03:38:27 db_utils.py:170 WandB logging of key "losses_after_forward" was ignored as its type "<class 'torch.Tensor'>" is not handled by this wrapper.
+WARNING 2026-05-24 03:38:27 db_utils.py:170 WandB logging of key "losses_after_rm_padding" was ignored as its type "<class 'torch.Tensor'>" is not handled by this wrapper.
+INFO 2026-05-24 03:47:01 ain（v3）.py:1038 step:375 smpl:2K ep:9 epch:0.01 loss:0.077 expert_dorf_loss:0.001 online_dorf_loss:1.012 total_dorf_loss:0.101 margin:0.577 critic_loss:0.009 grdn:0.723 good:209.4 rwrd:4.00 lr:1.0e-05 updt_s:0.225 data_s:102.227 r_gn:2.675 c_gn:0.372 p_gn:0.723 v_mu:0.228 v_std:0.234 v_mse:0.009 ret_mu:0.259 ret_std:0.267 rw_mu:0.964 rw_std:0.010 at_mu:0.034 at_std:0.089 al_mu:12.073 al_std:6.028 cand:209.4 sel:0.0 mix:0.143 ow_mu:1.000 ow_mx:1.000 alpha:0.973 stage:3.0 p_on:1.0
+--- [Step 370] Rollout True Reward Sum: 4.00 (Active Envs: 4)
+--- [Step 371] Rollout True Reward Sum: 4.00 (Active Envs: 4)
+--- [Step 372] Rollout True Reward Sum: 4.00 (Active Envs: 4)
+--- [Step 373] Rollout True Reward Sum: 4.00 (Active Envs: 4)
+--- [Step 374] Rollout True Reward Sum: 4.00 (Active Envs: 4)
+WARNING 2026-05-24 03:47:01 db_utils.py:170 WandB logging of key "losses_after_forward" was ignored as its type "<class 'torch.Tensor'>" is not handled by this wrapper.
+WARNING 2026-05-24 03:47:01 db_utils.py:170 WandB logging of key "losses_after_rm_padding" was ignored as its type "<class 'torch.Tensor'>" is not handled by this wrapper.
+INFO 2026-05-24 03:55:47 ain（v3）.py:1038 step:380 smpl:2K ep:9 epch:0.01 loss:0.075 expert_dorf_loss:0.001 online_dorf_loss:1.139 total_dorf_loss:0.117 margin:0.453 critic_loss:0.014 grdn:0.630 good:186.8 rwrd:3.80 lr:1.0e-05 updt_s:0.226 data_s:104.844 r_gn:1.391 c_gn:0.521 p_gn:0.630 v_mu:0.228 v_std:0.226 v_mse:0.014 ret_mu:0.242 ret_std:0.257 rw_mu:0.962 rw_std:0.011 at_mu:0.016 at_std:0.102 al_mu:12.336 al_std:5.511 cand:186.8 sel:0.0 mix:0.147 ow_mu:1.000 ow_mx:1.000 alpha:0.990 stage:3.0 p_on:1.0
+--- [Step 375] Rollout True Reward Sum: 4.00 (Active Envs: 4)
+--- [Step 376] Rollout True Reward Sum: 4.00 (Active Envs: 4)
+--- [Step 377] Rollout True Reward Sum: 4.00 (Active Envs: 4)
+--- [Step 378] Rollout True Reward Sum: 3.00 (Active Envs: 4)
+--- [Step 379] Rollout True Reward Sum: 4.00 (Active Envs: 4)
+WARNING 2026-05-24 03:55:47 db_utils.py:170 WandB logging of key "losses_after_forward" was ignored as its type "<class 'torch.Tensor'>" is not handled by this wrapper.
+WARNING 2026-05-24 03:55:47 db_utils.py:170 WandB logging of key "losses_after_rm_padding" was ignored as its type "<class 'torch.Tensor'>" is not handled by this wrapper.
+INFO 2026-05-24 04:05:38 ain（v3）.py:1038 step:385 smpl:2K ep:10 epch:0.01 loss:0.076 expert_dorf_loss:0.000 online_dorf_loss:1.295 total_dorf_loss:0.132 margin:0.112 critic_loss:0.012 grdn:0.689 good:144.8 rwrd:2.40 lr:1.0e-05 updt_s:0.221 data_s:117.664 r_gn:1.777 c_gn:0.428 p_gn:0.689 v_mu:0.193 v_std:0.202 v_mse:0.012 ret_mu:0.178 ret_std:0.222 rw_mu:0.972 rw_std:0.012 at_mu:-0.014 at_std:0.101 al_mu:12.318 al_std:6.158 cand:144.8 sel:0.0 mix:0.091 ow_mu:1.000 ow_mx:1.000 alpha:1.000 stage:2.6 p_on:1.0
+--- [Step 380] Rollout True Reward Sum: 4.00 (Active Envs: 4)
+--- [Step 381] Rollout True Reward Sum: 2.00 (Active Envs: 4)
+--- [Step 382] Rollout True Reward Sum: 2.00 (Active Envs: 4)
+--- [Step 383] Rollout True Reward Sum: 2.00 (Active Envs: 4)
+--- [Step 384] Rollout True Reward Sum: 2.00 (Active Envs: 4)
+WARNING 2026-05-24 04:05:38 db_utils.py:170 WandB logging of key "losses_after_forward" was ignored as its type "<class 'torch.Tensor'>" is not handled by this wrapper.
+WARNING 2026-05-24 04:05:38 db_utils.py:170 WandB logging of key "losses_after_rm_padding" was ignored as its type "<class 'torch.Tensor'>" is not handled by this wrapper.
+INFO 2026-05-24 04:16:24 ain（v3）.py:1038 step:390 smpl:2K ep:10 epch:0.01 loss:0.077 expert_dorf_loss:0.001 online_dorf_loss:1.400 total_dorf_loss:0.145 margin:0.688 critic_loss:0.020 grdn:0.648 good:182.0 rwrd:2.80 lr:1.0e-05 updt_s:0.222 data_s:128.841 r_gn:1.294 c_gn:0.449 p_gn:0.648 v_mu:0.178 v_std:0.200 v_mse:0.020 ret_mu:0.147 ret_std:0.219 rw_mu:0.953 rw_std:0.015 at_mu:-0.030 at_std:0.130 al_mu:10.739 al_std:6.696 cand:182.0 sel:0.0 mix:0.156 ow_mu:1.000 ow_mx:1.000 alpha:1.000 stage:3.0 p_on:1.0
+--- [Step 385] Rollout True Reward Sum: 2.00 (Active Envs: 4)
+--- [Step 386] Rollout True Reward Sum: 2.00 (Active Envs: 4)
+--- [Step 387] Rollout True Reward Sum: 3.00 (Active Envs: 4)
+--- [Step 388] Rollout True Reward Sum: 4.00 (Active Envs: 4)
+--- [Step 389] Rollout True Reward Sum: 3.00 (Active Envs: 4)
+WARNING 2026-05-24 04:16:24 db_utils.py:170 WandB logging of key "losses_after_forward" was ignored as its type "<class 'torch.Tensor'>" is not handled by this wrapper.
+WARNING 2026-05-24 04:16:24 db_utils.py:170 WandB logging of key "losses_after_rm_padding" was ignored as its type "<class 'torch.Tensor'>" is not handled by this wrapper.
+INFO 2026-05-24 04:25:50 ain（v3）.py:1038 step:395 smpl:2K ep:10 epch:0.01 loss:0.071 expert_dorf_loss:0.001 online_dorf_loss:1.116 total_dorf_loss:0.115 margin:0.755 critic_loss:0.013 grdn:0.689 good:196.8 rwrd:3.40 lr:1.0e-05 updt_s:0.224 data_s:112.611 r_gn:1.763 c_gn:0.395 p_gn:0.689 v_mu:0.148 v_std:0.211 v_mse:0.013 ret_mu:0.172 ret_std:0.248 rw_mu:0.972 rw_std:0.015 at_mu:0.026 at_std:0.103 al_mu:11.422 al_std:6.360 cand:196.8 sel:0.0 mix:0.160 ow_mu:1.000 ow_mx:1.000 alpha:1.000 stage:3.0 p_on:1.0
+--- [Step 390] Rollout True Reward Sum: 3.00 (Active Envs: 4)
+--- [Step 391] Rollout True Reward Sum: 4.00 (Active Envs: 4)
+--- [Step 392] Rollout True Reward Sum: 3.00 (Active Envs: 4)
+--- [Step 393] Rollout True Reward Sum: 3.00 (Active Envs: 4)
+--- [Step 394] Rollout True Reward Sum: 4.00 (Active Envs: 4)
+WARNING 2026-05-24 04:25:50 db_utils.py:170 WandB logging of key "losses_after_forward" was ignored as its type "<class 'torch.Tensor'>" is not handled by this wrapper.
+WARNING 2026-05-24 04:25:50 db_utils.py:170 WandB logging of key "losses_after_rm_padding" was ignored as its type "<class 'torch.Tensor'>" is not handled by this wrapper.
+INFO 2026-05-24 04:35:23 ain（v3）.py:1038 step:400 smpl:2K ep:10 epch:0.01 loss:0.077 expert_dorf_loss:0.001 online_dorf_loss:1.128 total_dorf_loss:0.116 margin:0.448 critic_loss:0.014 grdn:0.876 good:171.0 rwrd:3.40 lr:1.0e-05 updt_s:0.225 data_s:114.161 r_gn:2.470 c_gn:0.417 p_gn:0.876 v_mu:0.146 v_std:0.206 v_mse:0.014 ret_mu:0.157 ret_std:0.233 rw_mu:0.964 rw_std:0.011 at_mu:0.013 at_std:0.110 al_mu:11.733 al_std:6.219 cand:171.0 sel:0.0 mix:0.131 ow_mu:1.000 ow_mx:1.000 alpha:1.000 stage:2.8 p_on:1.0
+--- [Step 395] Rollout True Reward Sum: 4.00 (Active Envs: 4)
+--- [Step 396] Rollout True Reward Sum: 4.00 (Active Envs: 4)
+--- [Step 397] Rollout True Reward Sum: 2.00 (Active Envs: 4)
+--- [Step 398] Rollout True Reward Sum: 2.00 (Active Envs: 4)
+--- [Step 399] Rollout True Reward Sum: 5.00 (Active Envs: 4)
+WARNING 2026-05-24 04:35:23 db_utils.py:170 WandB logging of key "losses_after_forward" was ignored as its type "<class 'torch.Tensor'>" is not handled by this wrapper.
+WARNING 2026-05-24 04:35:23 db_utils.py:170 WandB logging of key "losses_after_rm_padding" was ignored as its type "<class 'torch.Tensor'>" is not handled by this wrapper.
+INFO 2026-05-24 04:35:23 ain（v3）.py:1060 Checkpoint policy after step 400
+INFO 2026-05-24 04:35:25 ain（v3）.py:1082 DORF 状态已保存至: train_logs/Ablation-full_pipeline_default/checkpoints/000400/dorf_state.pt
+INFO 2026-05-24 04:35:30 ain（v3）.py:1091 Eval policy at step 400
+Stepping through eval batches: 100%|██████████| 13/13 [23:44<00:00, 109.57s/it, running_success_rate=88.0%]
+Stepping through eval batches: 100%|██████████| 13/13 [26:17<00:00, 121.31s/it, running_success_rate=78.0%]           
+Stepping through eval batches: 100%|██████████| 13/13 [21:38<00:00, 99.89s/it, running_success_rate=86.0%]            
+Stepping through eval batches: 100%|██████████| 13/13 [20:40<00:00, 95.44s/it, running_success_rate=88.0%]            
+Stepping through eval batches: 100%|██████████| 13/13 [18:33<00:00, 85.67s/it, running_success_rate=98.0%]            
+Stepping through eval batches: 100%|██████████| 13/13 [25:59<00:00, 120.00s/it, running_success_rate=2.0%]            
+Stepping through eval batches: 100%|██████████| 13/13 [22:34<00:00, 104.22s/it, running_success_rate=94.0%]          
+Stepping through eval batches: 100%|██████████| 13/13 [23:26<00:00, 108.18s/it, running_success_rate=86.0%]           
+Stepping through eval batches: 100%|██████████| 13/13 [22:26<00:00, 103.59s/it, running_success_rate=90.0%]           
+Stepping through eval batches: 100%|██████████| 13/13 [27:44<00:00, 128.08s/it, running_success_rate=48.0%]           
+INFO 2026-05-24 08:28:37 ain（v3）.py:1111 Suite per_task aggregated: [{'task_group': 'libero_object', 'task_id': 0, 'metrics': {'sum_rewards': [1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 0.0, 1.0, 0.0, 1.0, 1.0, 0.0, 1.0, 1.0, 0.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 0.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 0.0, 1.0], 'max_rewards': [1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 0.0, 1.0, 0.0, 1.0, 1.0, 0.0, 1.0, 1.0, 0.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 0.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 0.0, 1.0], 'successes': [True, True, True, True, True, True, True, False, True, False, True, True, False, True, True, False, True, True, True, True, True, True, True, True, True, True, True, True, True, True, True, True, True, True, True, True, True, False, True, True, True, True, True, True, True, True, True, True, False, True], 'video_paths': []}}, {'task_group': 'libero_object', 'task_id': 1, 'metrics': {'sum_rewards': [1.0, 1.0, 1.0, 0.0, 1.0, 1.0, 1.0, 0.0, 1.0, 1.0, 1.0, 0.0, 1.0, 1.0, 1.0, 0.0, 1.0, 1.0, 1.0, 0.0, 1.0, 1.0, 1.0, 0.0, 1.0, 1.0, 1.0, 0.0, 0.0, 1.0, 1.0, 0.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 0.0, 0.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0], 'max_rewards': [1.0, 1.0, 1.0, 0.0, 1.0, 1.0, 1.0, 0.0, 1.0, 1.0, 1.0, 0.0, 1.0, 1.0, 1.0, 0.0, 1.0, 1.0, 1.0, 0.0, 1.0, 1.0, 1.0, 0.0, 1.0, 1.0, 1.0, 0.0, 0.0, 1.0, 1.0, 0.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 0.0, 0.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0], 'successes': [True, True, True, False, True, True, True, False, True, True, True, False, True, True, True, False, True, True, True, False, True, True, True, False, True, True, True, False, False, True, True, False, True, True, True, True, True, True, True, False, False, True, True, True, True, True, True, True, True, True], 'video_paths': []}}, {'task_group': 'libero_object', 'task_id': 2, 'metrics': {'sum_rewards': [1.0, 1.0, 1.0, 1.0, 1.0, 0.0, 0.0, 1.0, 1.0, 1.0, 1.0, 0.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 0.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 0.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 0.0, 1.0, 1.0, 0.0, 1.0, 1.0, 1.0, 1.0, 1.0], 'max_rewards': [1.0, 1.0, 1.0, 1.0, 1.0, 0.0, 0.0, 1.0, 1.0, 1.0, 1.0, 0.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 0.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 0.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 0.0, 1.0, 1.0, 0.0, 1.0, 1.0, 1.0, 1.0, 1.0], 'successes': [True, True, True, True, True, False, False, True, True, True, True, False, True, True, True, True, True, True, True, False, True, True, True, True, True, True, True, False, True, True, True, True, True, True, True, True, True, True, True, True, True, False, True, True, False, True, True, True, True, True], 'video_paths': []}}, {'task_group': 'libero_object', 'task_id': 3, 'metrics': {'sum_rewards': [1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 0.0, 1.0, 1.0, 1.0, 1.0, 0.0, 1.0, 1.0, 0.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 0.0, 1.0, 1.0, 0.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 0.0, 1.0], 'max_rewards': [1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 0.0, 1.0, 1.0, 1.0, 1.0, 0.0, 1.0, 1.0, 0.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 0.0, 1.0, 1.0, 0.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 0.0, 1.0], 'successes': [True, True, True, True, True, True, True, True, True, True, True, True, False, True, True, True, True, False, True, True, False, True, True, True, True, True, True, True, False, True, True, False, True, True, True, True, True, True, True, True, True, True, True, True, True, True, True, True, False, True], 'video_paths': []}}, {'task_group': 'libero_object', 'task_id': 4, 'metrics': {'sum_rewards': [1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 0.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1
+INFO 2026-05-24 08:28:37 ain（v3）.py:1111 Suite per_group aggregated: {'libero_object': {'avg_sum_reward': 0.758, 'avg_max_reward': 0.758, 'pc_success': 75.8, 'n_episodes': 500, 'video_paths': []}}
+INFO 2026-05-24 08:28:37 ain（v3）.py:1111 Suite overall aggregated: {'avg_sum_reward': 0.758, 'avg_max_reward': 0.758, 'pc_success': 75.8, 'n_episodes': 500, 'eval_s': 13987.308387517929, 'eval_ep_s': 27.97461677598953, 'video_paths': []}
+WARNING 2026-05-24 08:28:37 db_utils.py:170 WandB logging of key "per_task" was ignored as its type "<class 'list'>" is not handled by this wrapper.
+WARNING 2026-05-24 08:28:37 db_utils.py:170 WandB logging of key "per_group" was ignored as its type "<class 'dict'>" is not handled by this wrapper.
+WARNING 2026-05-24 08:28:37 db_utils.py:170 WandB logging of key "overall" was ignored as its type "<class 'dict'>" is not handled by this wrapper.
+INFO 2026-05-24 08:38:43 ain（v3）.py:1038 step:405 smpl:2K ep:10 epch:0.01 loss:0.090 expert_dorf_loss:0.002 online_dorf_loss:0.956 total_dorf_loss:0.099 margin:0.570 critic_loss:0.010 grdn:0.934 good:187.2 rwrd:3.00 lr:1.0e-05 updt_s:0.227 data_s:120.551 r_gn:2.185 c_gn:0.236 p_gn:0.934 v_mu:0.188 v_std:0.216 v_mse:0.010 ret_mu:0.185 ret_std:0.242 rw_mu:0.947 rw_std:0.012 at_mu:-0.001 at_std:0.097 al_mu:11.476 al_std:6.074 cand:187.2 sel:0.0 mix:0.168 ow_mu:1.000 ow_mx:1.000 alpha:1.000 stage:3.0 p_on:1.0
+--- [Step 400] Rollout True Reward Sum: 2.00 (Active Envs: 4)
+--- [Step 401] Rollout True Reward Sum: 4.00 (Active Envs: 4)
+--- [Step 402] Rollout True Reward Sum: 3.00 (Active Envs: 4)
+--- [Step 403] Rollout True Reward Sum: 3.00 (Active Envs: 4)
+--- [Step 404] Rollout True Reward Sum: 3.00 (Active Envs: 4)
+WARNING 2026-05-24 08:38:43 db_utils.py:170 WandB logging of key "losses_after_forward" was ignored as its type "<class 'torch.Tensor'>" is not handled by this wrapper.
+WARNING 2026-05-24 08:38:43 db_utils.py:170 WandB logging of key "losses_after_rm_padding" was ignored as its type "<class 'torch.Tensor'>" is not handled by this wrapper.
+INFO 2026-05-24 08:48:45 ain（v3）.py:1038 step:410 smpl:2K ep:10 epch:0.01 loss:0.076 expert_dorf_loss:0.001 online_dorf_loss:1.097 total_dorf_loss:0.113 margin:0.297 critic_loss:0.011 grdn:0.715 good:172.8 rwrd:2.80 lr:1.0e-05 updt_s:0.217 data_s:119.966 r_gn:2.694 c_gn:0.326 p_gn:0.715 v_mu:0.195 v_std:0.220 v_mse:0.011 ret_mu:0.190 ret_std:0.240 rw_mu:0.996 rw_std:0.010 at_mu:-0.003 at_std:0.096 al_mu:12.336 al_std:6.363 cand:172.8 sel:0.0 mix:0.138 ow_mu:1.000 ow_mx:1.000 alpha:1.000 stage:2.8 p_on:1.0
+--- [Step 405] Rollout True Reward Sum: 2.00 (Active Envs: 4)
+--- [Step 406] Rollout True Reward Sum: 2.00 (Active Envs: 4)
+--- [Step 407] Rollout True Reward Sum: 4.00 (Active Envs: 4)
+--- [Step 408] Rollout True Reward Sum: 3.00 (Active Envs: 4)
+--- [Step 409] Rollout True Reward Sum: 3.00 (Active Envs: 4)
+WARNING 2026-05-24 08:48:45 db_utils.py:170 WandB logging of key "losses_after_forward" was ignored as its type "<class 'torch.Tensor'>" is not handled by this wrapper.
+WARNING 2026-05-24 08:48:45 db_utils.py:170 WandB logging of key "losses_after_rm_padding" was ignored as its type "<class 'torch.Tensor'>" is not handled by this wrapper.
+Running rollout with at most 280 steps:  18%|█▊        | 50/280 [00:20<01:38,  2.34it/s, running_success_rate=0.0%]

@@ -1,0 +1,312 @@
+INFO 2026-05-18 14:43:58 db_utils.py:106 Logs will be synced with wandb.
+INFO 2026-05-18 14:43:58 db_utils.py:107 Track this run --> https://wandb.ai/x-k/Ablation-reward_only/runs/5xeqmt9a
+INFO 2026-05-18 14:43:58 rain（v3）.py:279 正在初始化本地官方数据集加载器...
+INFO 2026-05-18 14:43:59 rain（v3）.py:292 本地数据覆盖至 Episode 19，将仅加载此范围内索引。
+INFO 2026-05-18 14:43:59 rain（v3）.py:319 Creating env
+[robosuite WARNING] No private macro file found! (__init__.py:7)
+WARNING 2026-05-18 14:43:59 e/__init__.py:7 No private macro file found!
+[robosuite WARNING] It is recommended to use a private macro file (__init__.py:8)
+WARNING 2026-05-18 14:43:59 e/__init__.py:8 It is recommended to use a private macro file
+[robosuite WARNING] To setup, run: python /root/autodl-tmp/miniconda3/envs/lerobot/lib/python3.10/site-packages/robosuite/scripts/setup_macros.py (__init__.py:9)
+WARNING 2026-05-18 14:43:59 e/__init__.py:9 To setup, run: python /root/autodl-tmp/miniconda3/envs/lerobot/lib/python3.10/site-packages/robosuite/scripts/setup_macros.py
+INFO 2026-05-18 14:43:59 tesupport.py:24 No OpenGL_accelerate module loaded: No module named 'OpenGL_accelerate'
+Creating LIBERO envs | suites=['libero_object'] | n_envs(per task)=4 | init_states=True
+[info] using task orders [0, 1, 2, 3, 4, 5, 6, 7, 8, 9]
+Built vec env | suite=libero_object | task_id=0 | n_envs=4
+Built vec env | suite=libero_object | task_id=1 | n_envs=4
+Built vec env | suite=libero_object | task_id=2 | n_envs=4
+Built vec env | suite=libero_object | task_id=3 | n_envs=4
+Built vec env | suite=libero_object | task_id=4 | n_envs=4
+Built vec env | suite=libero_object | task_id=5 | n_envs=4
+Built vec env | suite=libero_object | task_id=6 | n_envs=4
+Built vec env | suite=libero_object | task_id=7 | n_envs=4
+Built vec env | suite=libero_object | task_id=8 | n_envs=4
+Built vec env | suite=libero_object | task_id=9 | n_envs=4
+INFO 2026-05-18 14:45:31 rain（v3）.py:323 Creating policy
+Loading  HuggingFaceTB/SmolVLM2-500M-Instruct weights ...
+INFO 2026-05-18 14:45:32 _client.py:1025 HTTP Request: HEAD https://hf-mirror.com/HuggingFaceTB/SmolVLM2-500M-Instruct/resolve/main/config.json "HTTP/1.1 307 Temporary Redirect"
+INFO 2026-05-18 14:45:33 _client.py:1025 HTTP Request: HEAD https://hf-mirror.com/HuggingFaceTB/SmolVLM2-500M-Video-Instruct/resolve/main/config.json "HTTP/1.1 307 Temporary Redirect"
+INFO 2026-05-18 14:45:33 _client.py:1025 HTTP Request: HEAD https://hf-mirror.com/api/resolve-cache/models/HuggingFaceTB/SmolVLM2-500M-Video-Instruct/7b375e1b73b11138ff12fe22c8f2822d8fe03467/config.json "HTTP/1.1 200 OK"
+`torch_dtype` is deprecated! Use `dtype` instead!
+INFO 2026-05-18 14:45:34 _client.py:1025 HTTP Request: HEAD https://hf-mirror.com/HuggingFaceTB/SmolVLM2-500M-Instruct/resolve/main/generation_config.json "HTTP/1.1 307 Temporary Redirect"
+INFO 2026-05-18 14:45:35 _client.py:1025 HTTP Request: HEAD https://hf-mirror.com/HuggingFaceTB/SmolVLM2-500M-Video-Instruct/resolve/main/generation_config.json "HTTP/1.1 307 Temporary Redirect"
+INFO 2026-05-18 14:45:35 _client.py:1025 HTTP Request: HEAD https://hf-mirror.com/api/resolve-cache/models/HuggingFaceTB/SmolVLM2-500M-Video-Instruct/7b375e1b73b11138ff12fe22c8f2822d8fe03467/generation_config.json "HTTP/1.1 200 OK"
+INFO 2026-05-18 14:45:35 _client.py:1025 HTTP Request: HEAD https://hf-mirror.com/HuggingFaceTB/SmolVLM2-500M-Instruct/resolve/main/processor_config.json "HTTP/1.1 307 Temporary Redirect"
+INFO 2026-05-18 14:45:35 _client.py:1025 HTTP Request: HEAD https://hf-mirror.com/HuggingFaceTB/SmolVLM2-500M-Video-Instruct/resolve/main/processor_config.json "HTTP/1.1 307 Temporary Redirect"
+INFO 2026-05-18 14:45:36 _client.py:1025 HTTP Request: HEAD https://hf-mirror.com/api/resolve-cache/models/HuggingFaceTB/SmolVLM2-500M-Video-Instruct/7b375e1b73b11138ff12fe22c8f2822d8fe03467/processor_config.json "HTTP/1.1 200 OK"
+INFO 2026-05-18 14:45:36 _client.py:1025 HTTP Request: GET https://hf-mirror.com/api/models/HuggingFaceTB/SmolVLM2-500M-Instruct/tree/main/additional_chat_templates?recursive=false&expand=false "HTTP/1.1 307 Temporary Redirect"
+INFO 2026-05-18 14:45:37 _client.py:1025 HTTP Request: GET https://hf-mirror.com/api/models/HuggingFaceTB/SmolVLM2-500M-Video-Instruct/tree/main/additional_chat_templates?recursive=false&expand=false "HTTP/1.1 404 Not Found"
+INFO 2026-05-18 14:45:37 _client.py:1025 HTTP Request: HEAD https://hf-mirror.com/HuggingFaceTB/SmolVLM2-500M-Instruct/resolve/main/processor_config.json "HTTP/1.1 307 Temporary Redirect"
+INFO 2026-05-18 14:45:38 _client.py:1025 HTTP Request: HEAD https://hf-mirror.com/HuggingFaceTB/SmolVLM2-500M-Video-Instruct/resolve/main/processor_config.json "HTTP/1.1 307 Temporary Redirect"
+INFO 2026-05-18 14:45:38 _client.py:1025 HTTP Request: HEAD https://hf-mirror.com/api/resolve-cache/models/HuggingFaceTB/SmolVLM2-500M-Video-Instruct/7b375e1b73b11138ff12fe22c8f2822d8fe03467/processor_config.json "HTTP/1.1 200 OK"
+INFO 2026-05-18 14:45:38 _client.py:1025 HTTP Request: HEAD https://hf-mirror.com/HuggingFaceTB/SmolVLM2-500M-Instruct/resolve/main/chat_template.json "HTTP/1.1 307 Temporary Redirect"
+INFO 2026-05-18 14:45:39 _client.py:1025 HTTP Request: HEAD https://hf-mirror.com/HuggingFaceTB/SmolVLM2-500M-Video-Instruct/resolve/main/chat_template.json "HTTP/1.1 307 Temporary Redirect"
+INFO 2026-05-18 14:45:39 _client.py:1025 HTTP Request: HEAD https://hf-mirror.com/api/resolve-cache/models/HuggingFaceTB/SmolVLM2-500M-Video-Instruct/7b375e1b73b11138ff12fe22c8f2822d8fe03467/chat_template.json "HTTP/1.1 200 OK"
+INFO 2026-05-18 14:45:39 _client.py:1025 HTTP Request: HEAD https://hf-mirror.com/HuggingFaceTB/SmolVLM2-500M-Instruct/resolve/main/chat_template.jinja "HTTP/1.1 307 Temporary Redirect"
+INFO 2026-05-18 14:45:39 _client.py:1025 HTTP Request: HEAD https://hf-mirror.com/HuggingFaceTB/SmolVLM2-500M-Video-Instruct/resolve/main/chat_template.jinja "HTTP/1.1 404 Not Found"
+INFO 2026-05-18 14:45:40 _client.py:1025 HTTP Request: HEAD https://hf-mirror.com/HuggingFaceTB/SmolVLM2-500M-Instruct/resolve/main/audio_tokenizer_config.json "HTTP/1.1 307 Temporary Redirect"
+INFO 2026-05-18 14:45:40 _client.py:1025 HTTP Request: HEAD https://hf-mirror.com/HuggingFaceTB/SmolVLM2-500M-Video-Instruct/resolve/main/audio_tokenizer_config.json "HTTP/1.1 404 Not Found"
+INFO 2026-05-18 14:45:41 _client.py:1025 HTTP Request: GET https://hf-mirror.com/api/models/HuggingFaceTB/SmolVLM2-500M-Instruct/tree/main/additional_chat_templates?recursive=false&expand=false "HTTP/1.1 307 Temporary Redirect"
+INFO 2026-05-18 14:45:41 _client.py:1025 HTTP Request: GET https://hf-mirror.com/api/models/HuggingFaceTB/SmolVLM2-500M-Video-Instruct/tree/main/additional_chat_templates?recursive=false&expand=false "HTTP/1.1 404 Not Found"
+INFO 2026-05-18 14:45:41 _client.py:1025 HTTP Request: HEAD https://hf-mirror.com/HuggingFaceTB/SmolVLM2-500M-Instruct/resolve/main/processor_config.json "HTTP/1.1 307 Temporary Redirect"
+INFO 2026-05-18 14:45:41 _client.py:1025 HTTP Request: HEAD https://hf-mirror.com/HuggingFaceTB/SmolVLM2-500M-Video-Instruct/resolve/main/processor_config.json "HTTP/1.1 307 Temporary Redirect"
+INFO 2026-05-18 14:45:42 _client.py:1025 HTTP Request: HEAD https://hf-mirror.com/api/resolve-cache/models/HuggingFaceTB/SmolVLM2-500M-Video-Instruct/7b375e1b73b11138ff12fe22c8f2822d8fe03467/processor_config.json "HTTP/1.1 200 OK"
+INFO 2026-05-18 14:45:43 _client.py:1025 HTTP Request: HEAD https://hf-mirror.com/HuggingFaceTB/SmolVLM2-500M-Instruct/resolve/main/chat_template.json "HTTP/1.1 307 Temporary Redirect"
+INFO 2026-05-18 14:45:43 _client.py:1025 HTTP Request: HEAD https://hf-mirror.com/HuggingFaceTB/SmolVLM2-500M-Video-Instruct/resolve/main/chat_template.json "HTTP/1.1 307 Temporary Redirect"
+INFO 2026-05-18 14:45:43 _client.py:1025 HTTP Request: HEAD https://hf-mirror.com/api/resolve-cache/models/HuggingFaceTB/SmolVLM2-500M-Video-Instruct/7b375e1b73b11138ff12fe22c8f2822d8fe03467/chat_template.json "HTTP/1.1 200 OK"
+INFO 2026-05-18 14:45:44 _client.py:1025 HTTP Request: HEAD https://hf-mirror.com/HuggingFaceTB/SmolVLM2-500M-Instruct/resolve/main/chat_template.jinja "HTTP/1.1 307 Temporary Redirect"
+INFO 2026-05-18 14:45:44 _client.py:1025 HTTP Request: HEAD https://hf-mirror.com/HuggingFaceTB/SmolVLM2-500M-Video-Instruct/resolve/main/chat_template.jinja "HTTP/1.1 404 Not Found"
+INFO 2026-05-18 14:45:44 _client.py:1025 HTTP Request: HEAD https://hf-mirror.com/HuggingFaceTB/SmolVLM2-500M-Instruct/resolve/main/audio_tokenizer_config.json "HTTP/1.1 307 Temporary Redirect"
+INFO 2026-05-18 14:45:45 _client.py:1025 HTTP Request: HEAD https://hf-mirror.com/HuggingFaceTB/SmolVLM2-500M-Video-Instruct/resolve/main/audio_tokenizer_config.json "HTTP/1.1 404 Not Found"
+INFO 2026-05-18 14:45:45 _client.py:1025 HTTP Request: HEAD https://hf-mirror.com/HuggingFaceTB/SmolVLM2-500M-Instruct/resolve/main/processor_config.json "HTTP/1.1 307 Temporary Redirect"
+INFO 2026-05-18 14:45:45 _client.py:1025 HTTP Request: HEAD https://hf-mirror.com/HuggingFaceTB/SmolVLM2-500M-Video-Instruct/resolve/main/processor_config.json "HTTP/1.1 307 Temporary Redirect"
+INFO 2026-05-18 14:45:46 _client.py:1025 HTTP Request: HEAD https://hf-mirror.com/api/resolve-cache/models/HuggingFaceTB/SmolVLM2-500M-Video-Instruct/7b375e1b73b11138ff12fe22c8f2822d8fe03467/processor_config.json "HTTP/1.1 200 OK"
+INFO 2026-05-18 14:45:46 _client.py:1025 HTTP Request: HEAD https://hf-mirror.com/HuggingFaceTB/SmolVLM2-500M-Instruct/resolve/main/preprocessor_config.json "HTTP/1.1 307 Temporary Redirect"
+INFO 2026-05-18 14:45:46 _client.py:1025 HTTP Request: HEAD https://hf-mirror.com/HuggingFaceTB/SmolVLM2-500M-Video-Instruct/resolve/main/preprocessor_config.json "HTTP/1.1 307 Temporary Redirect"
+INFO 2026-05-18 14:45:46 _client.py:1025 HTTP Request: HEAD https://hf-mirror.com/api/resolve-cache/models/HuggingFaceTB/SmolVLM2-500M-Video-Instruct/7b375e1b73b11138ff12fe22c8f2822d8fe03467/preprocessor_config.json "HTTP/1.1 200 OK"
+INFO 2026-05-18 14:45:47 _client.py:1025 HTTP Request: HEAD https://hf-mirror.com/HuggingFaceTB/SmolVLM2-500M-Instruct/resolve/main/processor_config.json "HTTP/1.1 307 Temporary Redirect"
+INFO 2026-05-18 14:45:47 _client.py:1025 HTTP Request: HEAD https://hf-mirror.com/HuggingFaceTB/SmolVLM2-500M-Video-Instruct/resolve/main/processor_config.json "HTTP/1.1 307 Temporary Redirect"
+INFO 2026-05-18 14:45:47 _client.py:1025 HTTP Request: HEAD https://hf-mirror.com/api/resolve-cache/models/HuggingFaceTB/SmolVLM2-500M-Video-Instruct/7b375e1b73b11138ff12fe22c8f2822d8fe03467/processor_config.json "HTTP/1.1 200 OK"
+INFO 2026-05-18 14:45:48 _client.py:1025 HTTP Request: HEAD https://hf-mirror.com/HuggingFaceTB/SmolVLM2-500M-Instruct/resolve/main/preprocessor_config.json "HTTP/1.1 307 Temporary Redirect"
+INFO 2026-05-18 14:45:48 _client.py:1025 HTTP Request: HEAD https://hf-mirror.com/HuggingFaceTB/SmolVLM2-500M-Video-Instruct/resolve/main/preprocessor_config.json "HTTP/1.1 307 Temporary Redirect"
+INFO 2026-05-18 14:45:48 _client.py:1025 HTTP Request: HEAD https://hf-mirror.com/api/resolve-cache/models/HuggingFaceTB/SmolVLM2-500M-Video-Instruct/7b375e1b73b11138ff12fe22c8f2822d8fe03467/preprocessor_config.json "HTTP/1.1 200 OK"
+INFO 2026-05-18 14:45:49 _client.py:1025 HTTP Request: HEAD https://hf-mirror.com/HuggingFaceTB/SmolVLM2-500M-Instruct/resolve/main/config.json "HTTP/1.1 307 Temporary Redirect"
+INFO 2026-05-18 14:45:49 _client.py:1025 HTTP Request: HEAD https://hf-mirror.com/HuggingFaceTB/SmolVLM2-500M-Video-Instruct/resolve/main/config.json "HTTP/1.1 307 Temporary Redirect"
+INFO 2026-05-18 14:45:49 _client.py:1025 HTTP Request: HEAD https://hf-mirror.com/api/resolve-cache/models/HuggingFaceTB/SmolVLM2-500M-Video-Instruct/7b375e1b73b11138ff12fe22c8f2822d8fe03467/config.json "HTTP/1.1 200 OK"
+INFO 2026-05-18 14:45:50 _client.py:1025 HTTP Request: HEAD https://hf-mirror.com/HuggingFaceTB/SmolVLM2-500M-Instruct/resolve/main/tokenizer_config.json "HTTP/1.1 307 Temporary Redirect"
+INFO 2026-05-18 14:45:50 _client.py:1025 HTTP Request: HEAD https://hf-mirror.com/HuggingFaceTB/SmolVLM2-500M-Video-Instruct/resolve/main/tokenizer_config.json "HTTP/1.1 307 Temporary Redirect"
+INFO 2026-05-18 14:45:50 _client.py:1025 HTTP Request: HEAD https://hf-mirror.com/api/resolve-cache/models/HuggingFaceTB/SmolVLM2-500M-Video-Instruct/7b375e1b73b11138ff12fe22c8f2822d8fe03467/tokenizer_config.json "HTTP/1.1 200 OK"
+INFO 2026-05-18 14:45:50 _client.py:1025 HTTP Request: HEAD https://hf-mirror.com/HuggingFaceTB/SmolVLM2-500M-Instruct/resolve/main/tokenizer_config.json "HTTP/1.1 307 Temporary Redirect"
+INFO 2026-05-18 14:45:51 _client.py:1025 HTTP Request: HEAD https://hf-mirror.com/HuggingFaceTB/SmolVLM2-500M-Video-Instruct/resolve/main/tokenizer_config.json "HTTP/1.1 307 Temporary Redirect"
+INFO 2026-05-18 14:45:51 _client.py:1025 HTTP Request: HEAD https://hf-mirror.com/api/resolve-cache/models/HuggingFaceTB/SmolVLM2-500M-Video-Instruct/7b375e1b73b11138ff12fe22c8f2822d8fe03467/tokenizer_config.json "HTTP/1.1 200 OK"
+INFO 2026-05-18 14:45:51 _client.py:1025 HTTP Request: GET https://hf-mirror.com/api/models/HuggingFaceTB/SmolVLM2-500M-Instruct/tree/main/additional_chat_templates?recursive=false&expand=false "HTTP/1.1 307 Temporary Redirect"
+INFO 2026-05-18 14:45:51 _client.py:1025 HTTP Request: GET https://hf-mirror.com/api/models/HuggingFaceTB/SmolVLM2-500M-Video-Instruct/tree/main/additional_chat_templates?recursive=false&expand=false "HTTP/1.1 404 Not Found"
+INFO 2026-05-18 14:45:51 _client.py:1025 HTTP Request: GET https://hf-mirror.com/api/models/HuggingFaceTB/SmolVLM2-500M-Instruct/tree/main?recursive=true&expand=false "HTTP/1.1 307 Temporary Redirect"
+INFO 2026-05-18 14:45:51 _client.py:1025 HTTP Request: GET https://hf-mirror.com/api/models/HuggingFaceTB/SmolVLM2-500M-Video-Instruct/tree/main?recursive=true&expand=false "HTTP/1.1 200 OK"
+INFO 2026-05-18 14:45:52 _client.py:1025 HTTP Request: HEAD https://hf-mirror.com/HuggingFaceTB/SmolVLM2-500M-Instruct/resolve/main/processor_config.json "HTTP/1.1 307 Temporary Redirect"
+INFO 2026-05-18 14:45:52 _client.py:1025 HTTP Request: HEAD https://hf-mirror.com/HuggingFaceTB/SmolVLM2-500M-Video-Instruct/resolve/main/processor_config.json "HTTP/1.1 307 Temporary Redirect"
+INFO 2026-05-18 14:45:52 _client.py:1025 HTTP Request: HEAD https://hf-mirror.com/api/resolve-cache/models/HuggingFaceTB/SmolVLM2-500M-Video-Instruct/7b375e1b73b11138ff12fe22c8f2822d8fe03467/processor_config.json "HTTP/1.1 200 OK"
+INFO 2026-05-18 14:45:53 _client.py:1025 HTTP Request: HEAD https://hf-mirror.com/HuggingFaceTB/SmolVLM2-500M-Instruct/resolve/main/video_preprocessor_config.json "HTTP/1.1 307 Temporary Redirect"
+INFO 2026-05-18 14:45:54 _client.py:1025 HTTP Request: HEAD https://hf-mirror.com/HuggingFaceTB/SmolVLM2-500M-Video-Instruct/resolve/main/video_preprocessor_config.json "HTTP/1.1 404 Not Found"
+INFO 2026-05-18 14:45:54 _client.py:1025 HTTP Request: HEAD https://hf-mirror.com/HuggingFaceTB/SmolVLM2-500M-Instruct/resolve/main/preprocessor_config.json "HTTP/1.1 307 Temporary Redirect"
+INFO 2026-05-18 14:45:54 _client.py:1025 HTTP Request: HEAD https://hf-mirror.com/HuggingFaceTB/SmolVLM2-500M-Video-Instruct/resolve/main/preprocessor_config.json "HTTP/1.1 307 Temporary Redirect"
+INFO 2026-05-18 14:45:55 _client.py:1025 HTTP Request: HEAD https://hf-mirror.com/api/resolve-cache/models/HuggingFaceTB/SmolVLM2-500M-Video-Instruct/7b375e1b73b11138ff12fe22c8f2822d8fe03467/preprocessor_config.json "HTTP/1.1 200 OK"
+INFO 2026-05-18 14:45:55 _client.py:1025 HTTP Request: HEAD https://hf-mirror.com/HuggingFaceTB/SmolVLM2-500M-Instruct/resolve/main/processor_config.json "HTTP/1.1 307 Temporary Redirect"
+INFO 2026-05-18 14:45:55 _client.py:1025 HTTP Request: HEAD https://hf-mirror.com/HuggingFaceTB/SmolVLM2-500M-Video-Instruct/resolve/main/processor_config.json "HTTP/1.1 307 Temporary Redirect"
+INFO 2026-05-18 14:45:55 _client.py:1025 HTTP Request: HEAD https://hf-mirror.com/api/resolve-cache/models/HuggingFaceTB/SmolVLM2-500M-Video-Instruct/7b375e1b73b11138ff12fe22c8f2822d8fe03467/processor_config.json "HTTP/1.1 200 OK"
+INFO 2026-05-18 14:45:56 _client.py:1025 HTTP Request: HEAD https://hf-mirror.com/HuggingFaceTB/SmolVLM2-500M-Instruct/resolve/main/video_preprocessor_config.json "HTTP/1.1 307 Temporary Redirect"
+INFO 2026-05-18 14:45:56 _client.py:1025 HTTP Request: HEAD https://hf-mirror.com/HuggingFaceTB/SmolVLM2-500M-Video-Instruct/resolve/main/video_preprocessor_config.json "HTTP/1.1 404 Not Found"
+INFO 2026-05-18 14:45:57 _client.py:1025 HTTP Request: HEAD https://hf-mirror.com/HuggingFaceTB/SmolVLM2-500M-Instruct/resolve/main/preprocessor_config.json "HTTP/1.1 307 Temporary Redirect"
+INFO 2026-05-18 14:45:57 _client.py:1025 HTTP Request: HEAD https://hf-mirror.com/HuggingFaceTB/SmolVLM2-500M-Video-Instruct/resolve/main/preprocessor_config.json "HTTP/1.1 307 Temporary Redirect"
+INFO 2026-05-18 14:45:57 _client.py:1025 HTTP Request: HEAD https://hf-mirror.com/api/resolve-cache/models/HuggingFaceTB/SmolVLM2-500M-Video-Instruct/7b375e1b73b11138ff12fe22c8f2822d8fe03467/preprocessor_config.json "HTTP/1.1 200 OK"
+INFO 2026-05-18 14:46:02 _client.py:1025 HTTP Request: HEAD https://hf-mirror.com/HuggingFaceVLA/smolvla_libero/resolve/main/model.safetensors "HTTP/1.1 302 Found"
+INFO 2026-05-18 14:46:04 _client.py:1025 HTTP Request: HEAD https://hf-mirror.com/HuggingFaceVLA/smolvla_libero/resolve/main/policy_preprocessor.json "HTTP/1.1 307 Temporary Redirect"
+INFO 2026-05-18 14:46:04 _client.py:1025 HTTP Request: HEAD https://hf-mirror.com/api/resolve-cache/models/HuggingFaceVLA/smolvla_libero/6721902bc4d61e50a3bfdb11dfb4cb626f05d102/policy_preprocessor.json "HTTP/1.1 200 OK"
+INFO 2026-05-18 14:46:04 _client.py:1025 HTTP Request: HEAD https://hf-mirror.com/HuggingFaceTB/SmolVLM2-500M-Instruct/resolve/main/config.json "HTTP/1.1 307 Temporary Redirect"
+INFO 2026-05-18 14:46:05 _client.py:1025 HTTP Request: HEAD https://hf-mirror.com/HuggingFaceTB/SmolVLM2-500M-Video-Instruct/resolve/main/config.json "HTTP/1.1 307 Temporary Redirect"
+INFO 2026-05-18 14:46:05 _client.py:1025 HTTP Request: HEAD https://hf-mirror.com/api/resolve-cache/models/HuggingFaceTB/SmolVLM2-500M-Video-Instruct/7b375e1b73b11138ff12fe22c8f2822d8fe03467/config.json "HTTP/1.1 200 OK"
+INFO 2026-05-18 14:46:05 _client.py:1025 HTTP Request: HEAD https://hf-mirror.com/HuggingFaceTB/SmolVLM2-500M-Instruct/resolve/main/tokenizer_config.json "HTTP/1.1 307 Temporary Redirect"
+INFO 2026-05-18 14:46:06 _client.py:1025 HTTP Request: HEAD https://hf-mirror.com/HuggingFaceTB/SmolVLM2-500M-Video-Instruct/resolve/main/tokenizer_config.json "HTTP/1.1 307 Temporary Redirect"
+INFO 2026-05-18 14:46:06 _client.py:1025 HTTP Request: HEAD https://hf-mirror.com/api/resolve-cache/models/HuggingFaceTB/SmolVLM2-500M-Video-Instruct/7b375e1b73b11138ff12fe22c8f2822d8fe03467/tokenizer_config.json "HTTP/1.1 200 OK"
+INFO 2026-05-18 14:46:06 _client.py:1025 HTTP Request: HEAD https://hf-mirror.com/HuggingFaceTB/SmolVLM2-500M-Instruct/resolve/main/tokenizer_config.json "HTTP/1.1 307 Temporary Redirect"
+INFO 2026-05-18 14:46:06 _client.py:1025 HTTP Request: HEAD https://hf-mirror.com/HuggingFaceTB/SmolVLM2-500M-Video-Instruct/resolve/main/tokenizer_config.json "HTTP/1.1 307 Temporary Redirect"
+INFO 2026-05-18 14:46:07 _client.py:1025 HTTP Request: HEAD https://hf-mirror.com/api/resolve-cache/models/HuggingFaceTB/SmolVLM2-500M-Video-Instruct/7b375e1b73b11138ff12fe22c8f2822d8fe03467/tokenizer_config.json "HTTP/1.1 200 OK"
+INFO 2026-05-18 14:46:07 _client.py:1025 HTTP Request: GET https://hf-mirror.com/api/models/HuggingFaceTB/SmolVLM2-500M-Instruct/tree/main/additional_chat_templates?recursive=false&expand=false "HTTP/1.1 307 Temporary Redirect"
+INFO 2026-05-18 14:46:07 _client.py:1025 HTTP Request: GET https://hf-mirror.com/api/models/HuggingFaceTB/SmolVLM2-500M-Video-Instruct/tree/main/additional_chat_templates?recursive=false&expand=false "HTTP/1.1 404 Not Found"
+INFO 2026-05-18 14:46:07 _client.py:1025 HTTP Request: GET https://hf-mirror.com/api/models/HuggingFaceTB/SmolVLM2-500M-Instruct/tree/main?recursive=true&expand=false "HTTP/1.1 307 Temporary Redirect"
+INFO 2026-05-18 14:46:07 _client.py:1025 HTTP Request: GET https://hf-mirror.com/api/models/HuggingFaceTB/SmolVLM2-500M-Video-Instruct/tree/main?recursive=true&expand=false "HTTP/1.1 200 OK"
+INFO 2026-05-18 14:46:08 _client.py:1025 HTTP Request: HEAD https://hf-mirror.com/HuggingFaceVLA/smolvla_libero/resolve/main/policy_postprocessor.json "HTTP/1.1 307 Temporary Redirect"
+INFO 2026-05-18 14:46:08 _client.py:1025 HTTP Request: HEAD https://hf-mirror.com/api/resolve-cache/models/HuggingFaceVLA/smolvla_libero/6721902bc4d61e50a3bfdb11dfb4cb626f05d102/policy_postprocessor.json "HTTP/1.1 200 OK"
+INFO 2026-05-18 14:46:08 rain（v3）.py:378 Creating optimizer and scheduler
+WARNING 2026-05-18 14:46:08 rain（v3）.py:410 检测到 --resume=True 但未提供 --checkpoint_path。将从新开始训练。
+INFO 2026-05-18 14:46:08 rain（v3）.py:416 Output dir: train_logs/Ablation-reward_only
+INFO 2026-05-18 14:46:08 rain（v3）.py:418 cfg.env.task='libero_object'
+INFO 2026-05-18 14:46:08 rain（v3）.py:419 Creating environment processors
+INFO 2026-05-18 14:46:08 rain（v3）.py:423 cfg.steps=300 (300)
+INFO 2026-05-18 14:46:08 rain（v3）.py:424 dataset.num_frames=273465 (273K)
+INFO 2026-05-18 14:46:08 rain（v3）.py:425 dataset.num_episodes=1693
+INFO 2026-05-18 14:46:08 rain（v3）.py:428 Effective batch size: 4 x 1 = 4
+INFO 2026-05-18 14:46:08 rain（v3）.py:429 num_learnable_params=97451872 (97M)
+INFO 2026-05-18 14:46:08 rain（v3）.py:430 num_total_params=604934176 (605M)
+INFO 2026-05-18 14:46:08 rain（v3）.py:449 DEBUG: DataLoader 实际使用 Workers 数量: 2
+INFO 2026-05-18 14:46:08 rain（v3）.py:589 Start offline training on a fixed dataset, with effective batch size: 4
+INFO 2026-05-18 14:46:08 rain（v3）.py:601 Initializing Vision-DORF RL modules...
+INFO 2026-05-18 14:46:08 rain（v3）.py:606 --- [DORF 适配] 确认使用策略同分布状态维度: 8
+INFO 2026-05-18 14:46:09 rain（v3）.py:654 Experiment profile: reward_only | freeze_policy_updates=True | disable_online_mixing=True
+INFO 2026-05-18 15:05:40 ain（v3）.py:1038 step:10 smpl:40 ep:0 epch:0.00 loss:0.000 expert_dorf_loss:0.783 online_dorf_loss:1.910 total_dorf_loss:0.783 margin:0.843 critic_loss:0.038 grdn:0.000 good:196.9 rwrd:3.50 lr:0.0e+00 updt_s:0.000 data_s:117.092 r_gn:3.778 c_gn:0.000 p_gn:0.000 v_mu:-0.015 v_std:0.004 v_mse:0.038 ret_mu:0.061 ret_std:0.172 rw_mu:0.111 rw_std:0.010 at_mu:0.075 at_std:0.174 al_mu:1.365 al_std:0.689 cand:196.9 sel:0.0 mix:0.000 ow_mu:1.000 ow_mx:1.000 alpha:0.000 stage:1.0 p_on:0.0
+--- [Step 0] Rollout True Reward Sum: 3.00 (Active Envs: 4)
+--- [Step 1] Rollout True Reward Sum: 3.00 (Active Envs: 4)
+--- [Step 2] Rollout True Reward Sum: 4.00 (Active Envs: 4)
+--- [Step 3] Rollout True Reward Sum: 4.00 (Active Envs: 4)
+--- [Step 4] Rollout True Reward Sum: 4.00 (Active Envs: 4)
+--- [Step 5] Rollout True Reward Sum: 3.00 (Active Envs: 4)
+--- [Step 6] Rollout True Reward Sum: 3.00 (Active Envs: 4)
+--- [Step 7] Rollout True Reward Sum: 3.00 (Active Envs: 4)
+--- [Step 8] Rollout True Reward Sum: 4.00 (Active Envs: 4)
+--- [Step 9] Rollout True Reward Sum: 4.00 (Active Envs: 4)
+INFO 2026-05-18 15:22:17 ain（v3）.py:1038 step:20 smpl:80 ep:0 epch:0.00 loss:0.000 expert_dorf_loss:0.285 online_dorf_loss:2.125 total_dorf_loss:0.285 margin:0.294 critic_loss:0.047 grdn:0.000 good:181.0 rwrd:3.80 lr:0.0e+00 updt_s:0.000 data_s:99.720 r_gn:5.101 c_gn:0.000 p_gn:0.000 v_mu:-0.015 v_std:0.004 v_mse:0.047 ret_mu:0.077 ret_std:0.192 rw_mu:0.651 rw_std:0.017 at_mu:0.092 at_std:0.194 al_mu:8.503 al_std:3.589 cand:181.0 sel:0.0 mix:0.000 ow_mu:1.000 ow_mx:1.000 alpha:0.000 stage:1.0 p_on:0.0
+--- [Step 10] Rollout True Reward Sum: 4.00 (Active Envs: 4)
+--- [Step 11] Rollout True Reward Sum: 4.00 (Active Envs: 4)
+--- [Step 12] Rollout True Reward Sum: 4.00 (Active Envs: 4)
+--- [Step 13] Rollout True Reward Sum: 4.00 (Active Envs: 4)
+--- [Step 14] Rollout True Reward Sum: 3.00 (Active Envs: 4)
+--- [Step 15] Rollout True Reward Sum: 3.00 (Active Envs: 4)
+--- [Step 16] Rollout True Reward Sum: 4.00 (Active Envs: 4)
+--- [Step 17] Rollout True Reward Sum: 4.00 (Active Envs: 4)
+--- [Step 18] Rollout True Reward Sum: 4.00 (Active Envs: 4)
+--- [Step 19] Rollout True Reward Sum: 4.00 (Active Envs: 4)
+INFO 2026-05-18 15:40:36 ain（v3）.py:1038 step:30 smpl:120 ep:1 epch:0.00 loss:0.000 expert_dorf_loss:0.069 online_dorf_loss:2.219 total_dorf_loss:0.069 margin:-0.292 critic_loss:0.042 grdn:0.000 good:185.9 rwrd:3.70 lr:0.0e+00 updt_s:0.000 data_s:109.877 r_gn:4.091 c_gn:0.000 p_gn:0.000 v_mu:-0.015 v_std:0.004 v_mse:0.042 ret_mu:0.068 ret_std:0.181 rw_mu:1.416 rw_std:0.031 at_mu:0.083 at_std:0.183 al_mu:17.963 al_std:8.290 cand:185.9 sel:0.0 mix:0.000 ow_mu:1.000 ow_mx:1.000 alpha:0.000 stage:1.0 p_on:0.0
+--- [Step 20] Rollout True Reward Sum: 4.00 (Active Envs: 4)
+--- [Step 21] Rollout True Reward Sum: 4.00 (Active Envs: 4)
+--- [Step 22] Rollout True Reward Sum: 4.00 (Active Envs: 4)
+--- [Step 23] Rollout True Reward Sum: 3.00 (Active Envs: 4)
+--- [Step 24] Rollout True Reward Sum: 4.00 (Active Envs: 4)
+--- [Step 25] Rollout True Reward Sum: 4.00 (Active Envs: 4)
+--- [Step 26] Rollout True Reward Sum: 4.00 (Active Envs: 4)
+--- [Step 27] Rollout True Reward Sum: 3.00 (Active Envs: 4)
+--- [Step 28] Rollout True Reward Sum: 4.00 (Active Envs: 4)
+--- [Step 29] Rollout True Reward Sum: 3.00 (Active Envs: 4)
+INFO 2026-05-18 15:58:35 ain（v3）.py:1038 step:40 smpl:160 ep:1 epch:0.00 loss:0.000 expert_dorf_loss:0.065 online_dorf_loss:2.117 total_dorf_loss:0.065 margin:0.488 critic_loss:0.043 grdn:0.000 good:183.6 rwrd:3.60 lr:0.0e+00 updt_s:0.000 data_s:107.947 r_gn:3.743 c_gn:0.000 p_gn:0.000 v_mu:-0.015 v_std:0.004 v_mse:0.043 ret_mu:0.070 ret_std:0.182 rw_mu:1.198 rw_std:0.022 at_mu:0.085 at_std:0.184 al_mu:14.993 al_std:6.928 cand:183.6 sel:0.0 mix:0.000 ow_mu:1.000 ow_mx:1.000 alpha:0.000 stage:1.0 p_on:0.0
+--- [Step 30] Rollout True Reward Sum: 3.00 (Active Envs: 4)
+--- [Step 31] Rollout True Reward Sum: 4.00 (Active Envs: 4)
+--- [Step 32] Rollout True Reward Sum: 3.00 (Active Envs: 4)
+--- [Step 33] Rollout True Reward Sum: 3.00 (Active Envs: 4)
+--- [Step 34] Rollout True Reward Sum: 4.00 (Active Envs: 4)
+--- [Step 35] Rollout True Reward Sum: 4.00 (Active Envs: 4)
+--- [Step 36] Rollout True Reward Sum: 4.00 (Active Envs: 4)
+--- [Step 37] Rollout True Reward Sum: 4.00 (Active Envs: 4)
+--- [Step 38] Rollout True Reward Sum: 3.00 (Active Envs: 4)
+--- [Step 39] Rollout True Reward Sum: 4.00 (Active Envs: 4)
+INFO 2026-05-18 16:17:25 ain（v3）.py:1038 step:50 smpl:200 ep:1 epch:0.00 loss:0.000 expert_dorf_loss:0.038 online_dorf_loss:2.108 total_dorf_loss:0.038 margin:0.331 critic_loss:0.039 grdn:0.000 good:181.8 rwrd:3.50 lr:0.0e+00 updt_s:0.000 data_s:112.919 r_gn:2.283 c_gn:0.000 p_gn:0.000 v_mu:-0.015 v_std:0.004 v_mse:0.039 ret_mu:0.062 ret_std:0.173 rw_mu:1.043 rw_std:0.017 at_mu:0.077 at_std:0.175 al_mu:12.987 al_std:6.343 cand:181.8 sel:0.0 mix:0.000 ow_mu:1.000 ow_mx:1.000 alpha:0.000 stage:1.0 p_on:0.0
+--- [Step 40] Rollout True Reward Sum: 4.00 (Active Envs: 4)
+--- [Step 41] Rollout True Reward Sum: 4.00 (Active Envs: 4)
+--- [Step 42] Rollout True Reward Sum: 4.00 (Active Envs: 4)
+--- [Step 43] Rollout True Reward Sum: 4.00 (Active Envs: 4)
+--- [Step 44] Rollout True Reward Sum: 3.00 (Active Envs: 4)
+--- [Step 45] Rollout True Reward Sum: 3.00 (Active Envs: 4)
+--- [Step 46] Rollout True Reward Sum: 4.00 (Active Envs: 4)
+--- [Step 47] Rollout True Reward Sum: 2.00 (Active Envs: 4)
+--- [Step 48] Rollout True Reward Sum: 3.00 (Active Envs: 4)
+--- [Step 49] Rollout True Reward Sum: 4.00 (Active Envs: 4)
+INFO 2026-05-18 16:36:41 ain（v3）.py:1038 step:60 smpl:240 ep:1 epch:0.00 loss:0.000 expert_dorf_loss:0.021 online_dorf_loss:2.121 total_dorf_loss:0.021 margin:0.305 critic_loss:0.038 grdn:0.000 good:182.9 rwrd:3.40 lr:0.0e+00 updt_s:0.000 data_s:115.659 r_gn:2.162 c_gn:0.000 p_gn:0.000 v_mu:-0.015 v_std:0.004 v_mse:0.038 ret_mu:0.061 ret_std:0.173 rw_mu:1.167 rw_std:0.018 at_mu:0.076 at_std:0.175 al_mu:14.803 al_std:6.774 cand:182.9 sel:0.0 mix:0.000 ow_mu:1.000 ow_mx:1.000 alpha:0.000 stage:1.0 p_on:0.0
+--- [Step 50] Rollout True Reward Sum: 4.00 (Active Envs: 4)
+--- [Step 51] Rollout True Reward Sum: 3.00 (Active Envs: 4)
+--- [Step 52] Rollout True Reward Sum: 4.00 (Active Envs: 4)
+--- [Step 53] Rollout True Reward Sum: 4.00 (Active Envs: 4)
+--- [Step 54] Rollout True Reward Sum: 3.00 (Active Envs: 4)
+--- [Step 55] Rollout True Reward Sum: 4.00 (Active Envs: 4)
+--- [Step 56] Rollout True Reward Sum: 3.00 (Active Envs: 4)
+--- [Step 57] Rollout True Reward Sum: 2.00 (Active Envs: 4)
+--- [Step 58] Rollout True Reward Sum: 4.00 (Active Envs: 4)
+--- [Step 59] Rollout True Reward Sum: 3.00 (Active Envs: 4)
+INFO 2026-05-18 16:54:54 ain（v3）.py:1038 step:70 smpl:280 ep:2 epch:0.00 loss:0.000 expert_dorf_loss:0.012 online_dorf_loss:2.111 total_dorf_loss:0.012 margin:0.318 critic_loss:0.044 grdn:0.000 good:193.0 rwrd:3.80 lr:0.0e+00 updt_s:0.000 data_s:109.280 r_gn:1.883 c_gn:0.000 p_gn:0.000 v_mu:-0.015 v_std:0.004 v_mse:0.044 ret_mu:0.072 ret_std:0.187 rw_mu:1.074 rw_std:0.014 at_mu:0.087 at_std:0.189 al_mu:13.740 al_std:6.264 cand:193.0 sel:0.0 mix:0.000 ow_mu:1.000 ow_mx:1.000 alpha:0.000 stage:1.0 p_on:0.0
+--- [Step 60] Rollout True Reward Sum: 4.00 (Active Envs: 4)
+--- [Step 61] Rollout True Reward Sum: 4.00 (Active Envs: 4)
+--- [Step 62] Rollout True Reward Sum: 4.00 (Active Envs: 4)
+--- [Step 63] Rollout True Reward Sum: 3.00 (Active Envs: 4)
+--- [Step 64] Rollout True Reward Sum: 3.00 (Active Envs: 4)
+--- [Step 65] Rollout True Reward Sum: 4.00 (Active Envs: 4)
+--- [Step 66] Rollout True Reward Sum: 4.00 (Active Envs: 4)
+--- [Step 67] Rollout True Reward Sum: 4.00 (Active Envs: 4)
+--- [Step 68] Rollout True Reward Sum: 4.00 (Active Envs: 4)
+--- [Step 69] Rollout True Reward Sum: 4.00 (Active Envs: 4)
+INFO 2026-05-18 17:12:05 ain（v3）.py:1038 step:80 smpl:320 ep:2 epch:0.00 loss:0.000 expert_dorf_loss:0.006 online_dorf_loss:2.050 total_dorf_loss:0.006 margin:0.662 critic_loss:0.048 grdn:0.000 good:178.0 rwrd:3.80 lr:0.0e+00 updt_s:0.000 data_s:103.088 r_gn:0.975 c_gn:0.000 p_gn:0.000 v_mu:-0.015 v_std:0.004 v_mse:0.048 ret_mu:0.079 ret_std:0.193 rw_mu:1.108 rw_std:0.014 at_mu:0.094 at_std:0.195 al_mu:14.444 al_std:6.184 cand:178.0 sel:0.0 mix:0.000 ow_mu:1.000 ow_mx:1.000 alpha:0.000 stage:1.0 p_on:0.0
+--- [Step 70] Rollout True Reward Sum: 3.00 (Active Envs: 4)
+--- [Step 71] Rollout True Reward Sum: 4.00 (Active Envs: 4)
+--- [Step 72] Rollout True Reward Sum: 4.00 (Active Envs: 4)
+--- [Step 73] Rollout True Reward Sum: 3.00 (Active Envs: 4)
+--- [Step 74] Rollout True Reward Sum: 4.00 (Active Envs: 4)
+--- [Step 75] Rollout True Reward Sum: 4.00 (Active Envs: 4)
+--- [Step 76] Rollout True Reward Sum: 4.00 (Active Envs: 4)
+--- [Step 77] Rollout True Reward Sum: 4.00 (Active Envs: 4)
+--- [Step 78] Rollout True Reward Sum: 4.00 (Active Envs: 4)
+--- [Step 79] Rollout True Reward Sum: 4.00 (Active Envs: 4)
+INFO 2026-05-18 17:29:08 ain（v3）.py:1038 step:90 smpl:360 ep:2 epch:0.00 loss:0.000 expert_dorf_loss:0.004 online_dorf_loss:2.033 total_dorf_loss:0.004 margin:0.402 critic_loss:0.048 grdn:0.000 good:169.2 rwrd:3.80 lr:0.0e+00 updt_s:0.000 data_s:102.240 r_gn:0.942 c_gn:0.000 p_gn:0.000 v_mu:-0.015 v_std:0.004 v_mse:0.048 ret_mu:0.078 ret_std:0.192 rw_mu:1.062 rw_std:0.014 at_mu:0.094 at_std:0.194 al_mu:14.398 al_std:5.417 cand:169.2 sel:0.0 mix:0.000 ow_mu:1.000 ow_mx:1.000 alpha:0.004 stage:2.0 p_on:0.0
+--- [Step 80] Rollout True Reward Sum: 4.00 (Active Envs: 4)
+--- [Step 81] Rollout True Reward Sum: 4.00 (Active Envs: 4)
+--- [Step 82] Rollout True Reward Sum: 4.00 (Active Envs: 4)
+--- [Step 83] Rollout True Reward Sum: 4.00 (Active Envs: 4)
+--- [Step 84] Rollout True Reward Sum: 4.00 (Active Envs: 4)
+--- [Step 85] Rollout True Reward Sum: 4.00 (Active Envs: 4)
+--- [Step 86] Rollout True Reward Sum: 2.00 (Active Envs: 4)
+--- [Step 87] Rollout True Reward Sum: 4.00 (Active Envs: 4)
+--- [Step 88] Rollout True Reward Sum: 4.00 (Active Envs: 4)
+--- [Step 89] Rollout True Reward Sum: 4.00 (Active Envs: 4)
+INFO 2026-05-18 17:47:21 ain（v3）.py:1038 step:100 smpl:400 ep:2 epch:0.00 loss:0.000 expert_dorf_loss:0.002 online_dorf_loss:2.029 total_dorf_loss:0.002 margin:0.806 critic_loss:0.045 grdn:0.000 good:191.2 rwrd:3.80 lr:0.0e+00 updt_s:0.000 data_s:109.280 r_gn:0.447 c_gn:0.000 p_gn:0.000 v_mu:-0.015 v_std:0.004 v_mse:0.045 ret_mu:0.073 ret_std:0.188 rw_mu:1.054 rw_std:0.014 at_mu:0.088 at_std:0.190 al_mu:13.640 al_std:5.963 cand:191.2 sel:0.0 mix:0.000 ow_mu:1.000 ow_mx:1.000 alpha:0.014 stage:2.0 p_on:0.0
+--- [Step 90] Rollout True Reward Sum: 4.00 (Active Envs: 4)
+--- [Step 91] Rollout True Reward Sum: 4.00 (Active Envs: 4)
+--- [Step 92] Rollout True Reward Sum: 4.00 (Active Envs: 4)
+--- [Step 93] Rollout True Reward Sum: 3.00 (Active Envs: 4)
+--- [Step 94] Rollout True Reward Sum: 4.00 (Active Envs: 4)
+--- [Step 95] Rollout True Reward Sum: 4.00 (Active Envs: 4)
+--- [Step 96] Rollout True Reward Sum: 3.00 (Active Envs: 4)
+--- [Step 97] Rollout True Reward Sum: 4.00 (Active Envs: 4)
+--- [Step 98] Rollout True Reward Sum: 4.00 (Active Envs: 4)
+--- [Step 99] Rollout True Reward Sum: 4.00 (Active Envs: 4)
+INFO 2026-05-18 17:47:21 ain（v3）.py:1060 Checkpoint policy after step 100
+INFO 2026-05-18 17:47:23 ain（v3）.py:1082 DORF 状态已保存至: train_logs/Ablation-reward_only/checkpoints/000100/dorf_state.pt
+/root/autodl-tmp/miniconda3/envs/lerobot/lib/python3.10/site-packages/wandb/analytics/sentry.py:279: DeprecationWarning: The `Scope.user` setter is deprecated in favor of `Scope.set_user()`.
+  self.scope.user = {"email": email}
+INFO 2026-05-18 18:05:09 ain（v3）.py:1038 step:110 smpl:440 ep:3 epch:0.00 loss:0.000 expert_dorf_loss:0.002 online_dorf_loss:1.968 total_dorf_loss:0.002 margin:1.074 critic_loss:0.045 grdn:0.000 good:176.9 rwrd:3.70 lr:0.0e+00 updt_s:0.000 data_s:106.063 r_gn:0.608 c_gn:0.000 p_gn:0.000 v_mu:-0.015 v_std:0.004 v_mse:0.045 ret_mu:0.074 ret_std:0.188 rw_mu:1.023 rw_std:0.014 at_mu:0.089 at_std:0.190 al_mu:13.406 al_std:5.762 cand:176.9 sel:0.0 mix:0.000 ow_mu:1.000 ow_mx:1.000 alpha:0.024 stage:2.0 p_on:0.0
+--- [Step 100] Rollout True Reward Sum: 4.00 (Active Envs: 4)
+--- [Step 101] Rollout True Reward Sum: 4.00 (Active Envs: 4)
+--- [Step 102] Rollout True Reward Sum: 4.00 (Active Envs: 4)
+--- [Step 103] Rollout True Reward Sum: 3.00 (Active Envs: 4)
+--- [Step 104] Rollout True Reward Sum: 4.00 (Active Envs: 4)
+--- [Step 105] Rollout True Reward Sum: 2.00 (Active Envs: 4)
+--- [Step 106] Rollout True Reward Sum: 4.00 (Active Envs: 4)
+--- [Step 107] Rollout True Reward Sum: 4.00 (Active Envs: 4)
+--- [Step 108] Rollout True Reward Sum: 4.00 (Active Envs: 4)
+--- [Step 109] Rollout True Reward Sum: 4.00 (Active Envs: 4)
+INFO 2026-05-18 18:23:51 ain（v3）.py:1038 step:120 smpl:480 ep:3 epch:0.00 loss:0.000 expert_dorf_loss:0.001 online_dorf_loss:1.952 total_dorf_loss:0.001 margin:0.825 critic_loss:0.040 grdn:0.000 good:173.8 rwrd:3.40 lr:0.0e+00 updt_s:0.000 data_s:112.181 r_gn:0.299 c_gn:0.000 p_gn:0.000 v_mu:-0.015 v_std:0.004 v_mse:0.040 ret_mu:0.064 ret_std:0.175 rw_mu:1.036 rw_std:0.014 at_mu:0.079 at_std:0.177 al_mu:13.450 al_std:5.963 cand:173.8 sel:0.0 mix:0.000 ow_mu:1.000 ow_mx:1.000 alpha:0.034 stage:2.0 p_on:0.0
+--- [Step 110] Rollout True Reward Sum: 3.00 (Active Envs: 4)
+--- [Step 111] Rollout True Reward Sum: 4.00 (Active Envs: 4)
+--- [Step 112] Rollout True Reward Sum: 4.00 (Active Envs: 4)
+--- [Step 113] Rollout True Reward Sum: 4.00 (Active Envs: 4)
+--- [Step 114] Rollout True Reward Sum: 2.00 (Active Envs: 4)
+--- [Step 115] Rollout True Reward Sum: 4.00 (Active Envs: 4)
+--- [Step 116] Rollout True Reward Sum: 3.00 (Active Envs: 4)
+--- [Step 117] Rollout True Reward Sum: 4.00 (Active Envs: 4)
+--- [Step 118] Rollout True Reward Sum: 2.00 (Active Envs: 4)
+--- [Step 119] Rollout True Reward Sum: 4.00 (Active Envs: 4)
+INFO 2026-05-18 18:43:05 ain（v3）.py:1038 step:130 smpl:520 ep:3 epch:0.00 loss:0.000 expert_dorf_loss:0.001 online_dorf_loss:1.939 total_dorf_loss:0.001 margin:0.889 critic_loss:0.039 grdn:0.000 good:187.4 rwrd:3.50 lr:0.0e+00 updt_s:0.000 data_s:115.380 r_gn:0.321 c_gn:0.000 p_gn:0.000 v_mu:-0.015 v_std:0.004 v_mse:0.039 ret_mu:0.062 ret_std:0.175 rw_mu:1.043 rw_std:0.014 at_mu:0.077 at_std:0.177 al_mu:13.056 al_std:6.299 cand:187.4 sel:0.0 mix:0.000 ow_mu:1.000 ow_mx:1.000 alpha:0.044 stage:2.0 p_on:0.0
+--- [Step 120] Rollout True Reward Sum: 4.00 (Active Envs: 4)
+--- [Step 121] Rollout True Reward Sum: 3.00 (Active Envs: 4)
+--- [Step 122] Rollout True Reward Sum: 4.00 (Active Envs: 4)
+--- [Step 123] Rollout True Reward Sum: 3.00 (Active Envs: 4)
+--- [Step 124] Rollout True Reward Sum: 4.00 (Active Envs: 4)
+--- [Step 125] Rollout True Reward Sum: 4.00 (Active Envs: 4)
+--- [Step 126] Rollout True Reward Sum: 3.00 (Active Envs: 4)
+--- [Step 127] Rollout True Reward Sum: 2.00 (Active Envs: 4)
+--- [Step 128] Rollout True Reward Sum: 4.00 (Active Envs: 4)
+--- [Step 129] Rollout True Reward Sum: 4.00 (Active Envs: 4)
+INFO 2026-05-18 19:01:44 ain（v3）.py:1038 step:140 smpl:560 ep:3 epch:0.00 loss:0.000 expert_dorf_loss:0.001 online_dorf_loss:1.951 total_dorf_loss:0.001 margin:1.068 critic_loss:0.042 grdn:0.000 good:192.4 rwrd:3.70 lr:0.0e+00 updt_s:0.000 data_s:111.890 r_gn:0.419 c_gn:0.000 p_gn:0.000 v_mu:-0.015 v_std:0.004 v_mse:0.042 ret_mu:0.068 ret_std:0.183 rw_mu:1.024 rw_std:0.014 at_mu:0.083 at_std:0.185 al_mu:13.235 al_std:5.873 cand:192.4 sel:0.0 mix:0.000 ow_mu:1.000 ow_mx:1.000 alpha:0.054 stage:2.0 p_on:0.0
+--- [Step 130] Rollout True Reward Sum: 3.00 (Active Envs: 4)
+--- [Step 131] Rollout True Reward Sum: 4.00 (Active Envs: 4)
+--- [Step 132] Rollout True Reward Sum: 3.00 (Active Envs: 4)
+--- [Step 133] Rollout True Reward Sum: 4.00 (Active Envs: 4)
+--- [Step 134] Rollout True Reward Sum: 4.00 (Active Envs: 4)
+--- [Step 135] Rollout True Reward Sum: 4.00 (Active Envs: 4)
+--- [Step 136] Rollout True Reward Sum: 4.00 (Active Envs: 4)
+--- [Step 137] Rollout True Reward Sum: 4.00 (Active Envs: 4)
+--- [Step 138] Rollout True Reward Sum: 4.00 (Active Envs: 4)
+--- [Step 139] Rollout True Reward Sum: 3.00 (Active Envs: 4)
+INFO 2026-05-18 19:22:22 ain（v3）.py:1038 step:150 smpl:600 ep:4 epch:0.00 loss:0.000 expert_dorf_loss:0.001 online_dorf_loss:1.887 total_dorf_loss:0.001 margin:1.100 critic_loss:0.033 grdn:0.000 good:175.0 rwrd:3.10 lr:0.0e+00 updt_s:0.000 data_s:123.847 r_gn:0.211 c_gn:0.000 p_gn:0.000 v_mu:-0.014 v_std:0.004 v_mse:0.033 ret_mu:0.053 ret_std:0.161 rw_mu:1.021 rw_std:0.015 at_mu:0.067 at_std:0.163 al_mu:12.662 al_std:6.213 cand:175.0 sel:0.0 mix:0.000 ow_mu:1.000 ow_mx:1.000 alpha:0.065 stage:2.0 p_on:0.0
+--- [Step 140] Rollout True Reward Sum: 3.00 (Active Envs: 4)
+--- [Step 141] Rollout True Reward Sum: 2.00 (Active Envs: 4)
+--- [Step 142] Rollout True Reward Sum: 2.00 (Active Envs: 4)
+--- [Step 143] Rollout True Reward Sum: 2.00 (Active Envs: 4)
+--- [Step 144] Rollout True Reward Sum: 4.00 (Active Envs: 4)
+--- [Step 145] Rollout True Reward Sum: 4.00 (Active Envs: 4)
+--- [Step 146] Rollout True Reward Sum: 4.00 (Active Envs: 4)
+--- [Step 147] Rollout True Reward Sum: 4.00 (Active Envs: 4)
+--- [Step 148] Rollout True Reward Sum: 3.00 (Active Envs: 4)
+--- [Step 149] Rollout True Reward Sum: 3.00 (Active Envs: 4)
+Running rollout with at most 280 steps:  33%|███▎      | 93/280 [00:39<01:29,  2.10it/s, running_success_rate=0.0%]   
+--- [Step 150] Rollout True Reward Sum: 4.00 (Active Envs: 4)
+--- [Step 151] Rollout True Reward Sum: 4.00 (Active Envs: 4)
+--- [Step 152] Rollout True Reward Sum: 3.00 (Active Envs: 4)
+--- [Step 153] Rollout True Reward Sum: 3.00 (Active Envs: 4)
+--- [Step 154] Rollout True Reward Sum: 4.00 (Active Envs: 4)
+--- [Step 155] Rollout True Reward Sum: 4.00 (Active Envs: 4)
+--- [Step 156] Rollout True Reward Sum: 4.00 (Active Envs: 4)

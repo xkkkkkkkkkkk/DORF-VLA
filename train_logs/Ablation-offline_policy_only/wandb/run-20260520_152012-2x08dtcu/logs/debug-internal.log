@@ -1,0 +1,9 @@
+{"time":"2026-05-20T15:20:13.211840274+08:00","level":"INFO","msg":"stream: starting","core version":"0.24.2"}
+{"time":"2026-05-20T15:20:15.039250485+08:00","level":"INFO","msg":"stream: created new stream","id":"2x08dtcu"}
+{"time":"2026-05-20T15:20:15.039309917+08:00","level":"INFO","msg":"handler: started","stream_id":"2x08dtcu"}
+{"time":"2026-05-20T15:20:15.039401104+08:00","level":"INFO","msg":"stream: started","id":"2x08dtcu"}
+{"time":"2026-05-20T15:20:15.039411246+08:00","level":"INFO","msg":"writer: started","stream_id":"2x08dtcu"}
+{"time":"2026-05-20T15:20:15.039418047+08:00","level":"INFO","msg":"sender: started","stream_id":"2x08dtcu"}
+{"time":"2026-05-20T15:36:49.932531349+08:00","level":"INFO","msg":"api: retrying HTTP error","status":500,"url":"https://api.wandb.ai/files/x-k/Ablation-offline_policy_only/2x08dtcu/file_stream","body":"{\"error\":\"context deadline exceeded\"}"}
+{"time":"2026-05-20T15:39:03.852085467+08:00","level":"INFO","msg":"api: retrying HTTP error","status":500,"url":"https://api.wandb.ai/files/x-k/Ablation-offline_policy_only/2x08dtcu/file_stream","body":"{\"error\":\"context deadline exceeded\"}"}
+{"time":"2026-05-20T15:39:44.516321693+08:00","level":"INFO","msg":"stream: closing","id":"2x08dtcu"}

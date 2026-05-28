@@ -279,12 +279,13 @@ def train(cfg: TrainPipelineConfig, accelerator: Accelerator | None = None):
         logging.info("正在初始化本地官方数据集加载器...")
     
     # 指向你复刻的 snapshots 路径
-    latest_snapshot = "/root/.cache/huggingface/hub/datasets--HuggingFaceVLA--libero/snapshots/86958911c0f959db2bbbdb107eb3e17c5f9c798e"
+    # local_dataset_root = "/root/.cache/huggingface/hub/datasets--HuggingFaceVLA--libero/snapshots/86958911c0f959db2bbbdb107eb3e17c5f9c798e"
+    local_dataset_root = "/root/autodl-fs/hf_libero_full"
         
     # 1. 自动探测本地已有的分片范围
-    parquet_files = sorted(glob.glob(os.path.join(latest_snapshot, "data/chunk-000/*.parquet")))
+    parquet_files = sorted(glob.glob(os.path.join(local_dataset_root, "data/chunk-000/*.parquet")))
     if not parquet_files:
-        raise FileNotFoundError(f"在 {latest_snapshot} 下未找到数据分片，请检查路径。")
+        raise FileNotFoundError(f"在 {local_dataset_root} 下未找到数据分片，请检查路径。")
         
     # 读取最后一个分片，获取最大 Episode 索引
     df_last = pd.read_parquet(parquet_files[-1])
@@ -294,8 +295,8 @@ def train(cfg: TrainPipelineConfig, accelerator: Accelerator | None = None):
     # 2. 调用官方 LeRobotDataset 
     '''dataset = LeRobotDataset(
         repo_id="HuggingFaceVLA/libero",
-        root=latest_snapshot,
-        revision="86958911c0f959db2bbbdb107eb3e17c5f9c798e", # 锁死哈希，跳过版本查询
+        root=local_dataset_root,
+        revision="None", # 锁死哈希，跳过版本查询
         episodes=list(range(max_ep_idx + 1)),  
         n_action_steps=cfg.policy.chunk_size if hasattr(cfg.policy, "chunk_size") else None,
         n_obs_steps=cfg.policy.n_obs_steps if hasattr(cfg.policy, "n_obs_steps") else 1,          # 只请求本地有的 Episode
@@ -629,7 +630,7 @@ def train(cfg: TrainPipelineConfig, accelerator: Accelerator | None = None):
                 logging.warning("Loaded legacy opt_dorf state; reward/critic optimizers will restart fresh for full decoupling.")
             if is_main_process:
                 logging.info("成功加载断点重续的 DORF 权重！")
-
+    # 消融超参
     dorf_online_start_steps = 80  # 阶段 1 -> 2：奖励模型何时开始看在线数据
     vla_update_start_steps = 200  # 阶段 2 -> 3：VLA 何时开始利用在线数据微调
     experiment_name = "full_pipeline_default"
@@ -638,10 +639,10 @@ def train(cfg: TrainPipelineConfig, accelerator: Accelerator | None = None):
     lambda_expert = 1.0
     lambda_online = 0.1
     lambda_critic = 0.2
-    alpha_warmup_steps = 1000
+    alpha_warmup_steps = 300
     stage3_margin_threshold = 0.1
-    online_mix_ratio_max = 0.25
-    online_mix_warmup_steps = 1000
+    online_mix_ratio_max = 0.5
+    online_mix_warmup_steps = 300
     online_weight_scale = 0.5
     selection_mode = "top_quantile"
     selection_quantile = 0.75
@@ -1130,7 +1131,11 @@ def train(cfg: TrainPipelineConfig, accelerator: Accelerator | None = None):
                 if wandb_logger:
                     wandb_log_dict = {**eval_tracker.to_dict(), **eval_info}
                     wandb_logger.log_dict(wandb_log_dict, step, mode="eval")
-                    wandb_logger.log_video(eval_info["overall"]["video_paths"][0], step, mode="eval")
+
+                    video_paths = eval_info.get("overall", {}).get("video_paths", [])
+                    if len(video_paths) > 0:
+                        wandb_logger.log_video(video_paths[0], step, mode="eval")
+                    # wandb_logger.log_video(eval_info["overall"]["video_paths"][0], step, mode="eval")
 
             accelerator.wait_for_everyone()
 

@@ -1,0 +1,149 @@
+INFO 2026-05-19 13:00:15 db_utils.py:106 Logs will be synced with wandb.
+INFO 2026-05-19 13:00:15 db_utils.py:107 Track this run --> https://wandb.ai/x-k/Ablation-reward_full_no_policy/runs/ff3224ol
+INFO 2026-05-19 13:00:15 rain（v3）.py:279 正在初始化本地官方数据集加载器...
+INFO 2026-05-19 13:00:15 rain（v3）.py:292 本地数据覆盖至 Episode 19，将仅加载此范围内索引。
+INFO 2026-05-19 13:00:15 rain（v3）.py:319 Creating env
+[robosuite WARNING] No private macro file found! (__init__.py:7)
+WARNING 2026-05-19 13:00:15 e/__init__.py:7 No private macro file found!
+[robosuite WARNING] It is recommended to use a private macro file (__init__.py:8)
+WARNING 2026-05-19 13:00:15 e/__init__.py:8 It is recommended to use a private macro file
+[robosuite WARNING] To setup, run: python /root/autodl-tmp/miniconda3/envs/lerobot/lib/python3.10/site-packages/robosuite/scripts/setup_macros.py (__init__.py:9)
+WARNING 2026-05-19 13:00:15 e/__init__.py:9 To setup, run: python /root/autodl-tmp/miniconda3/envs/lerobot/lib/python3.10/site-packages/robosuite/scripts/setup_macros.py
+INFO 2026-05-19 13:00:15 tesupport.py:24 No OpenGL_accelerate module loaded: No module named 'OpenGL_accelerate'
+Creating LIBERO envs | suites=['libero_object'] | n_envs(per task)=4 | init_states=True
+[info] using task orders [0, 1, 2, 3, 4, 5, 6, 7, 8, 9]
+Built vec env | suite=libero_object | task_id=0 | n_envs=4
+Built vec env | suite=libero_object | task_id=1 | n_envs=4
+Built vec env | suite=libero_object | task_id=2 | n_envs=4
+Built vec env | suite=libero_object | task_id=3 | n_envs=4
+Built vec env | suite=libero_object | task_id=4 | n_envs=4
+Built vec env | suite=libero_object | task_id=5 | n_envs=4
+Built vec env | suite=libero_object | task_id=6 | n_envs=4
+Built vec env | suite=libero_object | task_id=7 | n_envs=4
+Built vec env | suite=libero_object | task_id=8 | n_envs=4
+Built vec env | suite=libero_object | task_id=9 | n_envs=4
+INFO 2026-05-19 13:01:38 rain（v3）.py:323 Creating policy
+Loading  HuggingFaceTB/SmolVLM2-500M-Instruct weights ...
+`torch_dtype` is deprecated! Use `dtype` instead!
+'[Errno 101] Network is unreachable' thrown while requesting HEAD https://huggingface.co/HuggingFaceTB/SmolVLM2-500M-Instruct/resolve/main/chat_template.jinja
+WARNING 2026-05-19 13:03:41 ls/_http.py:420 '[Errno 101] Network is unreachable' thrown while requesting HEAD https://huggingface.co/HuggingFaceTB/SmolVLM2-500M-Instruct/resolve/main/chat_template.jinja
+Retrying in 1s [Retry 1/5].
+WARNING 2026-05-19 13:03:41 ls/_http.py:433 Retrying in 1s [Retry 1/5].
+Traceback (most recent call last):
+  File "/root/autodl-tmp/miniconda3/envs/lerobot/lib/python3.10/site-packages/transformers/processing_utils.py", line 994, in get_processor_dict
+    resolved_raw_chat_template_file = cached_file(
+  File "/root/autodl-tmp/miniconda3/envs/lerobot/lib/python3.10/site-packages/transformers/utils/hub.py", line 276, in cached_file
+    file = cached_files(path_or_repo_id=path_or_repo_id, filenames=[filename], **kwargs)
+  File "/root/autodl-tmp/miniconda3/envs/lerobot/lib/python3.10/site-packages/transformers/utils/hub.py", line 507, in cached_files
+    raise e
+  File "/root/autodl-tmp/miniconda3/envs/lerobot/lib/python3.10/site-packages/transformers/utils/hub.py", line 419, in cached_files
+    hf_hub_download(
+  File "/root/autodl-tmp/miniconda3/envs/lerobot/lib/python3.10/site-packages/huggingface_hub/utils/_validators.py", line 89, in _inner_fn
+    return fn(*args, **kwargs)
+  File "/root/autodl-tmp/miniconda3/envs/lerobot/lib/python3.10/site-packages/huggingface_hub/file_download.py", line 1024, in hf_hub_download
+    return _hf_hub_download_to_cache_dir(
+  File "/root/autodl-tmp/miniconda3/envs/lerobot/lib/python3.10/site-packages/huggingface_hub/file_download.py", line 1157, in _hf_hub_download_to_cache_dir
+    _get_metadata_or_catch_error(
+  File "/root/autodl-tmp/miniconda3/envs/lerobot/lib/python3.10/site-packages/huggingface_hub/file_download.py", line 1691, in _get_metadata_or_catch_error
+    metadata = get_hf_file_metadata(
+  File "/root/autodl-tmp/miniconda3/envs/lerobot/lib/python3.10/site-packages/huggingface_hub/utils/_validators.py", line 89, in _inner_fn
+    return fn(*args, **kwargs)
+  File "/root/autodl-tmp/miniconda3/envs/lerobot/lib/python3.10/site-packages/huggingface_hub/file_download.py", line 1614, in get_hf_file_metadata
+    response = _httpx_follow_relative_redirects(
+  File "/root/autodl-tmp/miniconda3/envs/lerobot/lib/python3.10/site-packages/huggingface_hub/file_download.py", line 302, in _httpx_follow_relative_redirects
+    response = http_backoff(
+  File "/root/autodl-tmp/miniconda3/envs/lerobot/lib/python3.10/site-packages/huggingface_hub/utils/_http.py", line 506, in http_backoff
+    return next(
+  File "/root/autodl-tmp/miniconda3/envs/lerobot/lib/python3.10/site-packages/huggingface_hub/utils/_http.py", line 414, in _http_backoff_base
+    response = client.request(method=method, url=url, **kwargs)
+  File "/root/autodl-tmp/miniconda3/envs/lerobot/lib/python3.10/site-packages/httpx/_client.py", line 825, in request
+    return self.send(request, auth=auth, follow_redirects=follow_redirects)
+  File "/root/autodl-tmp/miniconda3/envs/lerobot/lib/python3.10/site-packages/httpx/_client.py", line 901, in send
+    raise RuntimeError("Cannot send a request, as the client has been closed.")
+RuntimeError: Cannot send a request, as the client has been closed.
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "/root/autodl-tmp/lerobot/src/lerobot/scripts/tlofVLA_train（v3）.py", line 1163, in <module>
+    main()
+  File "/root/autodl-tmp/lerobot/src/lerobot/scripts/tlofVLA_train（v3）.py", line 1159, in main
+    train()
+  File "/root/autodl-tmp/lerobot/src/lerobot/configs/parser.py", line 233, in wrapper_inner
+    response = fn(cfg, *args, **kwargs)
+  File "/root/autodl-tmp/lerobot/src/lerobot/scripts/tlofVLA_train（v3）.py", line 324, in train
+    policy = make_policy(
+  File "/root/autodl-tmp/lerobot/src/lerobot/policies/factory.py", line 492, in make_policy
+    policy = policy_cls.from_pretrained(**kwargs)
+  File "/root/autodl-tmp/lerobot/src/lerobot/policies/pretrained.py", line 108, in from_pretrained
+    instance = cls(config, **kwargs)
+  File "/root/autodl-tmp/lerobot/src/lerobot/policies/smolvla/modeling_smolvla.py", line 246, in __init__
+    self.model = VLAFlowMatching(config, rtc_processor=self.rtc_processor)
+  File "/root/autodl-tmp/lerobot/src/lerobot/policies/smolvla/modeling_smolvla.py", line 559, in __init__
+    self.vlm_with_expert = SmolVLMWithExpertModel(
+  File "/root/autodl-tmp/lerobot/src/lerobot/policies/smolvla/smolvlm_with_expert.py", line 88, in __init__
+    self.processor = AutoProcessor.from_pretrained(model_id)
+  File "/root/autodl-tmp/miniconda3/envs/lerobot/lib/python3.10/site-packages/transformers/models/auto/processing_auto.py", line 300, in from_pretrained
+    config_dict, _ = ProcessorMixin.get_processor_dict(pretrained_model_name_or_path, **kwargs)
+  File "/root/autodl-tmp/miniconda3/envs/lerobot/lib/python3.10/site-packages/transformers/processing_utils.py", line 1044, in get_processor_dict
+    raise OSError(
+OSError: Can't load processor for 'HuggingFaceTB/SmolVLM2-500M-Instruct'. If you were trying to load it from 'https://huggingface.co/models', make sure you don't have a local directory with the same name. Otherwise, make sure 'HuggingFaceTB/SmolVLM2-500M-Instruct' is the correct path to a directory containing a processor_config.json file
+Traceback (most recent call last):
+  File "/root/autodl-tmp/miniconda3/envs/lerobot/lib/python3.10/site-packages/transformers/processing_utils.py", line 994, in get_processor_dict
+    resolved_raw_chat_template_file = cached_file(
+  File "/root/autodl-tmp/miniconda3/envs/lerobot/lib/python3.10/site-packages/transformers/utils/hub.py", line 276, in cached_file
+    file = cached_files(path_or_repo_id=path_or_repo_id, filenames=[filename], **kwargs)
+  File "/root/autodl-tmp/miniconda3/envs/lerobot/lib/python3.10/site-packages/transformers/utils/hub.py", line 507, in cached_files
+    raise e
+  File "/root/autodl-tmp/miniconda3/envs/lerobot/lib/python3.10/site-packages/transformers/utils/hub.py", line 419, in cached_files
+    hf_hub_download(
+  File "/root/autodl-tmp/miniconda3/envs/lerobot/lib/python3.10/site-packages/huggingface_hub/utils/_validators.py", line 89, in _inner_fn
+    return fn(*args, **kwargs)
+  File "/root/autodl-tmp/miniconda3/envs/lerobot/lib/python3.10/site-packages/huggingface_hub/file_download.py", line 1024, in hf_hub_download
+    return _hf_hub_download_to_cache_dir(
+  File "/root/autodl-tmp/miniconda3/envs/lerobot/lib/python3.10/site-packages/huggingface_hub/file_download.py", line 1157, in _hf_hub_download_to_cache_dir
+    _get_metadata_or_catch_error(
+  File "/root/autodl-tmp/miniconda3/envs/lerobot/lib/python3.10/site-packages/huggingface_hub/file_download.py", line 1691, in _get_metadata_or_catch_error
+    metadata = get_hf_file_metadata(
+  File "/root/autodl-tmp/miniconda3/envs/lerobot/lib/python3.10/site-packages/huggingface_hub/utils/_validators.py", line 89, in _inner_fn
+    return fn(*args, **kwargs)
+  File "/root/autodl-tmp/miniconda3/envs/lerobot/lib/python3.10/site-packages/huggingface_hub/file_download.py", line 1614, in get_hf_file_metadata
+    response = _httpx_follow_relative_redirects(
+  File "/root/autodl-tmp/miniconda3/envs/lerobot/lib/python3.10/site-packages/huggingface_hub/file_download.py", line 302, in _httpx_follow_relative_redirects
+    response = http_backoff(
+  File "/root/autodl-tmp/miniconda3/envs/lerobot/lib/python3.10/site-packages/huggingface_hub/utils/_http.py", line 506, in http_backoff
+    return next(
+  File "/root/autodl-tmp/miniconda3/envs/lerobot/lib/python3.10/site-packages/huggingface_hub/utils/_http.py", line 414, in _http_backoff_base
+    response = client.request(method=method, url=url, **kwargs)
+  File "/root/autodl-tmp/miniconda3/envs/lerobot/lib/python3.10/site-packages/httpx/_client.py", line 825, in request
+    return self.send(request, auth=auth, follow_redirects=follow_redirects)
+  File "/root/autodl-tmp/miniconda3/envs/lerobot/lib/python3.10/site-packages/httpx/_client.py", line 901, in send
+    raise RuntimeError("Cannot send a request, as the client has been closed.")
+RuntimeError: Cannot send a request, as the client has been closed.
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "/root/autodl-tmp/lerobot/src/lerobot/scripts/tlofVLA_train（v3）.py", line 1163, in <module>
+    main()
+  File "/root/autodl-tmp/lerobot/src/lerobot/scripts/tlofVLA_train（v3）.py", line 1159, in main
+    train()
+  File "/root/autodl-tmp/lerobot/src/lerobot/configs/parser.py", line 233, in wrapper_inner
+    response = fn(cfg, *args, **kwargs)
+  File "/root/autodl-tmp/lerobot/src/lerobot/scripts/tlofVLA_train（v3）.py", line 324, in train
+    policy = make_policy(
+  File "/root/autodl-tmp/lerobot/src/lerobot/policies/factory.py", line 492, in make_policy
+    policy = policy_cls.from_pretrained(**kwargs)
+  File "/root/autodl-tmp/lerobot/src/lerobot/policies/pretrained.py", line 108, in from_pretrained
+    instance = cls(config, **kwargs)
+  File "/root/autodl-tmp/lerobot/src/lerobot/policies/smolvla/modeling_smolvla.py", line 246, in __init__
+    self.model = VLAFlowMatching(config, rtc_processor=self.rtc_processor)
+  File "/root/autodl-tmp/lerobot/src/lerobot/policies/smolvla/modeling_smolvla.py", line 559, in __init__
+    self.vlm_with_expert = SmolVLMWithExpertModel(
+  File "/root/autodl-tmp/lerobot/src/lerobot/policies/smolvla/smolvlm_with_expert.py", line 88, in __init__
+    self.processor = AutoProcessor.from_pretrained(model_id)
+  File "/root/autodl-tmp/miniconda3/envs/lerobot/lib/python3.10/site-packages/transformers/models/auto/processing_auto.py", line 300, in from_pretrained
+    config_dict, _ = ProcessorMixin.get_processor_dict(pretrained_model_name_or_path, **kwargs)
+  File "/root/autodl-tmp/miniconda3/envs/lerobot/lib/python3.10/site-packages/transformers/processing_utils.py", line 1044, in get_processor_dict
+    raise OSError(
+OSError: Can't load processor for 'HuggingFaceTB/SmolVLM2-500M-Instruct'. If you were trying to load it from 'https://huggingface.co/models', make sure you don't have a local directory with the same name. Otherwise, make sure 'HuggingFaceTB/SmolVLM2-500M-Instruct' is the correct path to a directory containing a processor_config.json file
