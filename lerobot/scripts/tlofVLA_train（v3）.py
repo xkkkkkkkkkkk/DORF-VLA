@@ -196,6 +196,68 @@ def ensure_batch_tasks(batch: dict[str, Any], dataset: LeRobotDataset) -> dict[s
     batch["task"] = [task_text] * batch_size
     return batch
 
+
+def build_online_policy_batch(
+    template_batch: dict[str, Any],
+    dataset: LeRobotDataset,
+    obs_dict: dict[str, torch.Tensor],
+    actions: torch.Tensor,
+    states: torch.Tensor,
+    selected_b: torch.Tensor,
+    selected_s: torch.Tensor,
+    sample_weights_full: torch.Tensor,
+    online_weight_scale: float,
+) -> tuple[dict[str, Any], torch.Tensor]:
+    chunk_size = template_batch["action"].shape[1]
+    current_task_template = resolve_task_template(template_batch, dataset)
+
+    online_batch = {
+        "action": [],
+        "observation.state": [],
+        "observation.images.image": [],
+        "observation.images.image2": [],
+        "task": [],
+    }
+    online_weights: list[float] = []
+
+    for idx in range(len(selected_b)):
+        b = selected_b[idx].item()
+        s = selected_s[idx].item()
+        start_s = max(0, min(s - (chunk_size // 2), actions.shape[1] - chunk_size))
+        end_s = start_s + chunk_size
+
+        online_batch["action"].append(actions[b, start_s:end_s].cpu())
+        online_batch["observation.state"].append(states[b, start_s].unsqueeze(0).cpu())
+
+        for img_key in ["observation.images.image", "observation.images.image2"]:
+            target_h, target_w = template_batch[img_key].shape[-2:]
+            img_raw = obs_dict[img_key][b, start_s].cpu().float()
+            img_resized = F.interpolate(
+                img_raw.unsqueeze(0),
+                size=(target_h, target_w),
+                mode="bilinear",
+            ).squeeze(0)
+            online_batch[img_key].append(img_resized)
+
+        online_batch["task"].append(current_task_template)
+        online_weights.append(sample_weights_full[b, s].item())
+
+    finalized_batch: dict[str, Any] = {}
+    for key, values in online_batch.items():
+        if key == "task":
+            finalized_batch["task"] = values
+            continue
+
+        tensor = torch.stack(values)
+        if key in ["observation.images.image", "observation.images.image2"] and template_batch[key].ndim == 5 and tensor.ndim == 4:
+            tensor = tensor.unsqueeze(1)
+        finalized_batch[key] = tensor
+
+    weights = torch.tensor(online_weights, dtype=torch.float32)
+    weights = weights * online_weight_scale
+    weights = weights / (weights.mean() + 1e-8)
+    return finalized_batch, weights
+
 def flatten_robot_state(d):
             """递归扁平化 robot_state 字典并拼接"""
             tensors = []
@@ -589,6 +651,10 @@ def train(cfg: TrainPipelineConfig, accelerator: Accelerator | None = None):
         "alpha": AverageMeter("alpha", ":.3f"),
         "stage": AverageMeter("stage", ":.1f"),
         "policy_updates_enabled": AverageMeter("p_on", ":.1f"),
+        "reward_ready": AverageMeter("r_ok", ":.1f"),
+        "critic_ready": AverageMeter("c_ok", ":.1f"),
+        "policy_update_ready": AverageMeter("pu_ok", ":.1f"),
+        "policy_batch_size": AverageMeter("pb", ":.1f"),
     }
 
     # Use effective batch size for proper epoch calculation in distributed training
@@ -646,19 +712,20 @@ def train(cfg: TrainPipelineConfig, accelerator: Accelerator | None = None):
                 logging.warning("Loaded legacy opt_dorf state; reward/critic optimizers will restart fresh for full decoupling.")
             if is_main_process:
                 logging.info("成功加载断点重续的 DORF 权重！")
-    # 消融超参
-    dorf_online_start_steps = 80  # 阶段 1 -> 2：奖励模型何时开始看在线数据
-    vla_update_start_steps = 200  # 阶段 2 -> 3：VLA 何时开始利用在线数据微调
+    # 三阶段定义:
+    # Stage 1: 仅训练 reward(expert)
+    # Stage 2: 训练 reward(expert+online) + critic
+    # Stage 3: 只有 reward/critic 达到可用门槛后，policy 才允许更新，并且 policy 只吃 online samples
+    dorf_online_start_steps = 80  # reward 开始接 online target
+    policy_update_start_steps = 200  # policy 最早允许更新的步数
     experiment_name = "full_pipeline_default"
     freeze_policy_updates = False
-    disable_online_mixing = False
     lambda_expert = 1.0
     lambda_online = 0.1
     lambda_critic = 0.2
     alpha_warmup_steps = 300
-    stage3_margin_threshold = 0.1
-    online_mix_ratio_max = 0.5
-    online_mix_warmup_steps = 300
+    reward_margin_threshold = 0.1
+    critic_ready_threshold = 0.02
     online_weight_scale = 0.5
     selection_mode = "top_quantile"
     selection_quantile = 0.75
@@ -669,10 +736,10 @@ def train(cfg: TrainPipelineConfig, accelerator: Accelerator | None = None):
 
     if is_main_process:
         logging.info(
-            "Experiment profile: %s | freeze_policy_updates=%s | disable_online_mixing=%s",
+            "Experiment profile: %s | freeze_policy_updates=%s | policy_update_start_steps=%s",
             experiment_name,
             freeze_policy_updates,
-            disable_online_mixing,
+            policy_update_start_steps,
         )
     last_valid_margin = torch.tensor(0.0, device=device)
     for _ in range(step, cfg.steps):
@@ -867,23 +934,33 @@ def train(cfg: TrainPipelineConfig, accelerator: Accelerator | None = None):
              
         output_dict["dorf/critic_margin"] = margin.item()
         output_dict["dorf/reward_margin"] = margin.item()
-        is_stage_3 = (step >= vla_update_start_steps) and (margin.item() > stage3_margin_threshold)
-        current_online_mix_ratio = (
-            online_mix_ratio_max * linear_warmup_ratio(step - vla_update_start_steps, online_mix_warmup_steps)
-            if is_stage_3
-            else 0.0
+        is_stage_1 = step < dorf_online_start_steps
+        is_stage_2 = dorf_online_start_steps <= step < policy_update_start_steps
+        is_stage_3 = step >= policy_update_start_steps
+        current_stage = 1 if is_stage_1 else (2 if is_stage_2 else 3)
+        reward_ready = margin.item() > reward_margin_threshold
+        critic_ready = value_target_mse.item() < critic_ready_threshold
+        policy_update_ready = (
+            is_stage_3
+            and reward_ready
+            and critic_ready
+            and candidate_count > 0
+            and not freeze_policy_updates
         )
-        if disable_online_mixing:
-            current_online_mix_ratio = 0.0
-        num_to_replace = min(int(cfg.batch_size * current_online_mix_ratio), candidate_count) if is_stage_3 else 0
-        current_stage = 1 if step < dorf_online_start_steps else (3 if is_stage_3 else 2)
+        policy_batch_size = min(cfg.batch_size, candidate_count) if policy_update_ready else 0
+        current_online_mix_ratio = policy_batch_size / max(1, cfg.batch_size)
+
         train_tracker.margin = margin.item()
         train_tracker.online_candidates = candidate_count
-        train_tracker.selected_steps = num_to_replace
+        train_tracker.selected_steps = policy_batch_size
         train_tracker.online_mix_ratio = current_online_mix_ratio
         train_tracker.stage = current_stage
+        train_tracker.reward_ready = float(reward_ready)
+        train_tracker.critic_ready = float(critic_ready)
+        train_tracker.policy_update_ready = float(policy_update_ready)
+        train_tracker.policy_batch_size = float(policy_batch_size)
         output_dict["dorf/stage"] = current_stage
-        output_dict["dorf/vla_updating"] = int(is_stage_3)
+        output_dict["dorf/vla_updating"] = int(policy_update_ready)
         output_dict["dorf/online_loss_weight"] = alpha
         output_dict["dorf/online_loss"] = online_dorf_loss.item() if step >= dorf_online_start_steps else 0.0
         output_dict["dorf/critic_loss"] = critic_loss.item() if step >= dorf_online_start_steps else 0.0
@@ -906,138 +983,70 @@ def train(cfg: TrainPipelineConfig, accelerator: Accelerator | None = None):
         output_dict["dorf/A_learned_mean"] = A_learned.mean().item()
         output_dict["dorf/A_learned_std"] = A_learned.std().item()
         output_dict["dorf/online_candidates"] = candidate_count
-        output_dict["dorf/selected_steps"] = num_to_replace
+        output_dict["dorf/selected_steps"] = policy_batch_size
         output_dict["dorf/online_mix_ratio"] = current_online_mix_ratio
         output_dict["dorf/lambda_expert"] = current_lambda_expert
         output_dict["dorf/lambda_online"] = current_lambda_online
         output_dict["dorf/lambda_critic"] = current_lambda_critic
+        output_dict["dorf/reward_ready"] = int(reward_ready)
+        output_dict["dorf/critic_ready"] = int(critic_ready)
+        output_dict["dorf/policy_update_ready"] = int(policy_update_ready)
+        output_dict["dorf/policy_batch_size"] = policy_batch_size
         if selection_threshold is not None:
             output_dict["dorf/selection_threshold"] = selection_threshold.item()
 
-        inner_epochs = 3 # 内循环次数
+        inner_epochs = 1  # policy update 仅使用纯在线样本，默认每个 rollout 执行一次更新
         for inner_idx in range(inner_epochs):
-            if inner_idx > 0:
-                try:
-                    batch = next(dl_iter)
-                except (StopIteration, UnboundLocalError, NameError):
-                    dl_iter = iter(dataloader)
-                    batch = next(dl_iter)
-            chunk_size = batch["action"].shape[1]
-
-            num_to_replace = min(int(cfg.batch_size * current_online_mix_ratio), candidate_count) if is_stage_3 else 0
-
-            if num_to_replace > 0:
+            if policy_update_ready and policy_batch_size > 0:
                 b_idx, s_idx = torch.where(selected_step_mask)
-                rand_perm = torch.randperm(candidate_count, device=b_idx.device)[:num_to_replace]
+                rand_perm = torch.randperm(candidate_count, device=b_idx.device)[:policy_batch_size]
                 sel_b = b_idx[rand_perm]
                 sel_s = s_idx[rand_perm]
-                current_task_template = resolve_task_template(batch, dataset)
-                
-                # 初始化存储在线提取数据的字典
-                online_data = {
-                    "action": [],
-                    "observation.state": [],
-                    "observation.images.image": [],
-                    "observation.images.image2": [],
-                    "task": []
-                }
-                online_weights = []
+                online_policy_batch, online_policy_weights = build_online_policy_batch(
+                    template_batch=batch,
+                    dataset=dataset,
+                    obs_dict=obs_dict,
+                    actions=actions,
+                    states=states,
+                    selected_b=sel_b,
+                    selected_s=sel_s,
+                    sample_weights_full=online_sample_weights_full,
+                    online_weight_scale=online_weight_scale,
+                )
+                online_policy_batch = ensure_batch_tasks(online_policy_batch, dataset)
+                online_policy_batch = preprocessor(online_policy_batch)
 
-                # 2. 从在线 rollout_data 中安全地提取完整的连续 Chunk
-                for i in range(num_to_replace):
-                    b, s = sel_b[i].item(), sel_s[i].item()
-                    start_s = max(0, min(s - (chunk_size // 2), actions.shape[1] - chunk_size))
-                    end_s = start_s + chunk_size
-                    
-                    # 提取连续的一整段动作和起始状态
-                    online_data["action"].append(actions[b, start_s:end_s].cpu())
-                    online_data["observation.state"].append(states[b, start_s].unsqueeze(0).cpu())
-                    
-                    # 提取图像并强制插值缩放，对齐离线图像的分辨率
-                    for img_key in ["observation.images.image", "observation.images.image2"]:
-                        target_h, target_w = batch[img_key].shape[-2:]
-                        img_raw = obs_dict[img_key][b, start_s].cpu().float()
-                        # unsqueeze(0) 增加 batch 维度用于 interpolate
-                        img_resized = F.interpolate(img_raw.unsqueeze(0), size=(target_h, target_w), mode='bilinear').squeeze(0)
-                        online_data[img_key].append(img_resized)
-                    
-                    # 提取任务指令
-                    online_data["task"].append(current_task_template)
-                    # 提取对应时刻的权重
-                    online_weights.append(online_sample_weights_full[b, s].item())
-                
-                # 3. 构建全新的干净 Mixed Batch（绝对不修改原始的 batch）
-                mixed_batch = {}
-                for k in batch.keys():
-                    # 先把离线数据保留（从 num_to_replace 往后取）
-                    if isinstance(batch[k], torch.Tensor):
-                        offline_part = batch[k][num_to_replace:].cpu()
-                        # 如果有对应的在线数据，就 concat 起来
-                        if k in online_data:
-                            online_tensor = torch.stack(online_data[k])
-                            # 维度对齐检查 (尤其是图像如果是5维 [B, 1, C, H, W])
-                            if offline_part.ndim == 5 and online_tensor.ndim == 4:
-                                online_tensor = online_tensor.unsqueeze(1) 
-                            mixed_batch[k] = torch.cat([offline_part, online_tensor], dim=0)
-                        else:
-                            # 没有的话，需要用全 0 补齐 batch_size
-                            padding_shape = list(offline_part.shape)
-                            padding_shape[0] = num_to_replace
-                            padding = torch.zeros(padding_shape, dtype=offline_part.dtype)
-                            mixed_batch[k] = torch.cat([offline_part, padding], dim=0)
-                    elif isinstance(batch[k], list) and k == "task":
-                        offline_tasks = batch["task"][num_to_replace:]
-                        mixed_batch["task"] = offline_tasks + online_data["task"]
-
-                if "task" not in mixed_batch:
-                    mixed_batch["task"] = [current_task_template] * cfg.batch_size
-
-                # 4. 构建拼接后的权重张量 (离线权重设为 1.0)
-                offline_w = torch.ones(cfg.batch_size - num_to_replace, dtype=torch.float32)
-                online_w = torch.tensor(online_weights, dtype=torch.float32) * online_weight_scale
-                mixed_weights = torch.cat([offline_w, online_w], dim=0).to(device)
-                # batch 均值归一化
-                mixed_weights = mixed_weights / (mixed_weights.mean() + 1e-8)
-            else:
-                # 没有提取到好样本，或者在预热期，直接使用纯离线数据
-                mixed_batch = batch
-                mixed_weights = torch.ones(cfg.batch_size, dtype=torch.float32).to(device)
-
-            # 5. 安全地传入 preprocessor，根据最新的 task 和 images 重新生成 pixel_values 和 lang_tokens
-            mixed_batch = ensure_batch_tasks(mixed_batch, dataset)
-            mixed_batch = preprocessor(mixed_batch)
-
-            train_tracker.dataloading_s = time.perf_counter() - start_time
-            
-            # 6. 调用重写的 update_policy
-            if freeze_policy_updates:
-                train_tracker.policy_grad_norm = 0.0
-                train_tracker.online_weight_mean = mixed_weights.mean().item()
-                train_tracker.online_weight_max = mixed_weights.max().item()
-                output_dict["dorf/online_weight_mean"] = mixed_weights.mean().item()
-                output_dict["dorf/online_weight_max"] = mixed_weights.max().item()
-                output_dict["policy/grad_norm"] = 0.0
-                output_dict["policy/updates_enabled"] = 0
-            else:
+                train_tracker.dataloading_s = time.perf_counter() - start_time
                 train_tracker, policy_output_dict = update_policy(
                     train_tracker,
                     policy,
-                    mixed_batch,
+                    online_policy_batch,
                     optimizer,
                     cfg.optimizer.grad_clip_norm,
                     accelerator=accelerator,
                     lr_scheduler=lr_scheduler,
-                    sample_weights=mixed_weights, # 注入平滑权重！
+                    sample_weights=online_policy_weights.to(device),
                 )
                 train_tracker.policy_grad_norm = policy_output_dict["policy/grad_norm"]
-                train_tracker.online_weight_mean = mixed_weights.mean().item()
-                train_tracker.online_weight_max = mixed_weights.max().item()
-                output_dict["dorf/online_weight_mean"] = mixed_weights.mean().item()
-                output_dict["dorf/online_weight_max"] = mixed_weights.max().item()
+                train_tracker.online_weight_mean = online_policy_weights.mean().item()
+                train_tracker.online_weight_max = online_policy_weights.max().item()
+                output_dict["dorf/online_weight_mean"] = online_policy_weights.mean().item()
+                output_dict["dorf/online_weight_max"] = online_policy_weights.max().item()
                 output_dict.update(policy_output_dict)
                 output_dict["policy/updates_enabled"] = 1
-
-            train_tracker.policy_updates_enabled = 0.0 if freeze_policy_updates else 1.0
+                train_tracker.policy_updates_enabled = 1.0
+            else:
+                train_tracker.dataloading_s = time.perf_counter() - start_time
+                train_tracker.loss = 0.0
+                train_tracker.update_s = 0.0
+                train_tracker.policy_grad_norm = 0.0
+                train_tracker.online_weight_mean = 0.0
+                train_tracker.online_weight_max = 0.0
+                output_dict["dorf/online_weight_mean"] = 0.0
+                output_dict["dorf/online_weight_max"] = 0.0
+                output_dict["policy/grad_norm"] = 0.0
+                output_dict["policy/updates_enabled"] = 0
+                train_tracker.policy_updates_enabled = 0.0
         # 更新训练步数与状态
         step += 1
         train_tracker.step()
