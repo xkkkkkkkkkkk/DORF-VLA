@@ -61,6 +61,9 @@ def update_policy(
     lr_scheduler=None,
     lock=None,
     sample_weights: torch.Tensor = None,
+    step_optimizer: bool = True,
+    zero_grad: bool = True,
+    update_policy_buffers: bool = True,
 ) -> tuple[MetricsTracker, dict]:
     """
     执行单步策略更新，支持可选的样本级别的损失加权。
@@ -105,18 +108,18 @@ def update_policy(
             policy.parameters(), float("inf"), error_if_nonfinite=False
         )
 
-    # Optimizer step
-    with lock if lock is not None else nullcontext():
-        optimizer.step()
+    if step_optimizer:
+        with lock if lock is not None else nullcontext():
+            optimizer.step()
 
-    optimizer.zero_grad()
+        # Step through pytorch scheduler at every batch instead of epoch
+        if lr_scheduler is not None:
+            lr_scheduler.step()
 
-    # Step through pytorch scheduler at every batch instead of epoch
-    if lr_scheduler is not None:
-        lr_scheduler.step()
+    if zero_grad:
+        optimizer.zero_grad()
 
-    # Update internal buffers if policy has update method
-    if has_method(accelerator.unwrap_model(policy, keep_fp32_wrapper=True), "update"):
+    if update_policy_buffers and has_method(accelerator.unwrap_model(policy, keep_fp32_wrapper=True), "update"):
         accelerator.unwrap_model(policy, keep_fp32_wrapper=True).update()
 
     train_metrics.loss = loss.item()
@@ -125,6 +128,28 @@ def update_policy(
     train_metrics.update_s = time.perf_counter() - start_time
     output_dict["policy/grad_norm"] = grad_norm.item()
     return train_metrics, output_dict
+
+
+def apply_policy_optimizer_step(
+    policy: PreTrainedPolicy,
+    optimizer: Optimizer,
+    accelerator: Accelerator,
+    lr_scheduler=None,
+    lock=None,
+    zero_grad: bool = True,
+    update_policy_buffers: bool = True,
+) -> None:
+    with lock if lock is not None else nullcontext():
+        optimizer.step()
+
+    if lr_scheduler is not None:
+        lr_scheduler.step()
+
+    if zero_grad:
+        optimizer.zero_grad()
+
+    if update_policy_buffers and has_method(accelerator.unwrap_model(policy, keep_fp32_wrapper=True), "update"):
+        accelerator.unwrap_model(policy, keep_fp32_wrapper=True).update()
 
 
 def linear_warmup_ratio(step_delta: int, warmup_steps: int) -> float:
@@ -655,6 +680,10 @@ def train(cfg: TrainPipelineConfig, accelerator: Accelerator | None = None):
         "critic_ready": AverageMeter("c_ok", ":.1f"),
         "policy_update_ready": AverageMeter("pu_ok", ":.1f"),
         "policy_batch_size": AverageMeter("pb", ":.1f"),
+        "policy_micro_batches": AverageMeter("p_mb", ":.1f"),
+        "policy_effective_batch_size": AverageMeter("p_eb", ":.1f"),
+        "policy_candidate_count_raw": AverageMeter("p_cand", ":.1f"),
+        "policy_skipped_for_low_candidates": AverageMeter("p_skip", ":.1f"),
     }
 
     # Use effective batch size for proper epoch calculation in distributed training
@@ -729,6 +758,10 @@ def train(cfg: TrainPipelineConfig, accelerator: Accelerator | None = None):
     online_weight_scale = 0.5
     selection_mode = "top_quantile"
     selection_quantile = 0.75
+    policy_micro_batch_size = cfg.batch_size
+    policy_accumulation_steps = 4
+    policy_effective_batch_target = policy_micro_batch_size * policy_accumulation_steps
+    policy_min_candidates_to_update = policy_micro_batch_size
     reward_success_bonus = 0.1
     reward_failure_penalty = 0.1
     expert_decay_start = None
@@ -944,21 +977,33 @@ def train(cfg: TrainPipelineConfig, accelerator: Accelerator | None = None):
             is_stage_3
             and reward_ready
             and critic_ready
-            and candidate_count > 0
+            and candidate_count >= policy_min_candidates_to_update
             and not freeze_policy_updates
         )
-        policy_batch_size = min(cfg.batch_size, candidate_count) if policy_update_ready else 0
-        current_online_mix_ratio = policy_batch_size / max(1, cfg.batch_size)
+        policy_effective_batch_size = 0
+        policy_micro_batches = 0
+        if policy_update_ready:
+            policy_effective_batch_size = min(candidate_count, policy_effective_batch_target)
+            policy_micro_batches = (policy_effective_batch_size + policy_micro_batch_size - 1) // policy_micro_batch_size
+        policy_batch_size = min(policy_micro_batch_size, policy_effective_batch_size) if policy_update_ready else 0
+        current_online_mix_ratio = policy_effective_batch_size / max(1, policy_effective_batch_target)
+        policy_skipped_for_low_candidates = float(
+            is_stage_3 and reward_ready and critic_ready and candidate_count < policy_min_candidates_to_update
+        )
 
         train_tracker.margin = margin.item()
         train_tracker.online_candidates = candidate_count
-        train_tracker.selected_steps = policy_batch_size
+        train_tracker.selected_steps = policy_effective_batch_size
         train_tracker.online_mix_ratio = current_online_mix_ratio
         train_tracker.stage = current_stage
         train_tracker.reward_ready = float(reward_ready)
         train_tracker.critic_ready = float(critic_ready)
         train_tracker.policy_update_ready = float(policy_update_ready)
         train_tracker.policy_batch_size = float(policy_batch_size)
+        train_tracker.policy_micro_batches = float(policy_micro_batches)
+        train_tracker.policy_effective_batch_size = float(policy_effective_batch_size)
+        train_tracker.policy_candidate_count_raw = float(candidate_count)
+        train_tracker.policy_skipped_for_low_candidates = policy_skipped_for_low_candidates
         output_dict["dorf/stage"] = current_stage
         output_dict["dorf/vla_updating"] = int(policy_update_ready)
         output_dict["dorf/online_loss_weight"] = alpha
@@ -983,7 +1028,7 @@ def train(cfg: TrainPipelineConfig, accelerator: Accelerator | None = None):
         output_dict["dorf/A_learned_mean"] = A_learned.mean().item()
         output_dict["dorf/A_learned_std"] = A_learned.std().item()
         output_dict["dorf/online_candidates"] = candidate_count
-        output_dict["dorf/selected_steps"] = policy_batch_size
+        output_dict["dorf/selected_steps"] = policy_effective_batch_size
         output_dict["dorf/online_mix_ratio"] = current_online_mix_ratio
         output_dict["dorf/lambda_expert"] = current_lambda_expert
         output_dict["dorf/lambda_online"] = current_lambda_online
@@ -992,16 +1037,30 @@ def train(cfg: TrainPipelineConfig, accelerator: Accelerator | None = None):
         output_dict["dorf/critic_ready"] = int(critic_ready)
         output_dict["dorf/policy_update_ready"] = int(policy_update_ready)
         output_dict["dorf/policy_batch_size"] = policy_batch_size
+        output_dict["dorf/policy_candidate_count_raw"] = candidate_count
+        output_dict["dorf/policy_micro_batches"] = policy_micro_batches
+        output_dict["dorf/policy_effective_batch_size"] = policy_effective_batch_size
+        output_dict["dorf/policy_skipped_for_low_candidates"] = policy_skipped_for_low_candidates
         if selection_threshold is not None:
             output_dict["dorf/selection_threshold"] = selection_threshold.item()
 
-        inner_epochs = 1  # policy update 仅使用纯在线样本，默认每个 rollout 执行一次更新
-        for inner_idx in range(inner_epochs):
-            if policy_update_ready and policy_batch_size > 0:
-                b_idx, s_idx = torch.where(selected_step_mask)
-                rand_perm = torch.randperm(candidate_count, device=b_idx.device)[:policy_batch_size]
-                sel_b = b_idx[rand_perm]
-                sel_s = s_idx[rand_perm]
+        if policy_update_ready and policy_effective_batch_size > 0:
+            b_idx, s_idx = torch.where(selected_step_mask)
+            rand_perm = torch.randperm(candidate_count, device=b_idx.device)[:policy_effective_batch_size]
+            selected_b_all = b_idx[rand_perm]
+            selected_s_all = s_idx[rand_perm]
+            optimizer.zero_grad()
+
+            accumulated_loss = 0.0
+            accumulated_grad_norm = 0.0
+            accumulated_weight_mean = 0.0
+            accumulated_weight_max = 0.0
+            last_policy_output_dict = {}
+
+            for micro_start in range(0, policy_effective_batch_size, policy_micro_batch_size):
+                micro_end = min(micro_start + policy_micro_batch_size, policy_effective_batch_size)
+                sel_b = selected_b_all[micro_start:micro_end]
+                sel_s = selected_s_all[micro_start:micro_end]
                 online_policy_batch, online_policy_weights = build_online_policy_batch(
                     template_batch=batch,
                     dataset=dataset,
@@ -1026,27 +1085,46 @@ def train(cfg: TrainPipelineConfig, accelerator: Accelerator | None = None):
                     accelerator=accelerator,
                     lr_scheduler=lr_scheduler,
                     sample_weights=online_policy_weights.to(device),
+                    step_optimizer=False,
+                    zero_grad=False,
+                    update_policy_buffers=False,
                 )
-                train_tracker.policy_grad_norm = policy_output_dict["policy/grad_norm"]
-                train_tracker.online_weight_mean = online_policy_weights.mean().item()
-                train_tracker.online_weight_max = online_policy_weights.max().item()
-                output_dict["dorf/online_weight_mean"] = online_policy_weights.mean().item()
-                output_dict["dorf/online_weight_max"] = online_policy_weights.max().item()
-                output_dict.update(policy_output_dict)
-                output_dict["policy/updates_enabled"] = 1
-                train_tracker.policy_updates_enabled = 1.0
-            else:
-                train_tracker.dataloading_s = time.perf_counter() - start_time
-                train_tracker.loss = 0.0
-                train_tracker.update_s = 0.0
-                train_tracker.policy_grad_norm = 0.0
-                train_tracker.online_weight_mean = 0.0
-                train_tracker.online_weight_max = 0.0
-                output_dict["dorf/online_weight_mean"] = 0.0
-                output_dict["dorf/online_weight_max"] = 0.0
-                output_dict["policy/grad_norm"] = 0.0
-                output_dict["policy/updates_enabled"] = 0
-                train_tracker.policy_updates_enabled = 0.0
+                accumulated_loss += train_tracker.loss * len(sel_b)
+                accumulated_grad_norm += policy_output_dict["policy/grad_norm"]
+                accumulated_weight_mean += online_policy_weights.mean().item()
+                accumulated_weight_max = max(accumulated_weight_max, online_policy_weights.max().item())
+                last_policy_output_dict = policy_output_dict
+
+            apply_policy_optimizer_step(
+                policy,
+                optimizer,
+                accelerator=accelerator,
+                lr_scheduler=lr_scheduler,
+                update_policy_buffers=True,
+            )
+            train_tracker.loss = accumulated_loss / max(1, policy_effective_batch_size)
+            train_tracker.update_s = time.perf_counter() - start_time - train_tracker.dataloading_s
+            train_tracker.policy_grad_norm = accumulated_grad_norm / max(1, policy_micro_batches)
+            train_tracker.online_weight_mean = accumulated_weight_mean / max(1, policy_micro_batches)
+            train_tracker.online_weight_max = accumulated_weight_max
+            output_dict["dorf/online_weight_mean"] = train_tracker.online_weight_mean
+            output_dict["dorf/online_weight_max"] = train_tracker.online_weight_max
+            output_dict.update(last_policy_output_dict)
+            output_dict["policy/grad_norm"] = train_tracker.policy_grad_norm
+            output_dict["policy/updates_enabled"] = 1
+            train_tracker.policy_updates_enabled = 1.0
+        else:
+            train_tracker.dataloading_s = time.perf_counter() - start_time
+            train_tracker.loss = 0.0
+            train_tracker.update_s = 0.0
+            train_tracker.policy_grad_norm = 0.0
+            train_tracker.online_weight_mean = 0.0
+            train_tracker.online_weight_max = 0.0
+            output_dict["dorf/online_weight_mean"] = 0.0
+            output_dict["dorf/online_weight_max"] = 0.0
+            output_dict["policy/grad_norm"] = 0.0
+            output_dict["policy/updates_enabled"] = 0
+            train_tracker.policy_updates_enabled = 0.0
         # 更新训练步数与状态
         step += 1
         train_tracker.step()
