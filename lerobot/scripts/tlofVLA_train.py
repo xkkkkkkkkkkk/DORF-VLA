@@ -126,6 +126,7 @@ def update_policy(
     train_metrics.grad_norm = grad_norm.item()
     train_metrics.lr = optimizer.param_groups[0]["lr"]
     train_metrics.update_s = time.perf_counter() - start_time
+    output_dict["policy/loss"] = loss.item()
     output_dict["policy/grad_norm"] = grad_norm.item()
     return train_metrics, output_dict
 
@@ -1055,6 +1056,7 @@ def train(cfg: TrainPipelineConfig, accelerator: Accelerator | None = None):
             accumulated_grad_norm = 0.0
             accumulated_weight_mean = 0.0
             accumulated_weight_max = 0.0
+            latest_dataloading_s = 0.0
             last_policy_output_dict = {}
 
             for micro_start in range(0, policy_effective_batch_size, policy_micro_batch_size):
@@ -1075,7 +1077,8 @@ def train(cfg: TrainPipelineConfig, accelerator: Accelerator | None = None):
                 online_policy_batch = ensure_batch_tasks(online_policy_batch, dataset)
                 online_policy_batch = preprocessor(online_policy_batch)
 
-                train_tracker.dataloading_s = time.perf_counter() - start_time
+                latest_dataloading_s = time.perf_counter() - start_time
+                train_tracker.dataloading_s = latest_dataloading_s
                 train_tracker, policy_output_dict = update_policy(
                     train_tracker,
                     policy,
@@ -1089,7 +1092,7 @@ def train(cfg: TrainPipelineConfig, accelerator: Accelerator | None = None):
                     zero_grad=False,
                     update_policy_buffers=False,
                 )
-                accumulated_loss += train_tracker.loss * len(sel_b)
+                accumulated_loss += policy_output_dict["policy/loss"] * len(sel_b)
                 accumulated_grad_norm += policy_output_dict["policy/grad_norm"]
                 accumulated_weight_mean += online_policy_weights.mean().item()
                 accumulated_weight_max = max(accumulated_weight_max, online_policy_weights.max().item())
@@ -1103,7 +1106,7 @@ def train(cfg: TrainPipelineConfig, accelerator: Accelerator | None = None):
                 update_policy_buffers=True,
             )
             train_tracker.loss = accumulated_loss / max(1, policy_effective_batch_size)
-            train_tracker.update_s = time.perf_counter() - start_time - train_tracker.dataloading_s
+            train_tracker.update_s = max(0.0, time.perf_counter() - start_time - latest_dataloading_s)
             train_tracker.policy_grad_norm = accumulated_grad_norm / max(1, policy_micro_batches)
             train_tracker.online_weight_mean = accumulated_weight_mean / max(1, policy_micro_batches)
             train_tracker.online_weight_max = accumulated_weight_max
