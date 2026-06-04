@@ -61,9 +61,11 @@ def update_policy(
     lr_scheduler=None,
     lock=None,
     sample_weights: torch.Tensor = None,
+    loss_normalizer: float | None = None,
     step_optimizer: bool = True,
     zero_grad: bool = True,
     update_policy_buffers: bool = True,
+    clip_gradients: bool = True,
 ) -> tuple[MetricsTracker, dict]:
     """
     执行单步策略更新，支持可选的样本级别的损失加权。
@@ -82,7 +84,11 @@ def update_policy(
             
             # 3. 计算加权平均 Loss = Σ(w_i * l_i) / (Σw_i + ε)
             epsilon = 1e-6
-            loss = (per_sample_loss * sample_weights).sum() / (sample_weights.sum() + epsilon)
+            weighted_loss_sum = (per_sample_loss * sample_weights).sum()
+            denom = sample_weights.sum() if loss_normalizer is None else torch.tensor(
+                loss_normalizer, device=per_sample_loss.device, dtype=per_sample_loss.dtype
+            )
+            loss = weighted_loss_sum / (denom + epsilon)
             
             # 记录权重的统计信息到日志
             output_dict["dorf/mean_sample_weight"] = sample_weights.mean().item()
@@ -90,10 +96,16 @@ def update_policy(
             output_dict["dorf/weight_min"] = sample_weights.min().item()
             output_dict["dorf/online_weight_mean"] = sample_weights.mean().item()
             output_dict["dorf/online_weight_max"] = sample_weights.max().item()
+            output_dict["policy/loss_weighted_sum"] = weighted_loss_sum.item()
+            output_dict["policy/loss_denominator"] = denom.item()
 
         else:
             # 预热期或无权重时，走标准的平均 Loss
             loss, output_dict = policy.forward(batch)
+            if loss_normalizer is not None:
+                loss = loss / loss_normalizer
+            output_dict["policy/loss_weighted_sum"] = loss.item()
+            output_dict["policy/loss_denominator"] = 1.0 if loss_normalizer is None else loss_normalizer
 
         # TODO(rcadene): policy.unnormalize_outputs(out_dict)
 
@@ -101,12 +113,10 @@ def update_policy(
     accelerator.backward(loss)
 
     # Clip gradients if specified
-    if grad_clip_norm > 0:
+    if clip_gradients and grad_clip_norm > 0:
         grad_norm = accelerator.clip_grad_norm_(policy.parameters(), grad_clip_norm)
     else:
-        grad_norm = torch.nn.utils.clip_grad_norm_(
-            policy.parameters(), float("inf"), error_if_nonfinite=False
-        )
+        grad_norm = torch.tensor(compute_grad_norm(policy), device=loss.device)
 
     if step_optimizer:
         with lock if lock is not None else nullcontext():
@@ -135,11 +145,17 @@ def apply_policy_optimizer_step(
     policy: PreTrainedPolicy,
     optimizer: Optimizer,
     accelerator: Accelerator,
+    grad_clip_norm: float,
     lr_scheduler=None,
     lock=None,
     zero_grad: bool = True,
     update_policy_buffers: bool = True,
-) -> None:
+) -> float:
+    if grad_clip_norm > 0:
+        grad_norm = accelerator.clip_grad_norm_(policy.parameters(), grad_clip_norm)
+    else:
+        grad_norm = torch.tensor(compute_grad_norm(policy))
+
     with lock if lock is not None else nullcontext():
         optimizer.step()
 
@@ -151,6 +167,7 @@ def apply_policy_optimizer_step(
 
     if update_policy_buffers and has_method(accelerator.unwrap_model(policy, keep_fp32_wrapper=True), "update"):
         accelerator.unwrap_model(policy, keep_fp32_wrapper=True).update()
+    return grad_norm.item()
 
 
 def linear_warmup_ratio(step_delta: int, warmup_steps: int) -> float:
@@ -281,7 +298,6 @@ def build_online_policy_batch(
 
     weights = torch.tensor(online_weights, dtype=torch.float32)
     weights = weights * online_weight_scale
-    weights = weights / (weights.mean() + 1e-8)
     return finalized_batch, weights
 
 def flatten_robot_state(d):
@@ -1050,12 +1066,14 @@ def train(cfg: TrainPipelineConfig, accelerator: Accelerator | None = None):
             rand_perm = torch.randperm(candidate_count, device=b_idx.device)[:policy_effective_batch_size]
             selected_b_all = b_idx[rand_perm]
             selected_s_all = s_idx[rand_perm]
+            selected_raw_weights = online_sample_weights_full[selected_b_all, selected_s_all] * online_weight_scale
+            selected_weight_sum = selected_raw_weights.sum().item()
+            selected_weight_mean = selected_raw_weights.mean().item()
+            selected_weight_max = selected_raw_weights.max().item()
             optimizer.zero_grad()
 
-            accumulated_loss = 0.0
-            accumulated_grad_norm = 0.0
-            accumulated_weight_mean = 0.0
-            accumulated_weight_max = 0.0
+            accumulated_weighted_loss_sum = 0.0
+            accumulated_micro_grad_norm = 0.0
             latest_dataloading_s = 0.0
             last_policy_output_dict = {}
 
@@ -1088,32 +1106,36 @@ def train(cfg: TrainPipelineConfig, accelerator: Accelerator | None = None):
                     accelerator=accelerator,
                     lr_scheduler=lr_scheduler,
                     sample_weights=online_policy_weights.to(device),
+                    loss_normalizer=selected_weight_sum,
                     step_optimizer=False,
                     zero_grad=False,
                     update_policy_buffers=False,
+                    clip_gradients=False,
                 )
-                accumulated_loss += policy_output_dict["policy/loss"] * len(sel_b)
-                accumulated_grad_norm += policy_output_dict["policy/grad_norm"]
-                accumulated_weight_mean += online_policy_weights.mean().item()
-                accumulated_weight_max = max(accumulated_weight_max, online_policy_weights.max().item())
+                accumulated_weighted_loss_sum += policy_output_dict["policy/loss_weighted_sum"]
+                accumulated_micro_grad_norm += policy_output_dict["policy/grad_norm"]
                 last_policy_output_dict = policy_output_dict
 
-            apply_policy_optimizer_step(
+            final_grad_norm = apply_policy_optimizer_step(
                 policy,
                 optimizer,
                 accelerator=accelerator,
+                grad_clip_norm=cfg.optimizer.grad_clip_norm,
                 lr_scheduler=lr_scheduler,
                 update_policy_buffers=True,
             )
-            train_tracker.loss = accumulated_loss / max(1, policy_effective_batch_size)
+            train_tracker.loss = accumulated_weighted_loss_sum / max(1e-8, selected_weight_sum)
             train_tracker.update_s = max(0.0, time.perf_counter() - start_time - latest_dataloading_s)
-            train_tracker.policy_grad_norm = accumulated_grad_norm / max(1, policy_micro_batches)
-            train_tracker.online_weight_mean = accumulated_weight_mean / max(1, policy_micro_batches)
-            train_tracker.online_weight_max = accumulated_weight_max
-            output_dict["dorf/online_weight_mean"] = train_tracker.online_weight_mean
-            output_dict["dorf/online_weight_max"] = train_tracker.online_weight_max
+            train_tracker.policy_grad_norm = final_grad_norm
+            train_tracker.online_weight_mean = selected_weight_mean
+            train_tracker.online_weight_max = selected_weight_max
             output_dict.update(last_policy_output_dict)
-            output_dict["policy/grad_norm"] = train_tracker.policy_grad_norm
+            output_dict["dorf/online_weight_mean"] = selected_weight_mean
+            output_dict["dorf/online_weight_max"] = selected_weight_max
+            output_dict["policy/micro_grad_norm"] = accumulated_micro_grad_norm / max(1, policy_micro_batches)
+            output_dict["policy/final_grad_norm"] = final_grad_norm
+            output_dict["policy/grad_norm"] = final_grad_norm
+            output_dict["policy/loss"] = train_tracker.loss
             output_dict["policy/updates_enabled"] = 1
             train_tracker.policy_updates_enabled = 1.0
         else:
@@ -1125,7 +1147,10 @@ def train(cfg: TrainPipelineConfig, accelerator: Accelerator | None = None):
             train_tracker.online_weight_max = 0.0
             output_dict["dorf/online_weight_mean"] = 0.0
             output_dict["dorf/online_weight_max"] = 0.0
+            output_dict["policy/micro_grad_norm"] = 0.0
+            output_dict["policy/final_grad_norm"] = 0.0
             output_dict["policy/grad_norm"] = 0.0
+            output_dict["policy/loss"] = 0.0
             output_dict["policy/updates_enabled"] = 0
             train_tracker.policy_updates_enabled = 0.0
         # 更新训练步数与状态
