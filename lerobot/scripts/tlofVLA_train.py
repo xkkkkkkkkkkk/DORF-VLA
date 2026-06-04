@@ -300,6 +300,96 @@ def build_online_policy_batch(
     weights = weights * online_weight_scale
     return finalized_batch, weights
 
+
+def build_online_trajectory_policy_entries(
+    template_batch: dict[str, Any],
+    dataset: LeRobotDataset,
+    obs_dict: dict[str, torch.Tensor],
+    actions: torch.Tensor,
+    states: torch.Tensor,
+    trajectory_indices: torch.Tensor,
+    trajectory_returns: torch.Tensor,
+) -> list[dict[str, Any]]:
+    chunk_size = template_batch["action"].shape[1]
+    current_task_template = resolve_task_template(template_batch, dataset)
+    entries: list[dict[str, Any]] = []
+
+    for idx in trajectory_indices.tolist():
+        action_seq = actions[idx]
+        valid_len = min(action_seq.shape[0], chunk_size)
+
+        padded_actions = torch.zeros(
+            (chunk_size, action_seq.shape[-1]),
+            dtype=action_seq.dtype,
+            device=action_seq.device,
+        )
+        padded_actions[:valid_len] = action_seq[:valid_len]
+
+        action_is_pad = torch.ones(chunk_size, dtype=torch.bool, device=action_seq.device)
+        action_is_pad[:valid_len] = False
+
+        trajectory_entry = {
+            "action": padded_actions.cpu(),
+            "actions_id_pad": action_is_pad.cpu(),
+            "observation.state": states[idx, 0].unsqueeze(0).cpu(),
+            "task": current_task_template,
+            "trajectory_return": trajectory_returns[idx].item(),
+        }
+
+        for img_key in ["observation.images.image", "observation.images.image2"]:
+            target_h, target_w = template_batch[img_key].shape[-2:]
+            img_raw = obs_dict[img_key][idx, 0].cpu().float()
+            img_resized = F.interpolate(
+                img_raw.unsqueeze(0),
+                size=(target_h, target_w),
+                mode="bilinear",
+            ).squeeze(0)
+            trajectory_entry[img_key] = img_resized.unsqueeze(0)
+
+        entries.append(trajectory_entry)
+
+    return entries
+
+
+def sample_online_trajectory_policy_batch(
+    entries: list[dict[str, Any]],
+    batch_size: int,
+    online_weight_scale: float,
+) -> tuple[dict[str, Any], torch.Tensor, dict[str, float]]:
+    if not entries:
+        raise ValueError("Cannot sample policy batch from an empty trajectory buffer.")
+
+    actual_batch_size = min(batch_size, len(entries))
+    indices = torch.randperm(len(entries))[:actual_batch_size].tolist()
+    sampled_entries = [entries[i] for i in indices]
+
+    returns = torch.tensor(
+        [entry["trajectory_return"] for entry in sampled_entries], dtype=torch.float32
+    )
+    normalized_returns = normalize_tensor(returns)
+    weights = torch.exp(online_weight_scale * normalized_returns).clamp(min=0.01, max=5.0)
+
+    batch = {
+        "action": torch.stack([entry["action"] for entry in sampled_entries]),
+        "actions_id_pad": torch.stack([entry["actions_id_pad"] for entry in sampled_entries]),
+        "observation.state": torch.stack([entry["observation.state"] for entry in sampled_entries]),
+        "observation.images.image": torch.stack(
+            [entry["observation.images.image"] for entry in sampled_entries]
+        ),
+        "observation.images.image2": torch.stack(
+            [entry["observation.images.image2"] for entry in sampled_entries]
+        ),
+        "task": [entry["task"] for entry in sampled_entries],
+    }
+
+    stats = {
+        "trajectory_return_mean": returns.mean().item(),
+        "trajectory_return_std": returns.std().item() if returns.numel() > 1 else 0.0,
+        "trajectory_weight_mean": weights.mean().item(),
+        "trajectory_weight_max": weights.max().item(),
+    }
+    return batch, weights, stats
+
 def flatten_robot_state(d):
             """递归扁平化 robot_state 字典并拼接"""
             tensors = []
@@ -701,6 +791,12 @@ def train(cfg: TrainPipelineConfig, accelerator: Accelerator | None = None):
         "policy_effective_batch_size": AverageMeter("p_eb", ":.1f"),
         "policy_candidate_count_raw": AverageMeter("p_cand", ":.1f"),
         "policy_skipped_for_low_candidates": AverageMeter("p_skip", ":.1f"),
+        "policy_buffer_size": AverageMeter("p_buf", ":.1f"),
+        "policy_online_trajectories": AverageMeter("p_traj", ":.1f"),
+        "policy_trajectory_return_mean": AverageMeter("p_ret", ":.3f"),
+        "policy_trajectory_return_std": AverageMeter("p_rstd", ":.3f"),
+        "policy_trajectory_weight_mean": AverageMeter("p_wmu", ":.3f"),
+        "policy_trajectory_weight_max": AverageMeter("p_wmx", ":.3f"),
     }
 
     # Use effective batch size for proper epoch calculation in distributed training
@@ -779,10 +875,12 @@ def train(cfg: TrainPipelineConfig, accelerator: Accelerator | None = None):
     policy_accumulation_steps = 4
     policy_effective_batch_target = policy_micro_batch_size * policy_accumulation_steps
     policy_min_candidates_to_update = policy_micro_batch_size
+    policy_buffer_target_size = policy_effective_batch_target
     reward_success_bonus = 0.1
     reward_failure_penalty = 0.1
     expert_decay_start = None
     expert_decay_min = 1.0
+    online_policy_buffer: list[dict[str, Any]] = []
 
     if is_main_process:
         logging.info(
@@ -962,16 +1060,12 @@ def train(cfg: TrainPipelineConfig, accelerator: Accelerator | None = None):
         success_mask = (trajectory_success > 0.5)
         fail_mask = ~success_mask
         valid_trajectory_mask = success_mask.unsqueeze(1).expand_as(A_learned_norm)
-
-        selection_scores = learned_reward_scores_norm
-        selected_step_mask = valid_trajectory_mask.clone()
+        trajectory_returns = true_rewards.sum(dim=1)
+        selection_scores = normalize_tensor(trajectory_returns)
         selection_threshold = None
-        if selection_mode == "top_quantile" and valid_trajectory_mask.any():
-            valid_scores = selection_scores[valid_trajectory_mask]
-            selection_threshold = torch.quantile(valid_scores, selection_quantile)
-            selected_step_mask = valid_trajectory_mask & (selection_scores >= selection_threshold)
-        candidate_count = int(selected_step_mask.sum().item())
-        num_good = candidate_count
+        current_rollout_trajectory_count = int(actions.shape[0])
+        candidate_count = current_rollout_trajectory_count
+        num_good = int(success_mask.sum().item())
         train_tracker.num_good.update(num_good)
         chunk_size = batch["action"].shape[1] # 获取当前 VLA 需要的序列长度 (通常为 280 或 50)
 
@@ -990,22 +1084,34 @@ def train(cfg: TrainPipelineConfig, accelerator: Accelerator | None = None):
         current_stage = 1 if is_stage_1 else (2 if is_stage_2 else 3)
         reward_ready = margin.item() > reward_margin_threshold
         critic_ready = value_target_mse.item() < critic_ready_threshold
+
+        if is_stage_3 and not freeze_policy_updates:
+            trajectory_indices = torch.arange(current_rollout_trajectory_count, device=actions.device)
+            new_online_entries = build_online_trajectory_policy_entries(
+                template_batch=batch,
+                dataset=dataset,
+                obs_dict=obs_dict,
+                actions=actions,
+                states=states,
+                trajectory_indices=trajectory_indices,
+                trajectory_returns=trajectory_returns,
+            )
+            online_policy_buffer.extend(new_online_entries)
+
         policy_update_ready = (
             is_stage_3
-            and reward_ready
-            and critic_ready
-            and candidate_count >= policy_min_candidates_to_update
             and not freeze_policy_updates
+            and len(online_policy_buffer) >= policy_buffer_target_size
         )
         policy_effective_batch_size = 0
         policy_micro_batches = 0
         if policy_update_ready:
-            policy_effective_batch_size = min(candidate_count, policy_effective_batch_target)
+            policy_effective_batch_size = min(len(online_policy_buffer), policy_effective_batch_target)
             policy_micro_batches = (policy_effective_batch_size + policy_micro_batch_size - 1) // policy_micro_batch_size
         policy_batch_size = min(policy_micro_batch_size, policy_effective_batch_size) if policy_update_ready else 0
-        current_online_mix_ratio = policy_effective_batch_size / max(1, policy_effective_batch_target)
+        current_online_mix_ratio = policy_effective_batch_size / max(1, policy_buffer_target_size)
         policy_skipped_for_low_candidates = float(
-            is_stage_3 and reward_ready and critic_ready and candidate_count < policy_min_candidates_to_update
+            is_stage_3 and not freeze_policy_updates and len(online_policy_buffer) < policy_buffer_target_size
         )
 
         train_tracker.margin = margin.item()
@@ -1021,6 +1127,8 @@ def train(cfg: TrainPipelineConfig, accelerator: Accelerator | None = None):
         train_tracker.policy_effective_batch_size = float(policy_effective_batch_size)
         train_tracker.policy_candidate_count_raw = float(candidate_count)
         train_tracker.policy_skipped_for_low_candidates = policy_skipped_for_low_candidates
+        train_tracker.policy_buffer_size = float(len(online_policy_buffer))
+        train_tracker.policy_online_trajectories = float(current_rollout_trajectory_count)
         output_dict["dorf/stage"] = current_stage
         output_dict["dorf/vla_updating"] = int(policy_update_ready)
         output_dict["dorf/online_loss_weight"] = alpha
@@ -1058,18 +1166,18 @@ def train(cfg: TrainPipelineConfig, accelerator: Accelerator | None = None):
         output_dict["dorf/policy_micro_batches"] = policy_micro_batches
         output_dict["dorf/policy_effective_batch_size"] = policy_effective_batch_size
         output_dict["dorf/policy_skipped_for_low_candidates"] = policy_skipped_for_low_candidates
+        output_dict["dorf/policy_buffer_size"] = len(online_policy_buffer)
+        output_dict["policy/online_trajectory_count"] = current_rollout_trajectory_count
         if selection_threshold is not None:
             output_dict["dorf/selection_threshold"] = selection_threshold.item()
 
         if policy_update_ready and policy_effective_batch_size > 0:
-            b_idx, s_idx = torch.where(selected_step_mask)
-            rand_perm = torch.randperm(candidate_count, device=b_idx.device)[:policy_effective_batch_size]
-            selected_b_all = b_idx[rand_perm]
-            selected_s_all = s_idx[rand_perm]
-            selected_raw_weights = online_sample_weights_full[selected_b_all, selected_s_all] * online_weight_scale
-            selected_weight_sum = selected_raw_weights.sum().item()
-            selected_weight_mean = selected_raw_weights.mean().item()
-            selected_weight_max = selected_raw_weights.max().item()
+            online_policy_batch_full, online_policy_weights_full, trajectory_stats = sample_online_trajectory_policy_batch(
+                online_policy_buffer,
+                batch_size=policy_effective_batch_size,
+                online_weight_scale=online_weight_scale,
+            )
+            selected_weight_sum = online_policy_weights_full.sum().item()
             optimizer.zero_grad()
 
             accumulated_weighted_loss_sum = 0.0
@@ -1079,20 +1187,13 @@ def train(cfg: TrainPipelineConfig, accelerator: Accelerator | None = None):
 
             for micro_start in range(0, policy_effective_batch_size, policy_micro_batch_size):
                 micro_end = min(micro_start + policy_micro_batch_size, policy_effective_batch_size)
-                sel_b = selected_b_all[micro_start:micro_end]
-                sel_s = selected_s_all[micro_start:micro_end]
-                online_policy_batch, online_policy_weights = build_online_policy_batch(
-                    template_batch=batch,
-                    dataset=dataset,
-                    obs_dict=obs_dict,
-                    actions=actions,
-                    states=states,
-                    selected_b=sel_b,
-                    selected_s=sel_s,
-                    sample_weights_full=online_sample_weights_full,
-                    online_weight_scale=online_weight_scale,
-                )
-                online_policy_batch = ensure_batch_tasks(online_policy_batch, dataset)
+                online_policy_batch = {
+                    key: value[micro_start:micro_end]
+                    for key, value in online_policy_batch_full.items()
+                    if key != "task"
+                }
+                online_policy_batch["task"] = online_policy_batch_full["task"][micro_start:micro_end]
+                online_policy_weights = online_policy_weights_full[micro_start:micro_end]
                 online_policy_batch = preprocessor(online_policy_batch)
 
                 latest_dataloading_s = time.perf_counter() - start_time
@@ -1127,17 +1228,27 @@ def train(cfg: TrainPipelineConfig, accelerator: Accelerator | None = None):
             train_tracker.loss = accumulated_weighted_loss_sum / max(1e-8, selected_weight_sum)
             train_tracker.update_s = max(0.0, time.perf_counter() - start_time - latest_dataloading_s)
             train_tracker.policy_grad_norm = final_grad_norm
-            train_tracker.online_weight_mean = selected_weight_mean
-            train_tracker.online_weight_max = selected_weight_max
+            train_tracker.online_weight_mean = trajectory_stats["trajectory_weight_mean"]
+            train_tracker.online_weight_max = trajectory_stats["trajectory_weight_max"]
+            train_tracker.policy_trajectory_return_mean = trajectory_stats["trajectory_return_mean"]
+            train_tracker.policy_trajectory_return_std = trajectory_stats["trajectory_return_std"]
+            train_tracker.policy_trajectory_weight_mean = trajectory_stats["trajectory_weight_mean"]
+            train_tracker.policy_trajectory_weight_max = trajectory_stats["trajectory_weight_max"]
             output_dict.update(last_policy_output_dict)
-            output_dict["dorf/online_weight_mean"] = selected_weight_mean
-            output_dict["dorf/online_weight_max"] = selected_weight_max
+            output_dict["dorf/online_weight_mean"] = trajectory_stats["trajectory_weight_mean"]
+            output_dict["dorf/online_weight_max"] = trajectory_stats["trajectory_weight_max"]
             output_dict["policy/micro_grad_norm"] = accumulated_micro_grad_norm / max(1, policy_micro_batches)
             output_dict["policy/final_grad_norm"] = final_grad_norm
             output_dict["policy/grad_norm"] = final_grad_norm
             output_dict["policy/loss"] = train_tracker.loss
+            output_dict["policy/fm_loss"] = train_tracker.loss
+            output_dict["policy/trajectory_return_mean"] = trajectory_stats["trajectory_return_mean"]
+            output_dict["policy/trajectory_return_std"] = trajectory_stats["trajectory_return_std"]
+            output_dict["policy/trajectory_weight_mean"] = trajectory_stats["trajectory_weight_mean"]
+            output_dict["policy/trajectory_weight_max"] = trajectory_stats["trajectory_weight_max"]
             output_dict["policy/updates_enabled"] = 1
             train_tracker.policy_updates_enabled = 1.0
+            online_policy_buffer.clear()
         else:
             train_tracker.dataloading_s = time.perf_counter() - start_time
             train_tracker.loss = 0.0
@@ -1145,12 +1256,21 @@ def train(cfg: TrainPipelineConfig, accelerator: Accelerator | None = None):
             train_tracker.policy_grad_norm = 0.0
             train_tracker.online_weight_mean = 0.0
             train_tracker.online_weight_max = 0.0
+            train_tracker.policy_trajectory_return_mean = 0.0
+            train_tracker.policy_trajectory_return_std = 0.0
+            train_tracker.policy_trajectory_weight_mean = 0.0
+            train_tracker.policy_trajectory_weight_max = 0.0
             output_dict["dorf/online_weight_mean"] = 0.0
             output_dict["dorf/online_weight_max"] = 0.0
             output_dict["policy/micro_grad_norm"] = 0.0
             output_dict["policy/final_grad_norm"] = 0.0
             output_dict["policy/grad_norm"] = 0.0
             output_dict["policy/loss"] = 0.0
+            output_dict["policy/fm_loss"] = 0.0
+            output_dict["policy/trajectory_return_mean"] = 0.0
+            output_dict["policy/trajectory_return_std"] = 0.0
+            output_dict["policy/trajectory_weight_mean"] = 0.0
+            output_dict["policy/trajectory_weight_max"] = 0.0
             output_dict["policy/updates_enabled"] = 0
             train_tracker.policy_updates_enabled = 0.0
         # 更新训练步数与状态
