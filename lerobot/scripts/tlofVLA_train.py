@@ -43,6 +43,7 @@ from lerobot.utils.train_utils import (
     save_checkpoint,
     update_last_checkpoint,
 )
+from lerobot.utils.constants import OBS_LANGUAGE_ATTENTION_MASK, OBS_LANGUAGE_TOKENS
 from lerobot.utils.utils import (
     format_big_number,
     has_method,
@@ -331,24 +332,45 @@ def build_online_trajectory_policy_entries(
         trajectory_entry = {
             "action": padded_actions.cpu(),
             "actions_id_pad": action_is_pad.cpu(),
-            "observation.state": states[idx, 0].unsqueeze(0).cpu(),
-            "task": current_task_template,
+            "observation.state": obs_dict["observation.state"][idx, 0].cpu(),
+            "observation.images.image": obs_dict["observation.images.image"][idx, 0].cpu(),
+            "observation.images.image2": obs_dict["observation.images.image2"][idx, 0].cpu(),
+            OBS_LANGUAGE_TOKENS: obs_dict[OBS_LANGUAGE_TOKENS][idx, 0].cpu(),
+            OBS_LANGUAGE_ATTENTION_MASK: obs_dict[OBS_LANGUAGE_ATTENTION_MASK][idx, 0].cpu(),
             "trajectory_return": trajectory_returns[idx].item(),
         }
-
-        for img_key in ["observation.images.image", "observation.images.image2"]:
-            target_h, target_w = template_batch[img_key].shape[-2:]
-            img_raw = obs_dict[img_key][idx, 0].cpu().float()
-            img_resized = F.interpolate(
-                img_raw.unsqueeze(0),
-                size=(target_h, target_w),
-                mode="bilinear",
-            ).squeeze(0)
-            trajectory_entry[img_key] = img_resized.unsqueeze(0)
 
         entries.append(trajectory_entry)
 
     return entries
+
+
+def build_fixed_observation_policy_batch(
+    obs_dict: dict[str, torch.Tensor],
+    trajectory_indices: torch.Tensor,
+) -> dict[str, torch.Tensor]:
+    batch = {
+        "observation.state": obs_dict["observation.state"][trajectory_indices, 0],
+        "observation.images.image": obs_dict["observation.images.image"][trajectory_indices, 0],
+        "observation.images.image2": obs_dict["observation.images.image2"][trajectory_indices, 0],
+        OBS_LANGUAGE_TOKENS: obs_dict[OBS_LANGUAGE_TOKENS][trajectory_indices, 0],
+        OBS_LANGUAGE_ATTENTION_MASK: obs_dict[OBS_LANGUAGE_ATTENTION_MASK][trajectory_indices, 0],
+    }
+    return batch
+
+
+@torch.no_grad()
+def sample_synthetic_action_trajectories(
+    policy: PreTrainedPolicy,
+    obs_dict: dict[str, torch.Tensor],
+    trajectory_indices: torch.Tensor,
+) -> torch.Tensor:
+    policy_model = policy
+    policy_model.reset()
+    synthetic_batch = build_fixed_observation_policy_batch(obs_dict, trajectory_indices)
+    synthetic_actions = policy_model.predict_action_chunk(synthetic_batch)
+    policy_model.reset()
+    return synthetic_actions
 
 
 def sample_online_trajectory_policy_batch(
@@ -373,13 +395,10 @@ def sample_online_trajectory_policy_batch(
         "action": torch.stack([entry["action"] for entry in sampled_entries]),
         "actions_id_pad": torch.stack([entry["actions_id_pad"] for entry in sampled_entries]),
         "observation.state": torch.stack([entry["observation.state"] for entry in sampled_entries]),
-        "observation.images.image": torch.stack(
-            [entry["observation.images.image"] for entry in sampled_entries]
-        ),
-        "observation.images.image2": torch.stack(
-            [entry["observation.images.image2"] for entry in sampled_entries]
-        ),
-        "task": [entry["task"] for entry in sampled_entries],
+        "observation.images.image": torch.stack([entry["observation.images.image"] for entry in sampled_entries]),
+        "observation.images.image2": torch.stack([entry["observation.images.image2"] for entry in sampled_entries]),
+        OBS_LANGUAGE_TOKENS: torch.stack([entry[OBS_LANGUAGE_TOKENS] for entry in sampled_entries]),
+        OBS_LANGUAGE_ATTENTION_MASK: torch.stack([entry[OBS_LANGUAGE_ATTENTION_MASK] for entry in sampled_entries]),
     }
 
     stats = {
@@ -1087,11 +1106,16 @@ def train(cfg: TrainPipelineConfig, accelerator: Accelerator | None = None):
 
         if is_stage_3 and not freeze_policy_updates:
             trajectory_indices = torch.arange(current_rollout_trajectory_count, device=actions.device)
+            synthetic_actions = sample_synthetic_action_trajectories(
+                accelerator.unwrap_model(policy, keep_fp32_wrapper=True),
+                obs_dict=obs_dict,
+                trajectory_indices=trajectory_indices,
+            )
             new_online_entries = build_online_trajectory_policy_entries(
                 template_batch=batch,
                 dataset=dataset,
                 obs_dict=obs_dict,
-                actions=actions,
+                actions=synthetic_actions,
                 states=states,
                 trajectory_indices=trajectory_indices,
                 trajectory_returns=trajectory_returns,
@@ -1190,11 +1214,12 @@ def train(cfg: TrainPipelineConfig, accelerator: Accelerator | None = None):
                 online_policy_batch = {
                     key: value[micro_start:micro_end]
                     for key, value in online_policy_batch_full.items()
-                    if key != "task"
                 }
-                online_policy_batch["task"] = online_policy_batch_full["task"][micro_start:micro_end]
                 online_policy_weights = online_policy_weights_full[micro_start:micro_end]
-                online_policy_batch = preprocessor(online_policy_batch)
+                online_policy_batch = {
+                    key: value.to(device) if isinstance(value, torch.Tensor) else value
+                    for key, value in online_policy_batch.items()
+                }
 
                 latest_dataloading_s = time.perf_counter() - start_time
                 train_tracker.dataloading_s = latest_dataloading_s
