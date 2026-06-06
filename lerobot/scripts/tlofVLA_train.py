@@ -895,6 +895,7 @@ def train(cfg: TrainPipelineConfig, accelerator: Accelerator | None = None):
     policy_effective_batch_target = policy_micro_batch_size * policy_accumulation_steps
     policy_min_candidates_to_update = policy_micro_batch_size
     policy_buffer_target_size = policy_effective_batch_target
+    policy_buffer_max_size = 64
     reward_success_bonus = 0.1
     reward_failure_penalty = 0.1
     expert_decay_start = None
@@ -1121,6 +1122,8 @@ def train(cfg: TrainPipelineConfig, accelerator: Accelerator | None = None):
                 trajectory_returns=trajectory_returns,
             )
             online_policy_buffer.extend(new_online_entries)
+            if len(online_policy_buffer) > policy_buffer_max_size:
+                online_policy_buffer = online_policy_buffer[-policy_buffer_max_size:]
 
         policy_update_ready = (
             is_stage_3
@@ -1273,7 +1276,6 @@ def train(cfg: TrainPipelineConfig, accelerator: Accelerator | None = None):
             output_dict["policy/trajectory_weight_max"] = trajectory_stats["trajectory_weight_max"]
             output_dict["policy/updates_enabled"] = 1
             train_tracker.policy_updates_enabled = 1.0
-            online_policy_buffer.clear()
         else:
             train_tracker.dataloading_s = time.perf_counter() - start_time
             train_tracker.loss = 0.0
