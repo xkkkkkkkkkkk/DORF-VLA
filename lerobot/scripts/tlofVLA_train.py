@@ -307,7 +307,6 @@ def build_online_trajectory_policy_entries(
     dataset: LeRobotDataset,
     obs_dict: dict[str, torch.Tensor],
     actions: torch.Tensor,
-    states: torch.Tensor,
     trajectory_indices: torch.Tensor,
     trajectory_returns: torch.Tensor,
 ) -> list[dict[str, Any]]:
@@ -838,10 +837,17 @@ def train(cfg: TrainPipelineConfig, accelerator: Accelerator | None = None):
     if eval_env is None:
         raise ValueError("DORF fine-tuning requires an active environment! Please pass --env.type in CLI.")
     suite_name = list(eval_env.keys())[0]
-    task_id = list(eval_env[suite_name].keys())[0]
-    active_env = eval_env[suite_name][task_id]
+    suite_task_ids = sorted(eval_env[suite_name].keys())
+    if len(suite_task_ids) == 0:
+        raise ValueError(f"No task ids found for suite '{suite_name}'.")
 
     if is_main_process:
+        logging.info(
+            "Using rollout suite '%s' with %s task ids for round-robin online sampling: %s",
+            suite_name,
+            len(suite_task_ids),
+            suite_task_ids,
+        )
         logging.info("Initializing Vision-DORF RL modules...")
 
     actual_state_dim = 8
@@ -916,6 +922,9 @@ def train(cfg: TrainPipelineConfig, accelerator: Accelerator | None = None):
         # ---------------------------------------------
         # 阶段 A：Rollout 收集纯净数据 (利用官方管线)
         # ---------------------------------------------
+        current_rollout_task_index = step % len(suite_task_ids)
+        current_rollout_task_id = suite_task_ids[current_rollout_task_index]
+        active_env = eval_env[suite_name][current_rollout_task_id]
         policy.eval()
         with torch.no_grad(), accelerator.autocast():
             rollout_data = rollout(
@@ -934,6 +943,9 @@ def train(cfg: TrainPipelineConfig, accelerator: Accelerator | None = None):
             successes = rollout_data["success"]
             train_success_rate = successes.float().mean().item()
         output_dict["train/rollout_success_rate"] = train_success_rate
+        output_dict["train/rollout_task_id"] = current_rollout_task_id
+        output_dict["train/rollout_task_index"] = current_rollout_task_index
+        output_dict["train/rollout_task_count"] = len(suite_task_ids)
 
         # 1. 确保 observation 键存在
         if "observation" not in rollout_data:
@@ -1079,10 +1091,8 @@ def train(cfg: TrainPipelineConfig, accelerator: Accelerator | None = None):
         # 计算当前 Batch 轨迹级别的成败掩码
         success_mask = (trajectory_success > 0.5)
         fail_mask = ~success_mask
-        valid_trajectory_mask = success_mask.unsqueeze(1).expand_as(A_learned_norm)
         trajectory_returns = true_rewards.sum(dim=1)
         selection_scores = normalize_tensor(trajectory_returns)
-        selection_threshold = None
         current_rollout_trajectory_count = int(actions.shape[0])
         candidate_count = current_rollout_trajectory_count
         num_good = int(success_mask.sum().item())
@@ -1117,7 +1127,6 @@ def train(cfg: TrainPipelineConfig, accelerator: Accelerator | None = None):
                 dataset=dataset,
                 obs_dict=obs_dict,
                 actions=synthetic_actions,
-                states=states,
                 trajectory_indices=trajectory_indices,
                 trajectory_returns=trajectory_returns,
             )
@@ -1195,8 +1204,6 @@ def train(cfg: TrainPipelineConfig, accelerator: Accelerator | None = None):
         output_dict["dorf/policy_skipped_for_low_candidates"] = policy_skipped_for_low_candidates
         output_dict["dorf/policy_buffer_size"] = len(online_policy_buffer)
         output_dict["policy/online_trajectory_count"] = current_rollout_trajectory_count
-        if selection_threshold is not None:
-            output_dict["dorf/selection_threshold"] = selection_threshold.item()
 
         if policy_update_ready and policy_effective_batch_size > 0:
             online_policy_batch_full, online_policy_weights_full, trajectory_stats = sample_online_trajectory_policy_batch(
