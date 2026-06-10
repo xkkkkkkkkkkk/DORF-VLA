@@ -19,6 +19,7 @@ from datasets import load_dataset, Dataset, concatenate_datasets
 from accelerate import Accelerator
 from termcolor import colored
 from torch.optim import Optimizer
+from torch.nn.utils.rnn import pad_sequence
 
 from lerobot.configs import parser
 from lerobot.configs.train import TrainPipelineConfig
@@ -390,14 +391,26 @@ def sample_online_trajectory_policy_batch(
     normalized_returns = normalize_tensor(returns)
     weights = torch.exp(online_weight_scale * normalized_returns).clamp(min=0.01, max=5.0)
 
+    language_tokens = [entry[OBS_LANGUAGE_TOKENS] for entry in sampled_entries]
+    language_attention_masks = [entry[OBS_LANGUAGE_ATTENTION_MASK] for entry in sampled_entries]
+
+    if any(tokens.shape != language_tokens[0].shape for tokens in language_tokens):
+        padded_language_tokens = pad_sequence(language_tokens, batch_first=True, padding_value=0)
+        padded_language_attention_masks = pad_sequence(
+            language_attention_masks, batch_first=True, padding_value=0
+        )
+    else:
+        padded_language_tokens = torch.stack(language_tokens)
+        padded_language_attention_masks = torch.stack(language_attention_masks)
+
     batch = {
         "action": torch.stack([entry["action"] for entry in sampled_entries]),
         "actions_id_pad": torch.stack([entry["actions_id_pad"] for entry in sampled_entries]),
         "observation.state": torch.stack([entry["observation.state"] for entry in sampled_entries]),
         "observation.images.image": torch.stack([entry["observation.images.image"] for entry in sampled_entries]),
         "observation.images.image2": torch.stack([entry["observation.images.image2"] for entry in sampled_entries]),
-        OBS_LANGUAGE_TOKENS: torch.stack([entry[OBS_LANGUAGE_TOKENS] for entry in sampled_entries]),
-        OBS_LANGUAGE_ATTENTION_MASK: torch.stack([entry[OBS_LANGUAGE_ATTENTION_MASK] for entry in sampled_entries]),
+        OBS_LANGUAGE_TOKENS: padded_language_tokens,
+        OBS_LANGUAGE_ATTENTION_MASK: padded_language_attention_masks,
     }
 
     stats = {
