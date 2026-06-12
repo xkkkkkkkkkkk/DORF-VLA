@@ -58,6 +58,7 @@ from typing import TypedDict
 
 import torch
 import torch.nn.functional as F  # noqa: N812
+from torch.distributions import Normal
 from torch import Tensor, nn
 from typing_extensions import Unpack
 
@@ -387,6 +388,50 @@ class SmolVLAPolicy(PreTrainedPolicy):
             self._last_selected_action_offset = 0
 
         return action, chunk, action_offset
+
+    def encode_observation_features(self, batch: dict[str, Tensor]) -> Tensor:
+        """Encode observations into one pooled feature for SAC-style critics."""
+
+        batch = self._prepare_batch(batch)
+        images, img_masks = self.prepare_images(batch)
+        state = self.prepare_state(batch)
+        lang_tokens = batch[f"{OBS_LANGUAGE_TOKENS}"]
+        lang_masks = batch[f"{OBS_LANGUAGE_ATTENTION_MASK}"]
+        return self.model.encode_observation_features(images, img_masks, lang_tokens, lang_masks, state)
+
+    def sample_action_chunk_with_log_prob(
+        self,
+        batch: dict[str, Tensor],
+        noise: Tensor | None = None,
+        *,
+        train: bool,
+        rollout_noise_std: float,
+        train_noise_std: float,
+    ) -> tuple[Tensor, Tensor, Tensor]:
+        """Sample a chunk together with approximate flow-policy log-prob and obs features."""
+
+        batch = self._prepare_batch(batch)
+        images, img_masks = self.prepare_images(batch)
+        state = self.prepare_state(batch)
+        lang_tokens = batch[f"{OBS_LANGUAGE_TOKENS}"]
+        lang_masks = batch[f"{OBS_LANGUAGE_ATTENTION_MASK}"]
+        actions, log_prob, obs_features = self.model.sample_actions_with_log_prob(
+            images,
+            img_masks,
+            lang_tokens,
+            lang_masks,
+            state,
+            noise=noise,
+            train=train,
+            rollout_noise_std=rollout_noise_std,
+            train_noise_std=train_noise_std,
+        )
+        original_action_dim = self.config.action_feature.shape[0]
+        actions = actions[:, :, :original_action_dim]
+        if self.config.adapt_to_pi_aloha:
+            actions = self._pi_aloha_encode_actions(actions)
+        actions = pad_vector(actions, self.config.max_action_dim)
+        return actions, log_prob, obs_features
 
     def _check_get_actions_condition(self) -> bool:
         return len(self._queues[ACTION]) == 0
@@ -833,6 +878,97 @@ class VLAFlowMatching(nn.Module):
         v_t = self.action_out_proj(suffix_out)
         losses = F.mse_loss(u_t, v_t, reduction="none")
         return losses
+
+    def _build_prefix_context(self, images, img_masks, lang_tokens, lang_masks, state):
+        prefix_embs, prefix_pad_masks, prefix_att_masks = self.embed_prefix(
+            images, img_masks, lang_tokens, lang_masks, state=state
+        )
+        prefix_att_2d_masks = make_att_2d_masks(prefix_pad_masks, prefix_att_masks)
+        prefix_position_ids = torch.cumsum(prefix_pad_masks, dim=1) - 1
+        prefix_outputs, past_key_values = self.vlm_with_expert.forward(
+            attention_mask=prefix_att_2d_masks,
+            position_ids=prefix_position_ids,
+            past_key_values=None,
+            inputs_embeds=[prefix_embs, None],
+            use_cache=self.config.use_cache,
+            fill_kv_cache=True,
+        )
+        prefix_hidden = prefix_outputs[0]
+        if prefix_hidden is None:
+            raise RuntimeError("SmolVLA prefix encoder returned no hidden states.")
+        obs_features = prefix_hidden[:, -1].to(dtype=torch.float32)
+        return {
+            "prefix_pad_masks": prefix_pad_masks,
+            "past_key_values": past_key_values,
+            "obs_features": obs_features,
+        }
+
+    def encode_observation_features(self, images, img_masks, lang_tokens, lang_masks, state) -> Tensor:
+        """Return one pooled observation feature for SAC-style critics."""
+
+        context = self._build_prefix_context(images, img_masks, lang_tokens, lang_masks, state)
+        return context["obs_features"]
+
+    def sample_actions_with_log_prob(
+        self,
+        images,
+        img_masks,
+        lang_tokens,
+        lang_masks,
+        state,
+        noise=None,
+        *,
+        train: bool,
+        rollout_noise_std: float,
+        train_noise_std: float,
+    ) -> tuple[Tensor, Tensor, Tensor]:
+        """Sample action chunks and accumulate approximate flow-policy log-prob.
+
+        This mirrors RLinf's SAC-flow semantics closely enough for SmolVLA's
+        flow-matching decoder: initial noise is drawn from N(0, I), each
+        denoising step produces a mean update, and we inject fixed Gaussian
+        exploration noise around that mean to obtain a tractable log-prob.
+        """
+
+        context = self._build_prefix_context(images, img_masks, lang_tokens, lang_masks, state)
+        prefix_pad_masks = context["prefix_pad_masks"]
+        past_key_values = context["past_key_values"]
+        obs_features = context["obs_features"]
+
+        bsize = state.shape[0]
+        device = state.device
+        if noise is None:
+            actions_shape = (bsize, self.config.chunk_size, self.config.max_action_dim)
+            x_t = self.sample_noise(actions_shape, device)
+        else:
+            x_t = noise
+
+        initial_dist = Normal(torch.zeros_like(x_t), torch.ones_like(x_t))
+        total_log_prob = initial_dist.log_prob(x_t).sum(dim=(1, 2))
+
+        num_steps = self.config.num_steps
+        dt = -1.0 / num_steps
+        step_noise_std = train_noise_std if train else rollout_noise_std
+        step_noise_std = max(float(step_noise_std), 0.0)
+
+        for step in range(num_steps):
+            time = 1.0 + step * dt
+            time_tensor = torch.tensor(time, dtype=torch.float32, device=device).expand(bsize)
+            v_t = self.denoise_step(
+                x_t=x_t,
+                prefix_pad_masks=prefix_pad_masks,
+                past_key_values=past_key_values,
+                timestep=time_tensor,
+            )
+            x_next_mean = x_t + dt * v_t
+            if step_noise_std > 0.0:
+                step_dist = Normal(x_next_mean, torch.full_like(x_next_mean, step_noise_std))
+                x_t = step_dist.rsample()
+                total_log_prob = total_log_prob + step_dist.log_prob(x_t).sum(dim=(1, 2))
+            else:
+                x_t = x_next_mean
+
+        return x_t, total_log_prob, obs_features
 
     def sample_actions(
         self,
