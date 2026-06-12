@@ -12,22 +12,25 @@ this file.  DORF should be added back only after this baseline is behaviorally
 validated.
 """
 
-from __future__ import annotations
-
 import dataclasses
 import glob
 import logging
 import os
 import time
+from copy import deepcopy
 from contextlib import nullcontext
 from pathlib import Path
 from pprint import pformat
 from typing import Any
 
 import torch
+import einops
+import gymnasium as gym
+import numpy as np
 from accelerate import Accelerator
 from termcolor import colored
 from torch.optim import Optimizer
+from tqdm import trange
 
 from lerobot.configs import parser
 from lerobot.configs.train import TrainPipelineConfig
@@ -37,8 +40,9 @@ from lerobot.envs.utils import close_envs
 from lerobot.optim.factory import make_optimizer_and_scheduler
 from lerobot.policies.factory import make_policy, make_pre_post_processors
 from lerobot.policies.pretrained import PreTrainedPolicy
+from lerobot.processor import PolicyAction, PolicyProcessorPipeline
 from lerobot.rl.wandb_utils import WandBLogger
-from lerobot.scripts.lerobot_eval import eval_policy_all, rollout
+from lerobot.scripts.lerobot_eval import eval_policy_all
 from lerobot.scripts.smolvla_fm_rl_utils import (
     OBS_LANGUAGE_ATTENTION_MASK,
     OBS_LANGUAGE_TOKENS,
@@ -54,7 +58,17 @@ from lerobot.utils.train_utils import (
     save_checkpoint,
     update_last_checkpoint,
 )
-from lerobot.utils.utils import format_big_number, has_method, init_logging
+from lerobot.utils.constants import ACTION, DONE, OBS_STR, REWARD
+from lerobot.utils.utils import format_big_number, has_method, init_logging, inside_slurm
+
+from lerobot.envs.utils import (
+    add_envs_task,
+    check_env_attributes_and_types,
+    preprocess_observation,
+)
+
+RAW_POLICY_ACTION = "raw_policy_action"
+RAW_POLICY_ACTION_STEP = "raw_policy_action_step"
 
 
 def compute_grad_norm(module: torch.nn.Module) -> float:
@@ -74,6 +88,155 @@ def get_policy_chunk_size(policy: PreTrainedPolicy) -> int:
 
 def move_tensor_batch(batch: dict[str, Any], device: torch.device) -> dict[str, Any]:
     return {key: value.to(device) if isinstance(value, torch.Tensor) else value for key, value in batch.items()}
+
+
+def average_metric_dict(metric_dicts: list[dict[str, float]]) -> dict[str, float]:
+    if not metric_dicts:
+        raise ValueError("Cannot average an empty metric dict list.")
+    keys = metric_dicts[0].keys()
+    return {key: float(sum(metrics[key] for metrics in metric_dicts) / len(metric_dicts)) for key in keys}
+
+
+def rollout_with_policy_chunks(
+    env: gym.vector.VectorEnv,
+    policy: PreTrainedPolicy,
+    env_preprocessor: PolicyProcessorPipeline[dict[str, Any], dict[str, Any]],
+    env_postprocessor: PolicyProcessorPipeline[dict[str, Any], dict[str, Any]],
+    preprocessor: PolicyProcessorPipeline[dict[str, Any], dict[str, Any]],
+    postprocessor: PolicyProcessorPipeline[PolicyAction, PolicyAction],
+    seeds: list[int] | None = None,
+    return_observations: bool = False,
+) -> dict[str, Any]:
+    """Run rollout and retain the raw policy-space chunk used to execute each step.
+
+    This closes the main gap versus RLinf-style actor updates: the FM label is
+    taken from the same sampled policy chunk that generated the environment
+    return, before any post-processing into env action space.
+    """
+
+    policy.reset()
+    observation, _ = env.reset(seed=seeds)
+
+    all_observations = []
+    all_actions = []
+    all_rewards = []
+    all_successes = []
+    all_dones = []
+    all_raw_policy_actions = []
+    all_raw_policy_action_steps = []
+
+    step = 0
+    done = np.array([False] * env.num_envs)
+    try:
+        max_steps = env.max_episode_steps
+    except AttributeError:
+        max_steps = env.call("_max_episode_steps")[0]
+
+    progress = trange(
+        max_steps,
+        desc=f"Running FM-RL rollout with at most {max_steps} steps",
+        disable=inside_slurm(),
+        leave=False,
+    )
+    check_env_attributes_and_types(env)
+
+    action_queue_steps_left = 0
+    current_raw_chunk = None
+    current_raw_step = None
+
+    while not np.all(done) and step < max_steps:
+        observation = preprocess_observation(observation)
+        observation = add_envs_task(env, observation)
+        observation = env_preprocessor(observation)
+        observation = preprocessor(observation)
+        if return_observations:
+            all_observations.append(deepcopy(observation))
+
+        with torch.inference_mode():
+            if has_method(policy, "select_action_with_chunk"):
+                action, raw_chunk, raw_step = policy.select_action_with_chunk(observation)
+                current_raw_chunk = raw_chunk.detach().cpu()
+                current_raw_step = raw_step.detach().cpu()
+            else:
+                if action_queue_steps_left <= 0:
+                    current_raw_chunk = policy.predict_action_chunk(observation).detach().cpu()
+                    current_raw_step = torch.zeros(env.num_envs, dtype=torch.long)
+                    action_queue_steps_left = min(get_policy_chunk_size(policy), int(policy.config.n_action_steps))
+                action = policy.select_action(observation)
+                raw_step_to_record = current_raw_step.clone()
+                action_queue_steps_left -= 1
+                current_raw_step = current_raw_step + 1
+
+        all_raw_policy_actions.append(current_raw_chunk.clone())
+        if has_method(policy, "select_action_with_chunk"):
+            all_raw_policy_action_steps.append(current_raw_step.clone())
+        else:
+            all_raw_policy_action_steps.append(raw_step_to_record.clone())
+
+        action = postprocessor(action)
+        action_transition = {ACTION: action}
+        action_transition = env_postprocessor(action_transition)
+        action = action_transition[ACTION]
+
+        action_numpy: np.ndarray = action.to("cpu").numpy()
+        assert action_numpy.ndim == 2, "Action dimensions should be (batch, action_dim)"
+
+        observation, reward, terminated, truncated, info = env.step(action_numpy)
+
+        if "final_info" in info:
+            final_info = info["final_info"]
+            if not isinstance(final_info, dict):
+                raise RuntimeError(
+                    "Unsupported `final_info` format: expected dict (Gymnasium >= 1.0). "
+                    "You're likely using an older version of gymnasium (< 1.0). Please upgrade."
+                )
+            successes = final_info["is_success"].tolist()
+        else:
+            successes = [False] * env.num_envs
+
+        done = terminated | truncated | done
+        if step + 1 == max_steps:
+            done = np.ones_like(done, dtype=bool)
+
+        all_actions.append(torch.from_numpy(action_numpy))
+        all_rewards.append(torch.from_numpy(reward))
+        all_dones.append(torch.from_numpy(done))
+        all_successes.append(torch.tensor(successes))
+
+        step += 1
+        running_success_rate = (
+            einops.reduce(torch.stack(all_successes, dim=1), "b n -> b", "any").numpy().mean()
+        )
+        progress.set_postfix({"running_success_rate": f"{running_success_rate.item() * 100:.1f}%"})
+        progress.update()
+
+    if return_observations:
+        observation = preprocess_observation(observation)
+        observation = add_envs_task(env, observation)
+        observation = env_preprocessor(observation)
+        observation = preprocessor(observation)
+        all_observations.append(deepcopy(observation))
+
+    ret = {
+        ACTION: torch.stack(all_actions, dim=1),
+        "reward": torch.stack(all_rewards, dim=1),
+        "success": torch.stack(all_successes, dim=1),
+        "done": torch.stack(all_dones, dim=1),
+        RAW_POLICY_ACTION: torch.stack(all_raw_policy_actions, dim=1),
+        RAW_POLICY_ACTION_STEP: torch.stack(all_raw_policy_action_steps, dim=1),
+    }
+    if return_observations:
+        def recursive_stack(data_list):
+            first = data_list[0]
+            if isinstance(first, torch.Tensor):
+                return torch.stack(data_list, dim=1)
+            if isinstance(first, dict):
+                return {k: recursive_stack([d[k] for d in data_list]) for k in first}
+            return data_list
+
+        ret[OBS_STR] = recursive_stack(all_observations)
+
+    return ret
 
 
 def configure_dataset_for_fm_rl(cfg: TrainPipelineConfig, *, is_main_process: bool) -> None:
@@ -217,14 +380,14 @@ def build_entries_from_rollout(
 ) -> tuple[list[dict[str, Any]], dict[str, float]]:
     """Convert one rollout result into weighted-FM candidate entries.
 
-    ``label_mode='rollout_prefix'`` trains on the initial action prefix returned
-    by ``lerobot_eval.rollout``. Use it only if those actions are confirmed to be
-    in the same normalized action space expected by ``policy.forward``.
+    ``label_mode='rollout_policy'`` uses the exact raw policy-space chunk that
+    generated each trajectory step during rollout. This is the default because
+    it keeps the FM supervision label aligned with the return source, as in
+    RLinf-style policy updates.
 
-    ``label_mode='synthetic'`` is the safe default for the current SmolVLA
-    baseline: rollout provides only the return signal, while labels are sampled
-    in policy/Fm space at the fixed initial observation via
-    ``predict_action_chunk``.
+    ``label_mode='synthetic'`` is kept only as a diagnostic fallback: rollout
+    provides the return signal, while labels are resampled in policy/Fm space at
+    the fixed initial observation via ``predict_action_chunk``.
     """
 
     if "observation" not in rollout_data:
@@ -242,12 +405,18 @@ def build_entries_from_rollout(
     indices = torch.arange(batch_size, device=device)
     chunk_size = get_policy_chunk_size(policy)
 
-    if label_mode == "rollout_prefix":
-        action_labels = rollout_actions[:, :chunk_size]
+    if label_mode == "rollout_policy":
+        if RAW_POLICY_ACTION not in rollout_data or RAW_POLICY_ACTION_STEP not in rollout_data:
+            raise KeyError(
+                f"rollout_data must contain {RAW_POLICY_ACTION!r} and {RAW_POLICY_ACTION_STEP!r} "
+                f"for label_mode='rollout_policy'; available keys={list(rollout_data.keys())}"
+            )
+        raw_policy_actions = rollout_data[RAW_POLICY_ACTION].to(device).float()
+        action_labels = raw_policy_actions[:, 0, :chunk_size]
     elif label_mode == "synthetic":
         action_labels = sample_synthetic_action_chunks(policy, obs_dict, indices, device)
     else:
-        raise ValueError(f"Unsupported label_mode={label_mode!r}; use 'rollout_prefix' or 'synthetic'.")
+        raise ValueError(f"Unsupported label_mode={label_mode!r}; use 'rollout_policy' or 'synthetic'.")
 
     entries: list[dict[str, Any]] = []
     for idx in range(batch_size):
@@ -378,8 +547,8 @@ def train(cfg: TrainPipelineConfig, accelerator: Accelerator | None = None):
     rl_min_weight = env_float("SMOLVLA_FM_RL_MIN_WEIGHT", 0.05)
     rl_max_weight = env_float("SMOLVLA_FM_RL_MAX_WEIGHT", 5.0)
     rl_accumulation_steps = env_int("SMOLVLA_FM_RL_ACCUMULATION_STEPS", 4)
-    # alternative: "rollout_prefix" if rollout actions are confirmed policy-space labels
-    rl_label_mode = env_choice("SMOLVLA_FM_RL_LABEL_MODE", "synthetic", {"synthetic", "rollout_prefix"})
+    rl_rollout_epoch = env_int("SMOLVLA_FM_RL_ROLLOUT_EPOCH", 8)
+    rl_label_mode = env_choice("SMOLVLA_FM_RL_LABEL_MODE", "rollout_policy", {"synthetic", "rollout_policy"})
     rl_eval_every = cfg.eval_freq
 
     if rl_group_size <= 0:
@@ -388,6 +557,8 @@ def train(cfg: TrainPipelineConfig, accelerator: Accelerator | None = None):
         raise ValueError(
             f"SMOLVLA_FM_RL_ACCUMULATION_STEPS must be positive, got {rl_accumulation_steps}."
         )
+    if rl_rollout_epoch <= 0:
+        raise ValueError(f"SMOLVLA_FM_RL_ROLLOUT_EPOCH must be positive, got {rl_rollout_epoch}.")
     if rl_min_weight <= 0.0 or rl_max_weight < rl_min_weight:
         raise ValueError(
             "Require 0 < SMOLVLA_FM_RL_MIN_WEIGHT <= SMOLVLA_FM_RL_MAX_WEIGHT; "
@@ -408,8 +579,9 @@ def train(cfg: TrainPipelineConfig, accelerator: Accelerator | None = None):
     if is_main_process:
         logging.info(pformat(cfg.to_dict()))
         logging.info(
-            "SmolVLA FM-RL baseline: group_size=%s beta=%s weight_clip=[%s,%s] label_mode=%s",
+            "SmolVLA FM-RL baseline: group_size=%s rollout_epoch=%s beta=%s weight_clip=[%s,%s] label_mode=%s",
             rl_group_size,
+            rl_rollout_epoch,
             rl_weight_beta,
             rl_min_weight,
             rl_max_weight,
@@ -534,7 +706,7 @@ def train(cfg: TrainPipelineConfig, accelerator: Accelerator | None = None):
         policy.eval()
         rollout_start = time.perf_counter()
         with torch.no_grad(), accelerator.autocast():
-            rollout_data = rollout(
+            rollout_data = rollout_with_policy_chunks(
                 env=active_env,
                 policy=accelerator.unwrap_model(policy, keep_fp32_wrapper=True),
                 env_preprocessor=env_preprocessor,
@@ -570,16 +742,22 @@ def train(cfg: TrainPipelineConfig, accelerator: Accelerator | None = None):
             micro_batch_size = max(1, min(micro_batch_size, (len(entries) + rl_accumulation_steps - 1) // rl_accumulation_steps))
 
         update_start = time.perf_counter()
-        policy_stats = weighted_fm_update(
-            policy=policy,
-            optimizer=optimizer,
-            accelerator=accelerator,
-            batch=fm_batch,
-            weights=weights,
-            micro_batch_size=micro_batch_size,
-            grad_clip_norm=cfg.optimizer.grad_clip_norm,
-            lr_scheduler=lr_scheduler,
-        )
+        per_epoch_policy_stats = []
+        for _epoch in range(rl_rollout_epoch):
+            per_epoch_policy_stats.append(
+                weighted_fm_update(
+                    policy=policy,
+                    optimizer=optimizer,
+                    accelerator=accelerator,
+                    batch=fm_batch,
+                    weights=weights,
+                    micro_batch_size=micro_batch_size,
+                    grad_clip_norm=cfg.optimizer.grad_clip_norm,
+                    lr_scheduler=lr_scheduler,
+                )
+            )
+        policy_stats = average_metric_dict(per_epoch_policy_stats)
+        policy_stats["policy/rollout_epoch"] = float(rl_rollout_epoch)
         update_s = time.perf_counter() - update_start
 
         train_tracker.loss = policy_stats["policy/fm_loss"]
@@ -610,8 +788,9 @@ def train(cfg: TrainPipelineConfig, accelerator: Accelerator | None = None):
             "train/rollout_success_rate": rollout_stats["rollout_success_rate"],
             "train/rollout_trajectory_count": rollout_stats["rollout_trajectory_count"],
             "train/rl_group_size": len(entries),
+            "train/rl_rollout_epoch": rl_rollout_epoch,
             "train/rl_weight_beta": rl_weight_beta,
-            "train/rl_label_mode_rollout_prefix": float(rl_label_mode == "rollout_prefix"),
+            "train/rl_label_mode_rollout_policy": float(rl_label_mode == "rollout_policy"),
             "train/rl_label_mode_synthetic": float(rl_label_mode == "synthetic"),
             "train/policy_weight_mean": weight_stats["weight_mean"],
             "train/policy_weight_max": weight_stats["weight_max"],

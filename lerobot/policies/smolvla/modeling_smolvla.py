@@ -251,6 +251,8 @@ class SmolVLAPolicy(PreTrainedPolicy):
         self._queues = {
             ACTION: deque(maxlen=self.config.n_action_steps),
         }
+        self._last_selected_action_chunk = None
+        self._last_selected_action_offset = 0
 
     def init_rtc_processor(self):
         """Initialize RTC processor if RTC is enabled in config."""
@@ -346,6 +348,45 @@ class SmolVLAPolicy(PreTrainedPolicy):
             self._queues[ACTION].extend(actions.transpose(0, 1)[: self.config.n_action_steps])
 
         return self._queues[ACTION].popleft()
+
+    @torch.no_grad()
+    def select_action_with_chunk(
+        self, batch: dict[str, Tensor], noise: Tensor | None = None, **kwargs: Unpack[ActionSelectKwargs]
+    ) -> tuple[Tensor, Tensor, Tensor]:
+        """Return the executed action together with its source raw action chunk.
+
+        This keeps rollout-time supervision aligned with the exact policy sample
+        that produced the environment transition.
+        """
+
+        assert not self._rtc_enabled(), (
+            "RTC is not supported for select_action_with_chunk, use it with predict_action_chunk"
+        )
+
+        self.eval()
+        batch = self._prepare_batch(batch)
+        self._queues = populate_queues(self._queues, batch, exclude_keys=[ACTION])
+
+        if self._check_get_actions_condition():
+            actions = self._get_action_chunk(batch, noise)
+            self._queues[ACTION].extend(actions.transpose(0, 1)[: self.config.n_action_steps])
+            self._last_selected_action_chunk = actions.detach().clone()
+            self._last_selected_action_offset = 0
+
+        action = self._queues[ACTION].popleft()
+        chunk = self._last_selected_action_chunk
+        action_offset = torch.full(
+            (action.shape[0],),
+            int(self._last_selected_action_offset),
+            dtype=torch.long,
+            device=action.device,
+        )
+        self._last_selected_action_offset += 1
+        if len(self._queues[ACTION]) == 0:
+            self._last_selected_action_chunk = None
+            self._last_selected_action_offset = 0
+
+        return action, chunk, action_offset
 
     def _check_get_actions_condition(self) -> bool:
         return len(self._queues[ACTION]) == 0
