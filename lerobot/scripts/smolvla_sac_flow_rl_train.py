@@ -61,7 +61,6 @@ from lerobot.scripts.smolvla_sac_flow_utils import (
 )
 from lerobot.utils.constants import ACTION
 from lerobot.utils.import_utils import register_third_party_plugins
-from lerobot.utils.logging_utils import MetricsTracker
 from lerobot.utils.random_utils import set_seed
 from lerobot.utils.train_utils import (
     get_step_checkpoint_dir,
@@ -346,8 +345,6 @@ def train(cfg: TrainPipelineConfig):
         raise ValueError(f"No tasks found in suite {suite_name!r}.")
 
     replay_buffer = TypedReplayBuffer(capacity=replay_capacity)
-    train_tracker = MetricsTracker()
-
     num_learnable_params = sum(param.numel() for param in policy.parameters() if param.requires_grad)
     num_total_params = sum(param.numel() for param in policy.parameters())
     logging.info(colored("Output dir:", "yellow", attrs=["bold"]) + f" {cfg.output_dir}")
@@ -475,12 +472,6 @@ def train(cfg: TrainPipelineConfig):
                 key: float(sum(metric[key] for metric in update_metrics) / len(update_metrics))
                 for key in keys
             }
-
-        train_tracker.loss = mean_update_metrics.get("train/actor_loss", 0.0)
-        train_tracker.grad_norm = mean_update_metrics.get("train/actor_grad_norm", 0.0)
-        train_tracker.lr = actor_optimizer.param_groups[0]["lr"]
-        train_tracker.update_s = update_s
-        train_tracker.rollout_s = rollout_s
 
         log_metrics = {
             "train/step": step,
