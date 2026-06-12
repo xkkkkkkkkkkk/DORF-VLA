@@ -480,6 +480,20 @@ def weighted_fm_update(
 
     batch_size = int(weights.shape[0])
     selected_weight_sum = float(weights.sum().item())
+    if selected_weight_sum <= 1e-8:
+        optimizer.zero_grad()
+        return {
+            "policy/fm_loss": 0.0,
+            "policy/loss": 0.0,
+            "policy/loss_weighted_sum": 0.0,
+            "policy/loss_denominator": 0.0,
+            "policy/micro_batches": 0.0,
+            "policy/micro_grad_norm": 0.0,
+            "policy/final_grad_norm": 0.0,
+            "policy/grad_norm": 0.0,
+            "policy/raw_forward_loss": 0.0,
+            "policy/update_skipped": 1.0,
+        }
     weighted_loss_sum = 0.0
     micro_grad_norm_sum = 0.0
     micro_batches = 0
@@ -533,6 +547,7 @@ def weighted_fm_update(
         "policy/final_grad_norm": final_grad_norm,
         "policy/grad_norm": final_grad_norm,
         "policy/raw_forward_loss": float(last_output_dict.get("loss", fm_loss)),
+        "policy/update_skipped": 0.0,
     }
 
 

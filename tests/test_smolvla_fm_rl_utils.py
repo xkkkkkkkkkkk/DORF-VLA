@@ -23,7 +23,16 @@ class SmolVLAFMRLUtilsTest(unittest.TestCase):
 
         weights = compute_rl_fm_weights(advantages, beta=1.0, min_weight=0.1, max_weight=3.0)
 
-        self.assertEqual(weights, [0.1, 1.0, 3.0])
+        self.assertEqual(weights, [0.0, 0.0, 3.0])
+
+    def test_compute_rl_fm_weights_skips_non_positive_advantages(self):
+        advantages = [-1.0, 0.0, 0.2]
+
+        weights = compute_rl_fm_weights(advantages, beta=1.0, min_weight=0.1, max_weight=3.0)
+
+        self.assertEqual(weights[0], 0.0)
+        self.assertEqual(weights[1], 0.0)
+        self.assertGreater(weights[2], 0.0)
 
     def test_group_advantages_rejects_non_multiple_group_size(self):
         with self.assertRaises(ValueError):

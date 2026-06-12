@@ -87,7 +87,14 @@ def compute_rl_fm_weights(
     min_weight: float,
     max_weight: float,
 ) -> Any:
-    """Map group-normalized advantages to clipped flow-matching sample weights."""
+    """Map advantages to positive-only flow-matching weights.
+
+    PPO/GRPO actor updates produce zero gradient when advantage is zero and push
+    down bad actions when advantage is negative. Our FM surrogate cannot safely
+    use signed log-prob ratios, so we take the conservative approximation:
+    update only on positive-advantage samples and skip zero/negative-advantage
+    actions entirely.
+    """
 
     if min_weight <= 0:
         raise ValueError(f"min_weight must be positive, got {min_weight}.")
@@ -95,10 +102,15 @@ def compute_rl_fm_weights(
         raise ValueError(f"max_weight must be >= min_weight, got {max_weight} < {min_weight}.")
 
     if _is_torch_tensor(advantages):
-        return (beta * advantages).exp().clamp(min=min_weight, max=max_weight)
+        positive_mask = advantages > 0
+        positive_weights = (beta * advantages).exp().clamp(min=min_weight, max=max_weight)
+        return positive_weights * positive_mask.to(positive_weights.dtype)
 
     weights: list[float] = []
     for advantage in advantages:
+        if float(advantage) <= 0.0:
+            weights.append(0.0)
+            continue
         weight = math.exp(beta * float(advantage))
         weights.append(min(max(weight, min_weight), max_weight))
     return weights
@@ -156,6 +168,8 @@ def build_weighted_fm_batch(
         "weight_mean": weights.mean().item(),
         "weight_max": weights.max().item(),
         "weight_min": weights.min().item(),
+        "positive_weight_fraction": (weights > 0).float().mean().item(),
+        "has_policy_signal": float(weights.sum().item() > 0),
     }
     return batch, weights, stats
 
