@@ -836,7 +836,7 @@ def train(cfg: TrainPipelineConfig, accelerator: Accelerator | None = None):
                 if wandb_logger:
                     wandb_logger.log_policy(checkpoint_dir)
 
-        is_eval_step = rl_eval_every > 0 and step % rl_eval_every == 0
+        is_eval_step = rl_eval_every > 0 and step > 0 and step % rl_eval_every == 0
         if is_eval_step and is_main_process:
             step_id = get_step_identifier(step, cfg.steps)
             logging.info("Eval policy at FM-RL step %s", step)
