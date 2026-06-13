@@ -91,6 +91,18 @@ def extract_policy_obs_at_timestep(obs_dict: dict[str, Any], env_idx: int, time_
     }
 
 
+def validate_transition_action_shape(policy: PreTrainedPolicy, flat_action: torch.Tensor) -> None:
+    expected_dim = policy.config.chunk_size * policy.config.max_action_dim
+    if flat_action.ndim != 2:
+        raise RuntimeError(
+            f"Expected flattened replay action shape [1, {expected_dim}], got {tuple(flat_action.shape)}."
+        )
+    if flat_action.shape[0] != 1 or flat_action.shape[1] != expected_dim:
+        raise RuntimeError(
+            f"Expected flattened replay action shape [1, {expected_dim}], got {tuple(flat_action.shape)}."
+        )
+
+
 def pad_policy_action_chunk(policy: PreTrainedPolicy, action_chunk: torch.Tensor) -> torch.Tensor:
     """Pad a raw policy chunk back to SmolVLA's max_action_dim layout."""
 
@@ -139,11 +151,13 @@ def build_chunk_transitions_from_rollout(
             action_chunk = pad_policy_action_chunk(policy, raw_policy_actions[env_idx, start_step])
             state = extract_policy_obs_at_timestep(obs_dict, env_idx, start_step)
             next_state = extract_policy_obs_at_timestep(obs_dict, env_idx, end_step)
+            flat_action = flatten_action_chunk(action_chunk)
+            validate_transition_action_shape(policy, flat_action)
 
             transitions.append(
                 {
                     "state": state,
-                    "action": flatten_action_chunk(action_chunk),
+                    "action": flat_action,
                     "next_state": next_state,
                     "reward": chunk_reward_sum(decision_rewards, gamma=gamma),
                     "done": bool(dones[env_idx, end_step - 1].item()),
@@ -204,6 +218,11 @@ def load_sac_extra_state(
 
 def zero_if_nan(value: float) -> float:
     return 0.0 if value != value else value
+
+
+def require_finite_tensor(name: str, tensor: torch.Tensor) -> None:
+    if not torch.isfinite(tensor).all():
+        raise RuntimeError(f"Encountered non-finite values in {name}.")
 
 
 @parser.wrap()
@@ -388,25 +407,33 @@ def train(cfg: TrainPipelineConfig):
                 batch = replay_buffer.sample(batch_size=batch_size, device=device)
 
                 with torch.no_grad():
-                    next_actions, next_log_prob, next_obs_features = policy.sample_action_chunk_with_log_prob(
+                    next_actions, next_log_prob, next_obs_features = policy.sac_sample_action_chunk(
                         batch["next_state"],
                         train=True,
                         rollout_noise_std=rollout_noise_std,
                         train_noise_std=train_noise_std,
                     )
                     next_actions_flat = flatten_action_chunk(next_actions)
+                    require_finite_tensor("next_actions_flat", next_actions_flat)
+                    require_finite_tensor("next_log_prob", next_log_prob)
+                    require_finite_tensor("next_obs_features", next_obs_features)
                     next_q_values = target_q_network(next_obs_features.detach(), next_actions_flat)
+                    require_finite_tensor("next_q_values", next_q_values)
                     next_q = min_q_value(next_q_values)
                     target_value = batch["reward"] + (1.0 - batch["done"]) * batch["discount"] * (
                         next_q - temperature.alpha.detach() * next_log_prob
                     )
+                    require_finite_tensor("target_value", target_value)
 
-                    obs_features = policy.encode_observation_features(batch["state"]).detach()
+                    obs_features = policy.sac_encode_observation(batch["state"]).detach()
+                    require_finite_tensor("obs_features", obs_features)
 
                 critic_optimizer.zero_grad(set_to_none=True)
                 critic_q_values = q_network(obs_features, batch["action"])
+                require_finite_tensor("critic_q_values", critic_q_values)
                 critic_target = target_value.unsqueeze(0).expand_as(critic_q_values)
                 critic_loss = torch.nn.functional.mse_loss(critic_q_values, critic_target)
+                require_finite_tensor("critic_loss", critic_loss)
                 critic_loss.backward()
                 critic_grad_norm = float(torch.nn.utils.clip_grad_norm_(q_network.parameters(), cfg.optimizer.grad_clip_norm))
                 critic_optimizer.step()
@@ -420,15 +447,20 @@ def train(cfg: TrainPipelineConfig):
                 if update_idx % critic_actor_ratio == 0:
                     actor_optimizer.zero_grad(set_to_none=True)
                     freeze_module(q_network)
-                    sampled_actions, log_prob, obs_features = policy.sample_action_chunk_with_log_prob(
+                    sampled_actions, log_prob, obs_features = policy.sac_sample_action_chunk(
                         batch["state"],
                         train=True,
                         rollout_noise_std=rollout_noise_std,
                         train_noise_std=train_noise_std,
                     )
                     sampled_actions_flat = flatten_action_chunk(sampled_actions)
+                    require_finite_tensor("sampled_actions_flat", sampled_actions_flat)
+                    require_finite_tensor("actor_log_prob", log_prob)
+                    require_finite_tensor("actor_obs_features", obs_features)
                     q_pi = q_network(obs_features, sampled_actions_flat)
+                    require_finite_tensor("q_pi", q_pi)
                     actor_loss = (temperature.alpha.detach() * log_prob - min_q_value(q_pi)).mean()
+                    require_finite_tensor("actor_loss", actor_loss)
                     actor_loss.backward()
                     actor_grad_norm = float(
                         torch.nn.utils.clip_grad_norm_(policy.parameters(), cfg.optimizer.grad_clip_norm)
@@ -440,6 +472,7 @@ def train(cfg: TrainPipelineConfig):
 
                     alpha_optimizer.zero_grad(set_to_none=True)
                     alpha_loss = -(temperature.alpha * (log_prob.detach() + target_entropy)).mean()
+                    require_finite_tensor("alpha_loss", alpha_loss)
                     alpha_loss.backward()
                     alpha_optimizer.step()
 
@@ -480,6 +513,9 @@ def train(cfg: TrainPipelineConfig):
             "train/rollout_time_s": rollout_s,
             "train/update_time_s": update_s,
             "train/rollout_task_count": len(suite_task_ids),
+            "train/replay_min_ready": float(len(replay_buffer) >= min_buffer_size),
+            "train/action_flat_dim": float(action_flat_dim),
+            "train/obs_feature_dim": float(obs_feature_dim),
             **rollout_stats,
             **mean_update_metrics,
         }

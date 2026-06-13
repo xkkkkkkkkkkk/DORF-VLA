@@ -26,6 +26,10 @@ def flatten_action_chunk(action_chunk: Any) -> Any:
     """
 
     if _is_torch_tensor(action_chunk):
+        if action_chunk.ndim != 3:
+            raise ValueError(
+                f"Expected action chunk tensor with shape [batch, chunk, action_dim], got {tuple(action_chunk.shape)}."
+            )
         return action_chunk.reshape(action_chunk.shape[0], -1)
 
     flat_chunks: list[list[float]] = []
@@ -126,6 +130,27 @@ class MLPQEnsemble:  # pragma: no cover - tensor runtime only
                 )
 
             def forward(self, obs_features, flat_actions):
+                if obs_features.ndim != 2:
+                    raise ValueError(
+                        f"Expected obs_features shape [batch, obs_dim], got {tuple(obs_features.shape)}."
+                    )
+                if flat_actions.ndim != 2:
+                    raise ValueError(
+                        f"Expected flat_actions shape [batch, action_dim], got {tuple(flat_actions.shape)}."
+                    )
+                if obs_features.shape[0] != flat_actions.shape[0]:
+                    raise ValueError(
+                        "obs_features and flat_actions batch sizes must match, "
+                        f"got {obs_features.shape[0]} and {flat_actions.shape[0]}."
+                    )
+                if obs_features.shape[1] != self.obs_dim:
+                    raise ValueError(
+                        f"Expected obs_features hidden dim {self.obs_dim}, got {obs_features.shape[1]}."
+                    )
+                if flat_actions.shape[1] != self.action_dim:
+                    raise ValueError(
+                        f"Expected flat action dim {self.action_dim}, got {flat_actions.shape[1]}."
+                    )
                 critic_input = torch.cat([obs_features, flat_actions], dim=-1)
                 q_values = [head(critic_input).squeeze(-1) for head in self.q_heads]
                 return torch.stack(q_values, dim=0)
@@ -200,6 +225,26 @@ class TypedReplayBuffer:  # pragma: no cover - tensor runtime only
         return len(self._storage)
 
     def add(self, transition: dict[str, Any]) -> None:
+        required_keys = {
+            "state",
+            "next_state",
+            "action",
+            "reward",
+            "done",
+            "truncated",
+            "discount",
+            "horizon",
+            "raw_reward_sum",
+        }
+        missing = sorted(required_keys.difference(transition))
+        if missing:
+            raise KeyError(f"Replay transition is missing required keys: {missing}")
+        if not _is_torch_tensor(transition["action"]):
+            raise TypeError("Replay transition 'action' must be a torch tensor.")
+        if transition["action"].ndim != 2:
+            raise ValueError(
+                f"Replay transition 'action' must have shape [1, flat_action_dim], got {tuple(transition['action'].shape)}."
+            )
         self._storage.append(transition)
 
     def sample(self, batch_size: int, device) -> dict[str, Any]:
@@ -218,6 +263,10 @@ class TypedReplayBuffer:  # pragma: no cover - tensor runtime only
             for key in state_keys
         }
         batch_action = torch.cat([transition["action"] for transition in sampled], dim=0).to(device)
+        if batch_action.ndim != 2:
+            raise RuntimeError(
+                f"Expected sampled replay actions with shape [batch, flat_action_dim], got {tuple(batch_action.shape)}."
+            )
         batch_reward = torch.tensor([transition["reward"] for transition in sampled], dtype=torch.float32, device=device)
         batch_done = torch.tensor([transition["done"] for transition in sampled], dtype=torch.float32, device=device)
         batch_truncated = torch.tensor(

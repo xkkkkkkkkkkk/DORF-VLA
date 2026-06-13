@@ -397,9 +397,38 @@ class SmolVLAPolicy(PreTrainedPolicy):
         state = self.prepare_state(batch)
         lang_tokens = batch[f"{OBS_LANGUAGE_TOKENS}"]
         lang_masks = batch[f"{OBS_LANGUAGE_ATTENTION_MASK}"]
-        return self.model.encode_observation_features(images, img_masks, lang_tokens, lang_masks, state)
+        obs_features = self.model.encode_observation_features(
+            images, img_masks, lang_tokens, lang_masks, state
+        )
+        if obs_features.ndim != 2:
+            raise RuntimeError(
+                f"Expected pooled observation features with shape [batch, hidden_dim], got {tuple(obs_features.shape)}."
+            )
+        return obs_features
 
-    def sample_action_chunk_with_log_prob(
+    def sac_encode_observation(self, batch: dict[str, Tensor]) -> Tensor:
+        """Return pooled observation features for SAC critics."""
+
+        return self.encode_observation_features(batch)
+
+    def _format_sac_action_chunk(self, actions: Tensor) -> Tensor:
+        original_action_dim = self.config.action_feature.shape[0]
+        actions = actions[:, :, :original_action_dim]
+        if self.config.adapt_to_pi_aloha:
+            actions = self._pi_aloha_encode_actions(actions)
+        actions = pad_vector(actions, self.config.max_action_dim)
+        expected_shape = (
+            actions.shape[0],
+            self.config.chunk_size,
+            self.config.max_action_dim,
+        )
+        if tuple(actions.shape) != expected_shape:
+            raise RuntimeError(
+                f"Expected SAC action chunk shape {expected_shape}, got {tuple(actions.shape)}."
+            )
+        return actions
+
+    def sac_sample_action_chunk(
         self,
         batch: dict[str, Tensor],
         noise: Tensor | None = None,
@@ -408,7 +437,7 @@ class SmolVLAPolicy(PreTrainedPolicy):
         rollout_noise_std: float,
         train_noise_std: float,
     ) -> tuple[Tensor, Tensor, Tensor]:
-        """Sample a chunk together with approximate flow-policy log-prob and obs features."""
+        """Sample one SmolVLA action chunk with approximate SAC log-prob."""
 
         batch = self._prepare_batch(batch)
         images, img_masks = self.prepare_images(batch)
@@ -426,12 +455,36 @@ class SmolVLAPolicy(PreTrainedPolicy):
             rollout_noise_std=rollout_noise_std,
             train_noise_std=train_noise_std,
         )
-        original_action_dim = self.config.action_feature.shape[0]
-        actions = actions[:, :, :original_action_dim]
-        if self.config.adapt_to_pi_aloha:
-            actions = self._pi_aloha_encode_actions(actions)
-        actions = pad_vector(actions, self.config.max_action_dim)
+        actions = self._format_sac_action_chunk(actions)
+        if log_prob.ndim != 1:
+            raise RuntimeError(f"Expected SAC log_prob shape [batch], got {tuple(log_prob.shape)}.")
+        if obs_features.ndim != 2:
+            raise RuntimeError(
+                f"Expected SAC obs feature shape [batch, hidden_dim], got {tuple(obs_features.shape)}."
+            )
+        if not torch.isfinite(log_prob).all():
+            raise RuntimeError("Encountered non-finite SAC log_prob values while sampling action chunks.")
+        if not torch.isfinite(obs_features).all():
+            raise RuntimeError("Encountered non-finite SAC observation features while sampling action chunks.")
         return actions, log_prob, obs_features
+
+    def sample_action_chunk_with_log_prob(
+        self,
+        batch: dict[str, Tensor],
+        noise: Tensor | None = None,
+        *,
+        train: bool,
+        rollout_noise_std: float,
+        train_noise_std: float,
+    ) -> tuple[Tensor, Tensor, Tensor]:
+        """Sample a chunk together with approximate flow-policy log-prob and obs features."""
+        return self.sac_sample_action_chunk(
+            batch,
+            noise=noise,
+            train=train,
+            rollout_noise_std=rollout_noise_std,
+            train_noise_std=train_noise_std,
+        )
 
     def _check_get_actions_condition(self) -> bool:
         return len(self._queues[ACTION]) == 0
