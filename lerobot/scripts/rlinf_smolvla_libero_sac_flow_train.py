@@ -58,7 +58,6 @@ def run_dry_run() -> None:
         "gamma": 0.96,
         "critic_actor_ratio": 4,
         "num_updates_per_step": 64,
-        "device": "cpu",
     }
     mismatches = {
         name: getattr(config, name)
@@ -71,13 +70,26 @@ def run_dry_run() -> None:
     print("SAC-Flow dry-run passed")
 
 
+
+def run_runtime_probe(cli_overrides: list[str]) -> None:
+    from lerobot.rlinf_smolvla_libero.runtime_probe import build_runtime_probe
+
+    probe = build_runtime_probe(env=os.environ, cli_overrides=cli_overrides)
+    device_text = probe.sac_flow_device if probe.sac_flow_device is not None else "not-set"
+    print(f"SAC-Flow runtime probe passed: libero_root={probe.libero_root} policy_path={probe.policy_path} device={device_text}")
+
 def main(argv: list[str] | None = None) -> int:
     parser = argparse.ArgumentParser(description="Safe SAC-Flow smoke entry for SmolVLA LIBERO.")
     parser.add_argument("--dry-run", action="store_true", help="Check imports/config/env only; do not load models, envs, train, or use GPU.")
-    args = parser.parse_args(argv)
+    parser.add_argument("--probe-runtime", action="store_true", help="Check LIBERO root and baseline SmolVLA overrides without loading models/envs.")
+    args, cli_overrides = parser.parse_known_args(argv)
 
     if args.dry_run:
         run_dry_run()
+        return 0
+
+    if args.probe_runtime:
+        run_runtime_probe(cli_overrides)
         return 0
 
     require_libero_root()

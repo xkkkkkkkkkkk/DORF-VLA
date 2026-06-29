@@ -30,6 +30,17 @@ class SACFlowEntryTest(unittest.TestCase):
         self.assertIn("LEROBOT_LIBERO_ROOT", docstring)
         self.assertIn("SmolVLA checkpoint/config overrides", docstring)
 
+
+    def test_dry_run_does_not_assert_cpu_as_training_device(self):
+        source = SCRIPT.read_text(encoding="utf-8")
+        self.assertNotIn('"device": "cpu"', source)
+
+    def test_sac_flow_config_allows_cuda_device_string(self):
+        from lerobot.rlinf_smolvla_libero.config import SACFlowConfig
+
+        config = SACFlowConfig(device="cuda:0")
+        self.assertEqual(config.device, "cuda:0")
+
     def test_dry_run_requires_libero_root(self):
         env = os.environ.copy()
         env.pop("LEROBOT_LIBERO_ROOT", None)
@@ -47,6 +58,32 @@ class SACFlowEntryTest(unittest.TestCase):
         result = self.run_script("--dry-run", env={"LEROBOT_LIBERO_ROOT": "/tmp/libero"})
         self.assertEqual(result.returncode, 0, msg=result.stderr)
         self.assertIn("SAC-Flow dry-run passed", result.stdout)
+
+
+    def test_probe_runtime_accepts_lerobot_style_overrides(self):
+        import tempfile
+
+        with tempfile.TemporaryDirectory() as libero_root, tempfile.TemporaryDirectory() as policy_path:
+            result = self.run_script(
+                "--probe-runtime",
+                f"--policy.path={policy_path}",
+                "--env.type=libero",
+                "--sac-flow.device=cuda:0",
+                env={"LEROBOT_LIBERO_ROOT": libero_root},
+            )
+
+        self.assertEqual(result.returncode, 0, msg=result.stderr)
+        self.assertIn("SAC-Flow runtime probe passed", result.stdout)
+        self.assertIn("device=cuda:0", result.stdout)
+
+    def test_probe_runtime_fails_before_training_when_policy_path_missing(self):
+        import tempfile
+
+        with tempfile.TemporaryDirectory() as libero_root:
+            result = self.run_script("--probe-runtime", env={"LEROBOT_LIBERO_ROOT": libero_root})
+
+        self.assertNotEqual(result.returncode, 0)
+        self.assertIn("--policy.path is required", result.stderr)
 
     def test_non_dry_run_is_not_implemented(self):
         result = self.run_script(env={"LEROBOT_LIBERO_ROOT": "/tmp/libero"})
