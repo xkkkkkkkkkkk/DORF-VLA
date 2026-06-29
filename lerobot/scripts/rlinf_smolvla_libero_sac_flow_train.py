@@ -102,21 +102,16 @@ def _split_lerobot_and_sac_flow_overrides(cli_overrides: list[str]) -> tuple[lis
 
 
 def parse_train_config_from_overrides(cli_overrides: list[str]):
-    """只解析 TrainPipelineConfig；不 validate，不创建 dataset/policy/env。"""
+    """??? TrainPipelineConfig?? validate???? dataset/policy/env?"""
+    import draccus
+
     from lerobot.configs import parser
     from lerobot.configs.train import TrainPipelineConfig
 
-    @parser.wrap()
-    def _parse_train_pipeline_config(cfg: TrainPipelineConfig):
-        return cfg
-
     lerobot_overrides, _ = _split_lerobot_and_sac_flow_overrides(cli_overrides)
-    old_argv = sys.argv[:]
-    try:
-        sys.argv = [old_argv[0], *lerobot_overrides]
-        return _parse_train_pipeline_config()
-    finally:
-        sys.argv = old_argv
+    if hasattr(TrainPipelineConfig, "__get_path_fields__"):
+        lerobot_overrides = parser.filter_path_args(TrainPipelineConfig.__get_path_fields__(), lerobot_overrides)
+    return draccus.parse(config_class=TrainPipelineConfig, args=lerobot_overrides)
 
 def run_runtime_probe(cli_overrides: list[str]) -> None:
     from lerobot.rlinf_smolvla_libero.runtime_probe import build_runtime_probe
