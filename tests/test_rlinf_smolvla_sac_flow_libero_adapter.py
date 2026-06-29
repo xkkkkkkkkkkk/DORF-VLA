@@ -1,6 +1,10 @@
 ﻿import unittest
 
 import torch
+try:
+    import numpy as np
+except ImportError:  # pragma: no cover
+    np = None
 
 from lerobot.rlinf_smolvla_libero.libero_adapter import ChunkRolloutResult, execute_action_chunk
 
@@ -26,6 +30,26 @@ class DummyEnv:
 class BadArityEnv:
     def step(self, action):
         return {"states": torch.tensor([[0.0, 0.0]])}, 1.0, False, {}
+
+
+class VectorOneEnv:
+    num_envs = 1
+
+    def __init__(self, reward=1.0, done=False, truncated=False, info=None, next_obs=None):
+        self.reward = reward
+        self.done = done
+        self.truncated = truncated
+        self.info = info or {}
+        self.next_obs = next_obs or {"states": torch.tensor([[3.0, 4.0]])}
+        self.actions = []
+
+    def step(self, action):
+        self.actions.append(action)
+        return self.next_obs, self.reward, self.done, self.truncated, self.info
+
+
+class VectorTwoEnv(VectorOneEnv):
+    num_envs = 2
 
 
 def identity_action_postprocessor(action):
@@ -126,6 +150,106 @@ class LiberoAdapterTest(unittest.TestCase):
     def test_rejects_bad_chunk_shape(self):
         with self.assertRaisesRegex(ValueError, "raw_chunk must have shape"):
             execute_action_chunk(env=DummyEnv([1.0]), curr_obs=self.make_obs(), raw_chunk=torch.zeros(3, 2), gamma=0.99)
+
+
+    def test_vector_env_num_envs_one_receives_batched_action(self):
+        env = VectorOneEnv()
+        raw_chunk = torch.tensor([[[0.1, 0.2]]])
+
+        execute_action_chunk(env=env, curr_obs=self.make_obs(), raw_chunk=raw_chunk, gamma=0.99)
+
+        self.assertEqual(len(env.actions), 1)
+        self.assertEqual(tuple(env.actions[0].shape), (1, 2))
+        torch.testing.assert_close(env.actions[0], torch.tensor([[0.1, 0.2]]))
+
+    def test_rejects_vector_env_num_envs_not_one(self):
+        with self.assertRaisesRegex(ValueError, r"num_envs=2.*only num_envs=1"):
+            execute_action_chunk(
+                env=VectorTwoEnv(),
+                curr_obs=self.make_obs(),
+                raw_chunk=torch.zeros(1, 1, 2),
+                gamma=0.99,
+            )
+
+    def test_vector_env_scalar_step_outputs_are_unwrapped(self):
+        scalar_cases = [
+            ("list", [1.25], [False], [False]),
+            ("tuple", (1.25,), (False,), (False,)),
+            ("torch", torch.tensor([1.25]), torch.tensor([False]), torch.tensor([False])),
+        ]
+        if np is not None:
+            scalar_cases.append(("numpy", np.array([1.25]), np.array([False]), np.array([False])))
+
+        for name, reward, done, truncated in scalar_cases:
+            with self.subTest(name=name):
+                result = execute_action_chunk(
+                    env=VectorOneEnv(reward=reward, done=done, truncated=truncated),
+                    curr_obs=self.make_obs(),
+                    raw_chunk=torch.zeros(1, 1, 2),
+                    gamma=0.99,
+                )
+
+                self.assertEqual(result.raw_rewards, [1.25])
+                self.assertFalse(result.transition.done)
+                self.assertFalse(result.truncated)
+
+    def test_vector_env_success_info_paths_are_unwrapped(self):
+        success_infos = [
+            ("success", {"success": [True]}),
+            ("is_success", {"is_success": torch.tensor([True])}),
+            ("final_info", {"final_info": {"is_success": torch.tensor([True])}}),
+            ("final_info_list", {"final_info": [{"is_success": True}]}),
+        ]
+        if np is not None:
+            success_infos.append(("numpy_success", {"success": np.array([True])}))
+            success_infos.append(("final_info_numpy_object", {"final_info": np.array([{"is_success": True}], dtype=object)}))
+
+        for name, info in success_infos:
+            with self.subTest(name=name):
+                result = execute_action_chunk(
+                    env=VectorOneEnv(info=info),
+                    curr_obs=self.make_obs(),
+                    raw_chunk=torch.zeros(1, 1, 2),
+                    gamma=0.99,
+                    stop_on_success=True,
+                )
+
+                self.assertTrue(result.success)
+                self.assertTrue(result.transition.done)
+
+    def test_observation_preparer_can_use_next_obs_and_env(self):
+        curr_obs = self.make_obs()
+        raw_next_obs = {"raw": torch.tensor([[7.0]])}
+        env = VectorOneEnv(next_obs=raw_next_obs)
+
+        def prepare(next_obs, env_arg):
+            self.assertIs(next_obs, raw_next_obs)
+            self.assertIs(env_arg, env)
+            return {"states": next_obs["raw"] + 1.0}
+
+        result = execute_action_chunk(
+            env=env,
+            curr_obs=curr_obs,
+            raw_chunk=torch.zeros(1, 1, 2),
+            gamma=0.99,
+            observation_preparer=prepare,
+        )
+
+        self.assertIs(result.transition.curr_obs, curr_obs)
+        torch.testing.assert_close(result.transition.next_obs["states"], torch.tensor([[8.0]]))
+
+    def test_observation_preparer_can_accept_only_next_obs(self):
+        raw_next_obs = {"raw": torch.tensor([[7.0]])}
+
+        result = execute_action_chunk(
+            env=VectorOneEnv(next_obs=raw_next_obs),
+            curr_obs=self.make_obs(),
+            raw_chunk=torch.zeros(1, 1, 2),
+            gamma=0.99,
+            observation_preparer=lambda next_obs: {"states": next_obs["raw"] + 2.0},
+        )
+
+        torch.testing.assert_close(result.transition.next_obs["states"], torch.tensor([[9.0]]))
 
 
 if __name__ == "__main__":
