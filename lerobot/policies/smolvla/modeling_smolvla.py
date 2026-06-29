@@ -305,8 +305,9 @@ class SmolVLAPolicy(PreTrainedPolicy):
         return actions
 
     def _prepare_batch(self, batch: dict[str, Tensor]) -> dict[str, Tensor]:
+        batch = dict(batch)
         if self.config.adapt_to_pi_aloha:
-            batch[OBS_STATE] = self._pi_aloha_decode_state(batch[OBS_STATE])
+            batch[OBS_STATE] = self._pi_aloha_decode_state(batch[OBS_STATE].clone())
 
         return batch
 
@@ -455,12 +456,28 @@ class SmolVLAPolicy(PreTrainedPolicy):
             rollout_noise_std=rollout_noise_std,
             train_noise_std=train_noise_std,
         )
+        expected_batch_size = state.shape[0]
         actions = self._format_sac_action_chunk(actions)
+        if actions.shape[0] != expected_batch_size:
+            raise RuntimeError(
+                f"Expected SAC action batch size {expected_batch_size}, got {actions.shape[0]} "
+                f"for action shape {tuple(actions.shape)}."
+            )
         if log_prob.ndim != 1:
             raise RuntimeError(f"Expected SAC log_prob shape [batch], got {tuple(log_prob.shape)}.")
+        if log_prob.shape[0] != expected_batch_size:
+            raise RuntimeError(
+                f"Expected SAC log_prob batch size {expected_batch_size}, got {log_prob.shape[0]} "
+                f"for log_prob shape {tuple(log_prob.shape)}."
+            )
         if obs_features.ndim != 2:
             raise RuntimeError(
                 f"Expected SAC obs feature shape [batch, hidden_dim], got {tuple(obs_features.shape)}."
+            )
+        if obs_features.shape[0] != expected_batch_size:
+            raise RuntimeError(
+                f"Expected SAC obs_features batch size {expected_batch_size}, got {obs_features.shape[0]} "
+                f"for obs_features shape {tuple(obs_features.shape)}."
             )
         if not torch.isfinite(log_prob).all():
             raise RuntimeError("Encountered non-finite SAC log_prob values while sampling action chunks.")
@@ -983,16 +1000,24 @@ class VLAFlowMatching(nn.Module):
         exploration noise around that mean to obtain a tractable log-prob.
         """
 
+        bsize = state.shape[0]
+        device = state.device
+        expected_noise_shape = (bsize, self.config.chunk_size, self.config.max_action_dim)
+        if noise is not None:
+            if tuple(noise.shape) != expected_noise_shape:
+                raise RuntimeError(
+                    f"Expected SAC noise shape {expected_noise_shape}, got noise shape {tuple(noise.shape)}."
+                )
+            if noise.device != device:
+                raise RuntimeError(f"Expected SAC noise device {device}, got {noise.device}.")
+
         context = self._build_prefix_context(images, img_masks, lang_tokens, lang_masks, state)
         prefix_pad_masks = context["prefix_pad_masks"]
         past_key_values = context["past_key_values"]
         obs_features = context["obs_features"]
 
-        bsize = state.shape[0]
-        device = state.device
         if noise is None:
-            actions_shape = (bsize, self.config.chunk_size, self.config.max_action_dim)
-            x_t = self.sample_noise(actions_shape, device)
+            x_t = self.sample_noise(expected_noise_shape, device)
         else:
             x_t = noise
 

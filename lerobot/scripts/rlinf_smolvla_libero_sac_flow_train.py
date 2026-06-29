@@ -71,12 +71,74 @@ def run_dry_run() -> None:
 
 
 
+
+def _normalize_split_override_forms(cli_overrides: list[str]) -> list[str]:
+    """把 `--key value` 形式规范成 LeRobot parser 支持的 `--key=value`。"""
+    normalized: list[str] = []
+    index = 0
+    while index < len(cli_overrides):
+        item = cli_overrides[index]
+        if item.startswith("--") and "=" not in item and index + 1 < len(cli_overrides):
+            next_item = cli_overrides[index + 1]
+            if not next_item.startswith("--"):
+                normalized.append(f"{item}={next_item}")
+                index += 2
+                continue
+        normalized.append(item)
+        index += 1
+    return normalized
+
+
+def _split_lerobot_and_sac_flow_overrides(cli_overrides: list[str]) -> tuple[list[str], list[str]]:
+    """拆分 LeRobot 配置参数和 SAC-Flow 专属参数，避免 draccus 看到未知字段。"""
+    lerobot_overrides: list[str] = []
+    sac_flow_overrides: list[str] = []
+    for item in _normalize_split_override_forms(cli_overrides):
+        if item.startswith("--sac-flow."):
+            sac_flow_overrides.append(item)
+        else:
+            lerobot_overrides.append(item)
+    return lerobot_overrides, sac_flow_overrides
+
+
+def parse_train_config_from_overrides(cli_overrides: list[str]):
+    """只解析 TrainPipelineConfig；不 validate，不创建 dataset/policy/env。"""
+    from lerobot.configs import parser
+    from lerobot.configs.train import TrainPipelineConfig
+
+    @parser.wrap()
+    def _parse_train_pipeline_config(cfg: TrainPipelineConfig):
+        return cfg
+
+    lerobot_overrides, _ = _split_lerobot_and_sac_flow_overrides(cli_overrides)
+    old_argv = sys.argv[:]
+    try:
+        sys.argv = [old_argv[0], *lerobot_overrides]
+        return _parse_train_pipeline_config()
+    finally:
+        sys.argv = old_argv
+
 def run_runtime_probe(cli_overrides: list[str]) -> None:
     from lerobot.rlinf_smolvla_libero.runtime_probe import build_runtime_probe
 
-    probe = build_runtime_probe(env=os.environ, cli_overrides=cli_overrides)
+    train_cfg = None
+    try:
+        train_cfg = parse_train_config_from_overrides(cli_overrides)
+    except ModuleNotFoundError as exc:
+        if exc.name != "draccus":
+            raise
+        # 本地 Codex Python 可能缺少 LeRobot parser 依赖；服务器环境会执行真实解析。
+        train_cfg = None
+
+    probe = build_runtime_probe(env=os.environ, cli_overrides=cli_overrides, train_cfg=train_cfg)
     device_text = probe.sac_flow_device if probe.sac_flow_device is not None else "not-set"
-    print(f"SAC-Flow runtime probe passed: libero_root={probe.libero_root} policy_path={probe.policy_path} device={device_text}")
+    extra = ""
+    if probe.train_steps is not None:
+        extra = f" train_steps={probe.train_steps} batch_size={probe.batch_size}"
+    print(
+        f"SAC-Flow runtime probe passed: libero_root={probe.libero_root} "
+        f"policy_path={probe.policy_path} device={device_text}{extra}"
+    )
 
 def main(argv: list[str] | None = None) -> int:
     parser = argparse.ArgumentParser(description="Safe SAC-Flow smoke entry for SmolVLA LIBERO.")

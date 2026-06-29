@@ -1,4 +1,5 @@
 import ast
+import importlib.util
 import os
 import subprocess
 import sys
@@ -84,6 +85,47 @@ class SACFlowEntryTest(unittest.TestCase):
 
         self.assertNotEqual(result.returncode, 0)
         self.assertIn("--policy.path is required", result.stderr)
+
+
+    def test_probe_runtime_parses_lerobot_overrides_without_model_or_env_creation(self):
+        import tempfile
+
+        if importlib.util.find_spec("draccus") is None:
+            self.skipTest("draccus is not installed in the local lightweight Python")
+
+        with tempfile.TemporaryDirectory() as libero_root, tempfile.TemporaryDirectory() as policy_path:
+            result = self.run_script(
+                "--probe-runtime",
+                "--dataset.repo_id=local/test",
+                f"--policy.path={policy_path}",
+                "--env.type=libero",
+                "--batch_size=2",
+                "--steps=3",
+                "--sac-flow.device=cuda:0",
+                env={"LEROBOT_LIBERO_ROOT": libero_root},
+            )
+
+        self.assertEqual(result.returncode, 0, msg=result.stderr)
+        self.assertIn("SAC-Flow runtime probe passed", result.stdout)
+        self.assertIn("train_steps=3", result.stdout)
+        self.assertIn("batch_size=2", result.stdout)
+        self.assertIn("device=cuda:0", result.stdout)
+
+    def test_probe_runtime_accepts_split_policy_path_form(self):
+        import tempfile
+
+        with tempfile.TemporaryDirectory() as libero_root, tempfile.TemporaryDirectory() as policy_path:
+            result = self.run_script(
+                "--probe-runtime",
+                "--dataset.repo_id=local/test",
+                "--policy.path",
+                policy_path,
+                "--env.type=libero",
+                env={"LEROBOT_LIBERO_ROOT": libero_root},
+            )
+
+        self.assertEqual(result.returncode, 0, msg=result.stderr)
+        self.assertIn("SAC-Flow runtime probe passed", result.stdout)
 
     def test_non_dry_run_is_not_implemented(self):
         result = self.run_script(env={"LEROBOT_LIBERO_ROOT": "/tmp/libero"})
