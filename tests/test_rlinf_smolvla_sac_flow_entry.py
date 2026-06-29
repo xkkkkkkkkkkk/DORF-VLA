@@ -127,6 +127,14 @@ class SACFlowEntryTest(unittest.TestCase):
         self.assertEqual(result.returncode, 0, msg=result.stderr)
         self.assertIn("SAC-Flow runtime probe passed", result.stdout)
 
+
+    def test_preflight_device_accepts_cpu_without_model_or_env_creation(self):
+        result = self.run_script("--preflight-device", "--sac-flow.device=cpu")
+
+        self.assertEqual(result.returncode, 0, msg=result.stderr)
+        self.assertIn("SAC-Flow device preflight passed", result.stdout)
+        self.assertIn("device=cpu", result.stdout)
+
     def test_non_dry_run_is_not_implemented(self):
         result = self.run_script(env={"LEROBOT_LIBERO_ROOT": "/tmp/libero"})
         self.assertNotEqual(result.returncode, 0)

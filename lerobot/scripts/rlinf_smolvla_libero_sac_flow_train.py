@@ -145,10 +145,20 @@ def run_runtime_probe(cli_overrides: list[str]) -> None:
         f"policy_path={probe.policy_path} device={device_text}{extra}"
     )
 
+def run_device_preflight(cli_overrides: list[str]) -> None:
+    from lerobot.rlinf_smolvla_libero.checkpointing import assert_sac_flow_device_ready
+    from lerobot.rlinf_smolvla_libero.runtime_probe import _extract_override_value
+
+    device = _extract_override_value(cli_overrides, "sac-flow.device") or "cpu"
+    assert_sac_flow_device_ready(device)
+    print(f"SAC-Flow device preflight passed: device={device}")
+
+
 def main(argv: list[str] | None = None) -> int:
     parser = argparse.ArgumentParser(description="Safe SAC-Flow smoke entry for SmolVLA LIBERO.")
     parser.add_argument("--dry-run", action="store_true", help="Check imports/config/env only; do not load models, envs, train, or use GPU.")
     parser.add_argument("--probe-runtime", action="store_true", help="Check LIBERO root and baseline SmolVLA overrides without loading models/envs.")
+    parser.add_argument("--preflight-device", action="store_true", help="Check requested SAC-Flow device availability without loading models/envs.")
     args, cli_overrides = parser.parse_known_args(argv)
 
     if args.dry_run:
@@ -157,6 +167,10 @@ def main(argv: list[str] | None = None) -> int:
 
     if args.probe_runtime:
         run_runtime_probe(cli_overrides)
+        return 0
+
+    if args.preflight_device:
+        run_device_preflight(cli_overrides)
         return 0
 
     require_libero_root()
