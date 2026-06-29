@@ -102,7 +102,7 @@ def _split_lerobot_and_sac_flow_overrides(cli_overrides: list[str]) -> tuple[lis
 
 
 def parse_train_config_from_overrides(cli_overrides: list[str]):
-    """??? TrainPipelineConfig?? validate???? dataset/policy/env?"""
+    """只解析 TrainPipelineConfig；不 validate，不创建 dataset/policy/env。"""
     import draccus
 
     from lerobot.configs import parser
@@ -116,6 +116,9 @@ def parse_train_config_from_overrides(cli_overrides: list[str]):
 def run_runtime_probe(cli_overrides: list[str]) -> None:
     from lerobot.rlinf_smolvla_libero.runtime_probe import build_runtime_probe
 
+    # 先做路径级探测，保证缺 LEROBOT_LIBERO_ROOT / --policy.path 时错误最早、最清楚。
+    build_runtime_probe(env=os.environ, cli_overrides=cli_overrides)
+
     train_cfg = None
     try:
         train_cfg = parse_train_config_from_overrides(cli_overrides)
@@ -123,6 +126,11 @@ def run_runtime_probe(cli_overrides: list[str]) -> None:
         if exc.name != "draccus":
             raise
         # 本地 Codex Python 可能缺少 LeRobot parser 依赖；服务器环境会执行真实解析。
+        train_cfg = None
+    except Exception as exc:
+        if "Missing required field(s) `dataset`" not in str(exc):
+            raise
+        # 兼容只做路径/设备 smoke 的调用；完整 TrainPipelineConfig probe 需要 --dataset.repo_id。
         train_cfg = None
 
     probe = build_runtime_probe(env=os.environ, cli_overrides=cli_overrides, train_cfg=train_cfg)
