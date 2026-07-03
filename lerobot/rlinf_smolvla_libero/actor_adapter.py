@@ -1,6 +1,7 @@
 ﻿from __future__ import annotations
 
 from collections.abc import Mapping
+from contextlib import nullcontext
 from typing import Any
 
 from lerobot.rlinf_smolvla_libero.replay import flatten_chunk
@@ -40,14 +41,23 @@ class SmolVLASACFlowActor:
             return to_device(self.device)
         return obs
 
+    def parameters(self) -> Any:
+        """把优化器需要的参数迭代器委托给真实 SmolVLA policy。"""
+        parameters_fn = getattr(self.policy, "parameters", None)
+        if not callable(parameters_fn):
+            raise AttributeError("wrapped policy must provide callable parameters")
+        return parameters_fn()
+
     def sample_chunk(self, obs: Any, train: bool) -> tuple[Any, Any, Any, Any]:
         batch = self._move_obs_to_device(obs)
-        sample_result = self.policy.sac_sample_action_chunk(
-            batch,
-            train=train,
-            rollout_noise_std=self.rollout_noise_std,
-            train_noise_std=self.train_noise_std,
-        )
+        context = nullcontext() if train else _no_grad_context()
+        with context:
+            sample_result = self.policy.sac_sample_action_chunk(
+                batch,
+                train=train,
+                rollout_noise_std=self.rollout_noise_std,
+                train_noise_std=self.train_noise_std,
+            )
         if not isinstance(sample_result, (tuple, list)) or len(sample_result) != 3:
             raise ValueError("policy.sac_sample_action_chunk must return (raw_chunk, log_pi, obs_features)")
         raw_chunk, log_pi, obs_features = sample_result
@@ -102,3 +112,9 @@ class SmolVLASACFlowActor:
             raise ValueError(f"{name} must have shape [batch, feature_dim]")
         if value.shape[0] != batch_size:
             raise ValueError(f"{name} batch size must match actions/log_pi batch size")
+
+
+def _no_grad_context() -> Any:
+    import torch
+
+    return torch.no_grad()

@@ -9,6 +9,7 @@ class DummyPolicy:
     def __init__(self):
         self.sample_calls = []
         self.encode_calls = []
+        self._param = torch.nn.Parameter(torch.ones(()))
 
     def sac_sample_action_chunk(self, batch, *, train, rollout_noise_std, train_noise_std):
         self.sample_calls.append((batch, train, rollout_noise_std, train_noise_std))
@@ -21,6 +22,9 @@ class DummyPolicy:
     def sac_encode_observation(self, batch):
         self.encode_calls.append(batch)
         return torch.ones(batch["states"].shape[0], 5)
+
+    def parameters(self):
+        return iter([self._param])
 
 
 class SmolVLASACFlowActorTest(unittest.TestCase):
@@ -58,6 +62,12 @@ class SmolVLASACFlowActorTest(unittest.TestCase):
         actor = SmolVLASACFlowActor(DummyPolicy(), torch.device("cpu"), 0.3, 0.02)
         obs_features = actor.encode_obs(self.make_obs())
         self.assertEqual(obs_features.shape, (2, 5))
+
+    def test_parameters_delegate_to_wrapped_policy_for_trainer_optimizers(self):
+        policy = DummyPolicy()
+        actor = SmolVLASACFlowActor(policy, torch.device("cpu"), 0.3, 0.02)
+
+        self.assertEqual(list(actor.parameters()), [policy._param])
 
     def test_constructor_requires_policy_methods(self):
         with self.assertRaisesRegex(AttributeError, "sac_sample_action_chunk"):

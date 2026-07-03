@@ -74,6 +74,7 @@ class SACFlowOnlineLoopTest(unittest.TestCase):
             replay_buffer=replay,
             trainer=FakeTrainer(),
             config=SACFlowConfig(gamma=0.96, min_buffer_size=10, num_updates_per_step=2),
+            max_chunk_steps=1,
             rollout_fn=rollout_fn,
         )
 
@@ -84,6 +85,7 @@ class SACFlowOnlineLoopTest(unittest.TestCase):
         self.assertIs(result.transition, replay.items[0])
         self.assertEqual(rollout_calls[0]["raw_chunk"], "raw_chunk")
         self.assertEqual(rollout_calls[0]["gamma"], 0.96)
+        self.assertEqual(rollout_calls[0]["max_chunk_steps"], 1)
 
     def test_updates_only_after_min_buffer_size(self):
         replay = FakeReplay()

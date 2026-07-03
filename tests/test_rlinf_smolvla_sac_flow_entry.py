@@ -127,6 +127,15 @@ class SACFlowEntryTest(unittest.TestCase):
         self.assertEqual(result.returncode, 0, msg=result.stderr)
         self.assertIn("SAC-Flow runtime probe passed", result.stdout)
 
+    def test_train_config_hint_accepts_split_config_path_form(self):
+        import importlib.util
+
+        spec = importlib.util.spec_from_file_location("sac_flow_entry", SCRIPT)
+        module = importlib.util.module_from_spec(spec)
+        assert spec.loader is not None
+        spec.loader.exec_module(module)
+
+        self.assertTrue(module._should_parse_train_config(["--config_path", "/tmp/train.yaml"]))
 
     def test_preflight_device_accepts_cpu_without_model_or_env_creation(self):
         result = self.run_script("--preflight-device", "--sac-flow.device=cpu")
@@ -134,6 +143,40 @@ class SACFlowEntryTest(unittest.TestCase):
         self.assertEqual(result.returncode, 0, msg=result.stderr)
         self.assertIn("SAC-Flow device preflight passed", result.stdout)
         self.assertIn("device=cpu", result.stdout)
+
+    def test_help_documents_confirmation_for_every_smoke_run(self):
+        result = self.run_script("--help")
+
+        self.assertEqual(result.returncode, 0, msg=result.stderr)
+        self.assertIn("Required for --gpu-smoke.", result.stdout)
+        self.assertNotIn("requests a CUDA device", result.stdout)
+
+    def test_gpu_smoke_requires_explicit_confirmation_before_training(self):
+        result = self.run_script(
+            "--gpu-smoke",
+            "--sac-flow.device=cuda:0",
+            env={"LEROBOT_LIBERO_ROOT": "/tmp/libero"},
+        )
+
+        self.assertNotEqual(result.returncode, 0)
+        self.assertIn("confirm", result.stderr)
+        self.assertNotIn("Real SmolVLA/LIBERO SAC-Flow training is not wired yet", result.stderr)
+
+    def test_gpu_smoke_requires_train_config_hint_before_draccus_parse(self):
+        import tempfile
+
+        with tempfile.TemporaryDirectory() as libero_root, tempfile.TemporaryDirectory() as policy_path:
+            result = self.run_script(
+                "--gpu-smoke",
+                "--confirm-gpu-smoke",
+                f"--policy.path={policy_path}",
+                "--sac-flow.device=cpu",
+                env={"LEROBOT_LIBERO_ROOT": libero_root},
+            )
+
+        self.assertNotEqual(result.returncode, 0)
+        self.assertIn("--config_path or --dataset.repo_id", result.stderr)
+        self.assertNotIn("No module named 'draccus'", result.stderr)
 
     def test_non_dry_run_is_not_implemented(self):
         result = self.run_script(env={"LEROBOT_LIBERO_ROOT": "/tmp/libero"})

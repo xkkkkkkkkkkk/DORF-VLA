@@ -29,6 +29,7 @@ class SACFlowOnlineLoop:
         config: SACFlowConfig,
         action_postprocessor: Callable[[Any], Any] | None = None,
         observation_preparer: Callable[..., Any] | None = None,
+        max_chunk_steps: int | None = None,
         stop_on_success: bool = True,
         rollout_fn: Callable[..., ChunkRolloutResult] = execute_action_chunk,
     ) -> None:
@@ -39,6 +40,7 @@ class SACFlowOnlineLoop:
         self.config = config
         self.action_postprocessor = action_postprocessor
         self.observation_preparer = observation_preparer
+        self.max_chunk_steps = max_chunk_steps
         self.stop_on_success = stop_on_success
         self.rollout_fn = rollout_fn
 
@@ -54,7 +56,7 @@ class SACFlowOnlineLoop:
             curr_obs=curr_obs,
             raw_chunk=raw_chunk,
             gamma=self.config.gamma,
-            max_chunk_steps=None,
+            max_chunk_steps=self.max_chunk_steps,
             action_postprocessor=self.action_postprocessor,
             stop_on_success=self.stop_on_success,
             observation_preparer=self.observation_preparer,

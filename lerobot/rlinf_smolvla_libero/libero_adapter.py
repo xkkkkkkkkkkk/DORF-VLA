@@ -49,6 +49,8 @@ def execute_action_chunk(
 
     for step_idx in range(steps_to_run):
         action = raw_chunk[0, step_idx]
+        if vector_num_envs == 1:
+            action = _batched_vector_action(action, action_dim)
         if action_postprocessor is not None:
             action = action_postprocessor(action)
         if vector_num_envs == 1:

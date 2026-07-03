@@ -107,6 +107,14 @@ def _should_parse_train_config(cli_overrides: list[str]) -> bool:
     return any(item.startswith("--dataset.") or item.startswith("--config_path=") for item in normalized)
 
 
+def require_train_config_hint(cli_overrides: list[str]) -> None:
+    """GPU smoke 必须提供真实 TrainPipelineConfig 来源，避免进入模糊 parser 错误。"""
+    if not _should_parse_train_config(cli_overrides):
+        raise RuntimeError(
+            "SAC-Flow GPU smoke requires --config_path or --dataset.repo_id from the baseline SmolVLA run."
+        )
+
+
 def parse_train_config_from_overrides(cli_overrides: list[str]):
     """只解析 TrainPipelineConfig；不 validate，不创建 dataset/policy/env。"""
     import draccus
@@ -154,11 +162,53 @@ def run_device_preflight(cli_overrides: list[str]) -> None:
     print(f"SAC-Flow device preflight passed: device={device}")
 
 
+def _extract_int_override(cli_overrides: list[str], key: str, default: int) -> int:
+    from lerobot.rlinf_smolvla_libero.runtime_probe import _extract_override_value
+
+    value = _extract_override_value(cli_overrides, key)
+    if value is None:
+        return default
+    try:
+        return int(value)
+    except ValueError as exc:
+        raise RuntimeError(f"--{key} must be an integer, got {value!r}.") from exc
+
+
+def run_gpu_smoke(cli_overrides: list[str], *, confirm_gpu_smoke: bool) -> None:
+    from lerobot.rlinf_smolvla_libero.config import SACFlowConfig
+    from lerobot.rlinf_smolvla_libero.runtime_probe import _extract_override_value, build_runtime_probe
+    from lerobot.rlinf_smolvla_libero.smoke_runner import SACFlowSmokeConfig, run_sac_flow_gpu_smoke
+
+    device = _extract_override_value(cli_overrides, "sac-flow.device") or "cpu"
+    smoke_cfg = SACFlowSmokeConfig(
+        device=device,
+        confirm_gpu_smoke=confirm_gpu_smoke,
+        max_train_steps=_extract_int_override(cli_overrides, "sac-flow.max-train-steps", 2),
+        max_chunk_steps=_extract_int_override(cli_overrides, "sac-flow.max-chunk-steps", 1),
+        num_updates_per_step=_extract_int_override(cli_overrides, "sac-flow.num-updates-per-step", 1),
+        batch_size=_extract_int_override(cli_overrides, "sac-flow.batch-size", 1),
+        min_buffer_size=_extract_int_override(cli_overrides, "sac-flow.min-buffer-size", 1),
+    )
+
+    build_runtime_probe(env=os.environ, cli_overrides=cli_overrides)
+    require_train_config_hint(cli_overrides)
+    train_cfg = parse_train_config_from_overrides(cli_overrides)
+    result = run_sac_flow_gpu_smoke(
+        train_cfg=train_cfg,
+        smoke_cfg=smoke_cfg,
+        sac_config=SACFlowConfig(device=device),
+    )
+    checkpoint_text = result.checkpoint_dir if result.checkpoint_dir is not None else "not-saved"
+    print(f"SAC-Flow GPU smoke passed: steps={result.steps} checkpoint={checkpoint_text}")
+
+
 def main(argv: list[str] | None = None) -> int:
     parser = argparse.ArgumentParser(description="Safe SAC-Flow smoke entry for SmolVLA LIBERO.")
     parser.add_argument("--dry-run", action="store_true", help="Check imports/config/env only; do not load models, envs, train, or use GPU.")
     parser.add_argument("--probe-runtime", action="store_true", help="Check LIBERO root and baseline SmolVLA overrides without loading models/envs.")
     parser.add_argument("--preflight-device", action="store_true", help="Check requested SAC-Flow device availability without loading models/envs.")
+    parser.add_argument("--gpu-smoke", action="store_true", help="Run the hard-budget real SmolVLA/LIBERO SAC-Flow smoke.")
+    parser.add_argument("--confirm-gpu-smoke", action="store_true", help="Required for --gpu-smoke.")
     args, cli_overrides = parser.parse_known_args(argv)
 
     if args.dry_run:
@@ -171,6 +221,10 @@ def main(argv: list[str] | None = None) -> int:
 
     if args.preflight_device:
         run_device_preflight(cli_overrides)
+        return 0
+
+    if args.gpu_smoke:
+        run_gpu_smoke(cli_overrides, confirm_gpu_smoke=args.confirm_gpu_smoke)
         return 0
 
     require_libero_root()
