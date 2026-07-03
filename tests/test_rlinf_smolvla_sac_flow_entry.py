@@ -151,6 +151,40 @@ class SACFlowEntryTest(unittest.TestCase):
 
         self.assertEqual(sys.argv, original_argv)
 
+    def test_gpu_smoke_keeps_policy_path_visible_during_runtime_build(self):
+        import importlib.util
+        import tempfile
+        from types import SimpleNamespace
+        from unittest.mock import patch
+
+        spec = importlib.util.spec_from_file_location("sac_flow_entry", SCRIPT)
+        module = importlib.util.module_from_spec(spec)
+        assert spec.loader is not None
+        spec.loader.exec_module(module)
+
+        with tempfile.TemporaryDirectory() as libero_root, tempfile.TemporaryDirectory() as policy_path:
+            cli_overrides = [
+                f"--policy.path={policy_path}",
+                "--dataset.repo_id=local/test",
+                "--sac-flow.device=cpu",
+            ]
+
+            def fake_smoke(**kwargs):
+                self.assertIn(f"--policy.path={policy_path}", sys.argv)
+                return SimpleNamespace(steps=2, checkpoint_dir=None)
+
+            old_libero_root = os.environ.get("LEROBOT_LIBERO_ROOT")
+            os.environ["LEROBOT_LIBERO_ROOT"] = libero_root
+            try:
+                with patch.object(module, "parse_train_config_from_overrides", return_value=SimpleNamespace()):
+                    with patch("lerobot.rlinf_smolvla_libero.smoke_runner.run_sac_flow_gpu_smoke", fake_smoke):
+                        module.run_gpu_smoke(cli_overrides, confirm_gpu_smoke=True)
+            finally:
+                if old_libero_root is None:
+                    os.environ.pop("LEROBOT_LIBERO_ROOT", None)
+                else:
+                    os.environ["LEROBOT_LIBERO_ROOT"] = old_libero_root
+
     def test_preflight_device_accepts_cpu_without_model_or_env_creation(self):
         result = self.run_script("--preflight-device", "--sac-flow.device=cpu")
 

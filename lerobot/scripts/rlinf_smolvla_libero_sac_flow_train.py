@@ -213,12 +213,14 @@ def run_gpu_smoke(cli_overrides: list[str], *, confirm_gpu_smoke: bool) -> None:
 
     build_runtime_probe(env=os.environ, cli_overrides=cli_overrides)
     require_train_config_hint(cli_overrides)
-    train_cfg = parse_train_config_from_overrides(cli_overrides)
-    result = run_sac_flow_gpu_smoke(
-        train_cfg=train_cfg,
-        smoke_cfg=smoke_cfg,
-        sac_config=SACFlowConfig(device=device),
-    )
+    lerobot_overrides, _ = _split_lerobot_and_sac_flow_overrides(cli_overrides)
+    with _temporary_cli_overrides(lerobot_overrides):
+        train_cfg = parse_train_config_from_overrides(cli_overrides)
+        result = run_sac_flow_gpu_smoke(
+            train_cfg=train_cfg,
+            smoke_cfg=smoke_cfg,
+            sac_config=SACFlowConfig(device=device),
+        )
     checkpoint_text = result.checkpoint_dir if result.checkpoint_dir is not None else "not-saved"
     print(f"SAC-Flow GPU smoke passed: steps={result.steps} checkpoint={checkpoint_text}")
 
