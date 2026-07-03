@@ -80,6 +80,24 @@ class LiberoAdapterTest(unittest.TestCase):
         self.assertEqual(result.raw_rewards, [1.0, 2.0, 3.0])
         self.assertEqual(len(env.actions), 3)
 
+    def test_execute_action_chunk_stores_full_chunk_action_when_only_prefix_runs(self):
+        env = DummyEnv(rewards=[1.0, 2.0, 3.0])
+        raw_chunk = torch.tensor([[[0.1, 0.2], [0.3, 0.4], [0.5, 0.6]]])
+
+        result = execute_action_chunk(
+            env=env,
+            curr_obs=self.make_obs(),
+            raw_chunk=raw_chunk,
+            gamma=0.5,
+            max_chunk_steps=1,
+            action_postprocessor=identity_action_postprocessor,
+        )
+
+        self.assertEqual(result.transition.horizon, 1)
+        self.assertEqual(result.transition.actions.shape, (1, 6))
+        torch.testing.assert_close(result.transition.actions, raw_chunk.reshape(1, -1))
+        self.assertEqual(len(env.actions), 1)
+
     def test_execute_action_chunk_stops_on_done(self):
         env = DummyEnv(rewards=[1.0, 2.0, 3.0], dones=[False, True, False])
         raw_chunk = torch.zeros(1, 3, 2)

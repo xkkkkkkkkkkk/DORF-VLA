@@ -142,12 +142,22 @@ class ChunkReplayBuffer:
     def _cat_obs(observations: list[dict[str, Any]], *, device: Any) -> dict[str, Any]:
         import torch
 
-        expected_keys = set(observations[0].keys())
-        for observation in observations[1:]:
+        tensor_observations = [_tensor_observation_fields(observation) for observation in observations]
+        expected_keys = set(tensor_observations[0].keys())
+        for observation in tensor_observations[1:]:
             if set(observation.keys()) != expected_keys:
                 raise ValueError("observation keys must match across sampled transitions")
 
         return {
-            key: torch.cat([observation[key].to(device) for observation in observations], dim=0)
-            for key in observations[0].keys()
+            key: torch.cat([observation[key].to(device) for observation in tensor_observations], dim=0)
+            for key in expected_keys
         }
+
+
+def _tensor_observation_fields(observation: dict[str, Any]) -> dict[str, Any]:
+    """只保留 SAC actor/critic 可消费的 tensor observation 字段，跳过 transition 元数据。"""
+    return {
+        key: value
+        for key, value in observation.items()
+        if value is not None and callable(getattr(value, "to", None)) and hasattr(value, "shape")
+    }

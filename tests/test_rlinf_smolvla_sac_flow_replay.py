@@ -65,6 +65,33 @@ class ChunkReplayBufferTest(unittest.TestCase):
         ):
             buffer.sample(batch_size=1, device=torch.device("cpu"))
 
+    def test_sample_filters_non_tensor_observation_metadata(self):
+        buffer = ChunkReplayBuffer(capacity=2, seed=123)
+        transition = self.make_transition(1.0)
+        transition.curr_obs.update(
+            {
+                "action": None,
+                "next.reward": 1.0,
+                "info": {"success": False},
+                "task": ["pick up the object"],
+            }
+        )
+        transition.next_obs.update(
+            {
+                "action": None,
+                "next.reward": 0.0,
+                "info": {"success": True},
+                "task": ["pick up the object"],
+            }
+        )
+        buffer.add(transition)
+
+        batch = buffer.sample(batch_size=1, device=torch.device("cpu"))
+
+        self.assertEqual(set(batch["curr_obs"].keys()), {"states"})
+        self.assertEqual(set(batch["next_obs"].keys()), {"states"})
+        self.assertEqual(batch["curr_obs"]["states"].shape, (1, 2))
+
     def test_sample_rejects_mismatched_observation_keys(self):
         buffer = ChunkReplayBuffer(capacity=4, seed=123)
         first = self.make_transition(1.0)

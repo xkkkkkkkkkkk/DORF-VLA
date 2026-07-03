@@ -103,13 +103,13 @@ class SmolVLASACInterfaceContractTest(unittest.TestCase):
     def setUpClass(cls):
         cls.smolvla = _load_modeling_smolvla()
 
-    def _policy(self, *, model, adapt_to_pi_aloha=False):
+    def _policy(self, *, model, adapt_to_pi_aloha=False, action_dim=4, max_action_dim=4):
         policy = self.smolvla.SmolVLAPolicy.__new__(self.smolvla.SmolVLAPolicy)
         policy.config = SimpleNamespace(
-            action_feature=SimpleNamespace(shape=(4,)),
+            action_feature=SimpleNamespace(shape=(action_dim,)),
             adapt_to_pi_aloha=adapt_to_pi_aloha,
             chunk_size=3,
-            max_action_dim=4,
+            max_action_dim=max_action_dim,
         )
         policy.model = model
         policy.prepare_images = lambda batch: ("images", "img_masks")
@@ -175,6 +175,22 @@ class SmolVLASACInterfaceContractTest(unittest.TestCase):
 
         self.assertEqual(result, ("actions", "log_prob", "obs_features"))
         self.assertEqual(calls, [(batch, noise, True, 0.12, 0.34)])
+
+    def test_sac_sample_action_chunk_returns_unpadded_env_action_dim(self):
+        class FakeModel:
+            def sample_actions_with_log_prob(self, *args, **kwargs):
+                return torch.zeros(2, 3, 4), torch.zeros(2), torch.zeros(2, 8)
+
+        policy = self._policy(model=FakeModel(), action_dim=2, max_action_dim=4)
+
+        actions, _, _ = policy.sac_sample_action_chunk(
+            self._batch(batch_size=2),
+            train=False,
+            rollout_noise_std=0.0,
+            train_noise_std=0.0,
+        )
+
+        self.assertEqual(actions.shape, (2, 3, 2))
 
     def test_flow_sample_actions_with_log_prob_rejects_bad_noise_shape_before_prefix_encode(self):
         flow = self.smolvla.VLAFlowMatching.__new__(self.smolvla.VLAFlowMatching)

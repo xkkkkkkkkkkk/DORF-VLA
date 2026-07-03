@@ -80,7 +80,8 @@ def execute_action_chunk(
 
     transition = ChunkTransition(
         curr_obs=curr_obs,
-        actions=flatten_chunk(raw_chunk[:, :horizon]),
+        # SAC critic/actor 以完整 action chunk 为动作；环境 smoke 可只执行前缀来限制预算。
+        actions=flatten_chunk(raw_chunk),
         next_obs=next_obs,
         rewards=raw_rewards,
         done=done_result,

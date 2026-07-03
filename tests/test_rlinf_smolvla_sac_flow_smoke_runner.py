@@ -32,6 +32,9 @@ class FakeRawChunk:
     ndim = 3
     shape = (1, 1, 2)
 
+    def __iter__(self):
+        return iter([[[0.1, 0.2]]])
+
     def __getitem__(self, item):
         if item == (0, 0):
             return FakeAction([0.1, 0.2])

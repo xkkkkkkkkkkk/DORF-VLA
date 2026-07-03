@@ -417,11 +417,10 @@ class SmolVLAPolicy(PreTrainedPolicy):
         actions = actions[:, :, :original_action_dim]
         if self.config.adapt_to_pi_aloha:
             actions = self._pi_aloha_encode_actions(actions)
-        actions = pad_vector(actions, self.config.max_action_dim)
         expected_shape = (
             actions.shape[0],
             self.config.chunk_size,
-            self.config.max_action_dim,
+            original_action_dim,
         )
         if tuple(actions.shape) != expected_shape:
             raise RuntimeError(
