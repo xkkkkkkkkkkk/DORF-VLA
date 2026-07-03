@@ -9,6 +9,7 @@ start training, or use GPU.
 from __future__ import annotations
 
 import argparse
+from contextlib import contextmanager
 import os
 import sys
 from pathlib import Path
@@ -107,6 +108,17 @@ def _should_parse_train_config(cli_overrides: list[str]) -> bool:
     return any(item.startswith("--dataset.") or item.startswith("--config_path=") for item in normalized)
 
 
+@contextmanager
+def _temporary_cli_overrides(cli_overrides: list[str]):
+    """临时同步 sys.argv，避免 LeRobot validate 看不到传入的覆盖参数。"""
+    original_argv = list(sys.argv)
+    sys.argv = [original_argv[0], *_normalize_split_override_forms(cli_overrides)]
+    try:
+        yield
+    finally:
+        sys.argv = original_argv
+
+
 def require_train_config_hint(cli_overrides: list[str]) -> None:
     """GPU smoke 必须提供真实 TrainPipelineConfig 来源，避免进入模糊 parser 错误。"""
     if not _should_parse_train_config(cli_overrides):
@@ -132,7 +144,9 @@ def parse_train_config_from_overrides(cli_overrides: list[str]):
     lerobot_overrides, _ = _split_lerobot_and_sac_flow_overrides(cli_overrides)
     if hasattr(TrainPipelineConfig, "__get_path_fields__"):
         lerobot_overrides = parser.filter_path_args(TrainPipelineConfig.__get_path_fields__(), lerobot_overrides)
-    return draccus.parse(config_class=TrainPipelineConfig, args=lerobot_overrides)
+    with _temporary_cli_overrides(lerobot_overrides):
+        return draccus.parse(config_class=TrainPipelineConfig, args=lerobot_overrides)
+
 
 def run_runtime_probe(cli_overrides: list[str]) -> None:
     from lerobot.rlinf_smolvla_libero.runtime_probe import build_runtime_probe

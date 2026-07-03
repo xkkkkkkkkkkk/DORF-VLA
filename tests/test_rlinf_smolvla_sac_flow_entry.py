@@ -137,6 +137,20 @@ class SACFlowEntryTest(unittest.TestCase):
 
         self.assertTrue(module._should_parse_train_config(["--config_path", "/tmp/train.yaml"]))
 
+    def test_temporary_cli_overrides_expose_policy_path_to_validate_helpers(self):
+        import importlib.util
+
+        spec = importlib.util.spec_from_file_location("sac_flow_entry", SCRIPT)
+        module = importlib.util.module_from_spec(spec)
+        assert spec.loader is not None
+        spec.loader.exec_module(module)
+
+        original_argv = list(sys.argv)
+        with module._temporary_cli_overrides(["--policy.path=HuggingFaceVLA/smolvla_libero"]):
+            self.assertIn("--policy.path=HuggingFaceVLA/smolvla_libero", sys.argv)
+
+        self.assertEqual(sys.argv, original_argv)
+
     def test_preflight_device_accepts_cpu_without_model_or_env_creation(self):
         result = self.run_script("--preflight-device", "--sac-flow.device=cpu")
 
