@@ -35,6 +35,19 @@ class SACFlowRuntimeProbeTest(unittest.TestCase):
         self.assertIn("--env.type=libero", probe.cli_overrides)
         self.assertEqual(probe.sac_flow_device, "cuda:0")
 
+    def test_accepts_huggingface_policy_repo_id_without_local_path_check(self):
+        with tempfile.TemporaryDirectory() as root:
+            probe = build_runtime_probe(
+                env={"LEROBOT_LIBERO_ROOT": root},
+                cli_overrides=[
+                    "--policy.path=HuggingFaceVLA/smolvla_libero",
+                    "--dataset.repo_id=HuggingFaceVLA/libero",
+                    "--env.type=libero",
+                ],
+            )
+
+        self.assertEqual(probe.policy_path, "HuggingFaceVLA/smolvla_libero")
+
     def test_require_existing_path_reports_missing_path(self):
         missing = Path("/definitely/missing/smolvla/checkpoint")
         with self.assertRaisesRegex(RuntimeError, "does not exist"):

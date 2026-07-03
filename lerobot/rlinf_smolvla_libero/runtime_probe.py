@@ -14,7 +14,7 @@ class SACFlowRuntimeProbe:
     """真实训练前的轻量运行条件快照；不加载模型，不创建环境。"""
 
     libero_root: Path
-    policy_path: Path
+    policy_path: Path | str
     cli_overrides: tuple[str, ...]
     sac_flow_device: str | None = None
     train_steps: int | None = None
@@ -29,6 +29,24 @@ def require_existing_path(path: str | Path, *, label: str) -> Path:
     if not resolved.exists():
         raise RuntimeError(f"{label} path does not exist: {resolved}")
     return resolved
+
+
+def resolve_policy_path_or_hub_ref(value: str | Path) -> Path | str:
+    """接受本地 checkpoint 路径或 Hugging Face repo id。"""
+    text = str(value)
+    candidate = Path(text).expanduser()
+    if candidate.exists():
+        return candidate
+    if _looks_like_hub_repo_id(text):
+        return text
+    raise RuntimeError(f"policy checkpoint path does not exist: {candidate}")
+
+
+def _looks_like_hub_repo_id(value: str) -> bool:
+    if value.startswith((".", "/", "~")) or "\\" in value:
+        return False
+    parts = value.split("/")
+    return len(parts) == 2 and all(part and " " not in part for part in parts)
 
 
 def _extract_override_value(cli_overrides: Sequence[str], key: str) -> str | None:
@@ -63,7 +81,7 @@ def build_runtime_probe(
     policy_path_value = _extract_override_value(cli_overrides, "policy.path")
     if not policy_path_value:
         raise RuntimeError(_POLICY_PATH_REQUIRED)
-    policy_path = require_existing_path(policy_path_value, label="policy checkpoint")
+    policy_path = resolve_policy_path_or_hub_ref(policy_path_value)
 
     sac_flow_device = _extract_override_value(cli_overrides, "sac-flow.device")
     dataset = getattr(train_cfg, "dataset", None)
