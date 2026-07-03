@@ -115,8 +115,15 @@ def require_train_config_hint(cli_overrides: list[str]) -> None:
         )
 
 
+def _register_builtin_policy_config_choices() -> None:
+    """导入内置 policy factory，确保 smolvla 等配置类已注册给 draccus。"""
+    import lerobot.policies.factory  # noqa: F401
+
+
 def parse_train_config_from_overrides(cli_overrides: list[str]):
     """只解析 TrainPipelineConfig；不 validate，不创建 dataset/policy/env。"""
+    _register_builtin_policy_config_choices()
+
     import draccus
 
     from lerobot.configs import parser
