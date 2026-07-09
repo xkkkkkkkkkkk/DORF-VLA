@@ -44,6 +44,15 @@ class PolicyThatRequiresNoGrad:
         return Tensor((1, 5))
 
 
+class PolicyWithNamedParameters(PolicyThatRequiresNoGrad):
+    def __init__(self):
+        super().__init__()
+        self.parameter = object()
+
+    def named_parameters(self):
+        return [("action_in_proj.weight", self.parameter)]
+
+
 class SmolVLAActorNoTorchTest(unittest.TestCase):
     def test_rollout_sampling_uses_no_grad_context(self):
         original = getattr(actor_adapter_module, "_no_grad_context", None)
@@ -60,6 +69,16 @@ class SmolVLAActorNoTorchTest(unittest.TestCase):
                 delattr(actor_adapter_module, "_no_grad_context")
             else:
                 actor_adapter_module._no_grad_context = original
+
+    def test_named_parameters_are_delegated_to_wrapped_policy(self):
+        actor = SmolVLASACFlowActor(
+            policy=PolicyWithNamedParameters(),
+            device="cuda:0",
+            train_noise_std=0.3,
+            rollout_noise_std=0.02,
+        )
+
+        self.assertEqual(actor.named_parameters(), [("action_in_proj.weight", actor.policy.parameter)])
 
 
 if __name__ == "__main__":

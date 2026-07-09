@@ -8,6 +8,7 @@ import torch.nn as nn
 
 from .config import SACFlowConfig
 from .critic import EntropyTemperature, actor_loss, alpha_loss, critic_loss, critic_target, soft_update
+from .trainable_scope import iter_trainable_parameters
 
 
 class SACFlowTrainer:
@@ -39,7 +40,9 @@ class SACFlowTrainer:
         self.config = config
         self.temperature = temperature if temperature is not None else EntropyTemperature(config.initial_alpha)
 
-        self.actor_optimizer = actor_optimizer or torch.optim.Adam(self.actor.parameters(), lr=config.actor_lr)
+        self.actor_optimizer = actor_optimizer or torch.optim.Adam(
+            self._default_actor_optimizer_parameters(), lr=config.actor_lr
+        )
         self.critic_optimizer = critic_optimizer or torch.optim.Adam(self.q_network.parameters(), lr=config.critic_lr)
         self.alpha_optimizer = alpha_optimizer or torch.optim.Adam(self.temperature.parameters(), lr=config.alpha_lr)
 
@@ -123,6 +126,12 @@ class SACFlowTrainer:
     def _clip_grad_norm(self, parameters: Any) -> None:
         if self.config.grad_clip_norm > 0:
             torch.nn.utils.clip_grad_norm_(parameters, self.config.grad_clip_norm)
+
+    def _default_actor_optimizer_parameters(self) -> list[Any]:
+        parameters = iter_trainable_parameters(self.actor)
+        if not parameters:
+            raise ValueError("SAC actor has no trainable parameters for optimizer construction.")
+        return parameters
 
     @staticmethod
     def _infer_action_dim(q_network: nn.Module) -> int:

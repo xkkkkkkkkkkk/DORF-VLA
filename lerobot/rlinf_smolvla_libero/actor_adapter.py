@@ -48,6 +48,13 @@ class SmolVLASACFlowActor:
             raise AttributeError("wrapped policy must provide callable parameters")
         return parameters_fn()
 
+    def named_parameters(self) -> Any:
+        """把参数名和参数委托给真实 SmolVLA policy，便于训练范围审计。"""
+        named_parameters_fn = getattr(self.policy, "named_parameters", None)
+        if not callable(named_parameters_fn):
+            raise AttributeError("wrapped policy must provide callable named_parameters")
+        return named_parameters_fn()
+
     def sample_chunk(self, obs: Any, train: bool) -> tuple[Any, Any, Any, Any]:
         batch = self._move_obs_to_device(obs)
         context = nullcontext() if train else _no_grad_context()

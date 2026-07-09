@@ -5,10 +5,14 @@ from types import SimpleNamespace
 from lerobot.rlinf_smolvla_libero.config import SACFlowConfig
 from lerobot.rlinf_smolvla_libero.libero_adapter import execute_action_chunk
 from lerobot.rlinf_smolvla_libero.smoke_runner import (
+    SACFlowRunConfig,
     SACFlowSmokeConfig,
+    configure_actor_trainable_scope,
+    log_sac_flow_step_results,
     move_policy_to_device,
     postprocess_env_action,
     prepare_policy_observation,
+    run_sac_flow_training_run,
     run_sac_flow_gpu_smoke,
     select_single_libero_vector_env,
 )
@@ -70,6 +74,19 @@ class FakePolicyWithTo:
         return moved
 
 
+class FakeReplayBuffer:
+    def __len__(self):
+        return 3
+
+
+class FakeWandBLogger:
+    def __init__(self):
+        self.logged = []
+
+    def log(self, metrics, *, step=None):
+        self.logged.append((metrics, step))
+
+
 class SmokeRunnerTest(unittest.TestCase):
     def test_requires_explicit_confirmation_for_gpu_smoke(self):
         with self.assertRaisesRegex(RuntimeError, "confirm"):
@@ -80,6 +97,151 @@ class SmokeRunnerTest(unittest.TestCase):
             SACFlowSmokeConfig(device="cpu", confirm_gpu_smoke=True, max_train_steps=100)
         with self.assertRaisesRegex(ValueError, "num_updates_per_step"):
             SACFlowSmokeConfig(device="cpu", confirm_gpu_smoke=True, num_updates_per_step=8)
+
+    def test_train_run_config_allows_short_run_budget(self):
+        config = SACFlowRunConfig(
+            device="cpu",
+            max_train_steps=100,
+            max_chunk_steps=1,
+            num_updates_per_step=4,
+            batch_size=2,
+            min_buffer_size=2,
+            replay_capacity=64,
+        )
+
+        self.assertEqual(config.max_train_steps, 100)
+        self.assertEqual(config.num_updates_per_step, 4)
+
+    def test_configures_actor_trainable_scope_from_sac_config(self):
+        policy = object()
+        events = []
+
+        def apply_scope(policy_arg, *, scope):
+            events.append((policy_arg, scope))
+            return "audit"
+
+        audit = configure_actor_trainable_scope(
+            policy,
+            SACFlowConfig(actor_train_scope="action_path"),
+            apply_scope_fn=apply_scope,
+        )
+
+        self.assertEqual(audit, "audit")
+        self.assertEqual(events, [(policy, "action_path")])
+
+    def test_logs_rollout_and_update_metrics_to_wandb_logger(self):
+        logger = FakeWandBLogger()
+        step_result = SimpleNamespace(
+            rollout=SimpleNamespace(
+                raw_rewards=[1.0, 2.0],
+                success=True,
+                transition=SimpleNamespace(chunk_reward=2.5, horizon=2),
+            ),
+            update_metrics=[{"critic_loss": 1.0, "alpha": 0.5}],
+        )
+
+        log_sac_flow_step_results(
+            [step_result],
+            logger=logger,
+            replay_buffer=FakeReplayBuffer(),
+            start_step=10,
+        )
+
+        self.assertEqual(
+            logger.logged,
+            [
+                (
+                    {
+                        "train/global_step": 10,
+                        "env/reward": 3.0,
+                        "env/discounted_return": 2.5,
+                        "env/success": 1.0,
+                        "env/chunk_steps": 2,
+                        "train/replay_buffer/size": 3,
+                        "train/sac/critic_loss": 1.0,
+                        "train/sac/alpha": 0.5,
+                    },
+                    10,
+                )
+            ],
+        )
+
+    def test_training_run_uses_run_budget_and_logs_metrics(self):
+        events = []
+        vec = FakeVectorEnv()
+        logger = FakeWandBLogger()
+
+        def build_runtime(train_cfg, validate_config):
+            events.append(("runtime", validate_config))
+            return SimpleNamespace(
+                train_cfg=train_cfg,
+                policy="policy",
+                preprocessor=lambda obs: {"policy": obs},
+                postprocessor=lambda action: f"policy_post:{action}",
+            )
+
+        def make_env(env_cfg, n_envs, use_async_envs):
+            events.append(("env", env_cfg, n_envs, use_async_envs))
+            return {"libero_10": {0: vec}}
+
+        def make_env_processors(env_cfg, policy_cfg):
+            return (lambda obs: obs, lambda action: action)
+
+        def build_loop_components(**kwargs):
+            return {
+                "actor": "actor",
+                "replay_buffer": FakeReplayBuffer(),
+                "trainer": "trainer",
+                "q_network": "q",
+                "target_q_network": "target_q",
+                "temperature": "temperature",
+            }
+
+        class FakeLoop:
+            def __init__(self, **kwargs):
+                events.append(("loop", kwargs["max_chunk_steps"]))
+                self.replay_buffer = kwargs["replay_buffer"]
+
+            def run(self, initial_obs, *, num_steps):
+                events.append(("run", num_steps))
+                return [
+                    SimpleNamespace(
+                        rollout=SimpleNamespace(
+                            raw_rewards=[1.0],
+                            success=False,
+                            transition=SimpleNamespace(chunk_reward=1.0, horizon=1),
+                        ),
+                        update_metrics=[{"critic_loss": 1.0}],
+                    )
+                    for _ in range(num_steps)
+                ]
+
+        def save_checkpoint(**kwargs):
+            events.append(("save", kwargs["step"]))
+            return Path("/tmp/out/checkpoint_000003")
+
+        result = run_sac_flow_training_run(
+            train_cfg=SimpleNamespace(policy="policy_cfg", env="env_cfg", output_dir=Path("/tmp/out")),
+            run_cfg=SACFlowRunConfig(device="cpu", max_train_steps=3, max_chunk_steps=1),
+            sac_config=SACFlowConfig(device="cpu", wandb_enable=True),
+            logger=logger,
+            build_runtime_fn=build_runtime,
+            make_env_fn=make_env,
+            make_env_processors_fn=make_env_processors,
+            build_loop_components_fn=build_loop_components,
+            loop_cls=FakeLoop,
+            save_checkpoint_fn=save_checkpoint,
+            close_envs_fn=lambda envs: events.append(("close", envs)),
+            preprocess_observation_fn=lambda raw: raw,
+            add_envs_task_fn=lambda env, obs: obs,
+        )
+
+        self.assertEqual(result.steps, 3)
+        self.assertEqual(events[0], ("runtime", True))
+        self.assertIn(("run", 3), events)
+        self.assertIn(("save", 3), events)
+        self.assertEqual(len(logger.logged), 3)
+        self.assertEqual(logger.logged[0][0]["train/sac/critic_loss"], 1.0)
 
     def test_selects_single_vector_env_from_nested_libero_factory_result(self):
         vec = FakeVectorEnv()

@@ -20,7 +20,7 @@ if str(_REPO_ROOT) not in sys.path:
     sys.path.insert(0, str(_REPO_ROOT))
 
 _LIBERO_ROOT_REQUIRED = "LEROBOT_LIBERO_ROOT is required for LIBERO SAC-Flow smoke runs."
-_REAL_TRAINING_NOT_READY = "Real SmolVLA/LIBERO SAC-Flow training is not wired yet; a later task will connect the real SmolVLA policy and LIBERO environment."
+_CHOOSE_EXPLICIT_MODE = "Choose --dry-run, --probe-runtime, --preflight-device, --gpu-smoke, or --train-run."
 
 
 def require_libero_root() -> str:
@@ -195,6 +195,46 @@ def _extract_int_override(cli_overrides: list[str], key: str, default: int) -> i
         raise RuntimeError(f"--{key} must be an integer, got {value!r}.") from exc
 
 
+def _extract_float_override(cli_overrides: list[str], key: str, default: float) -> float:
+    from lerobot.rlinf_smolvla_libero.runtime_probe import _extract_override_value
+
+    value = _extract_override_value(cli_overrides, key)
+    if value is None:
+        return default
+    try:
+        return float(value)
+    except ValueError as exc:
+        raise RuntimeError(f"--{key} must be a number, got {value!r}.") from exc
+
+
+def _extract_str_override(cli_overrides: list[str], key: str, default: str | None = None) -> str | None:
+    from lerobot.rlinf_smolvla_libero.runtime_probe import _extract_override_value
+
+    value = _extract_override_value(cli_overrides, key)
+    return default if value is None else value
+
+
+def _extract_bool_override(cli_overrides: list[str], key: str, default: bool) -> bool:
+    from lerobot.rlinf_smolvla_libero.runtime_probe import _extract_override_value
+
+    value = _extract_override_value(cli_overrides, key)
+    if value is None:
+        return default
+    normalized = value.strip().lower()
+    if normalized in {"1", "true", "yes", "on"}:
+        return True
+    if normalized in {"0", "false", "no", "off"}:
+        return False
+    raise RuntimeError(f"--{key} must be a boolean, got {value!r}.")
+
+
+def _extract_tags_override(cli_overrides: list[str], key: str, default: tuple[str, ...] = ()) -> tuple[str, ...]:
+    value = _extract_str_override(cli_overrides, key)
+    if value is None:
+        return default
+    return tuple(tag.strip() for tag in value.split(",") if tag.strip())
+
+
 def run_gpu_smoke(cli_overrides: list[str], *, confirm_gpu_smoke: bool) -> None:
     from lerobot.rlinf_smolvla_libero.config import SACFlowConfig
     from lerobot.rlinf_smolvla_libero.runtime_probe import _extract_override_value, build_runtime_probe
@@ -225,6 +265,84 @@ def run_gpu_smoke(cli_overrides: list[str], *, confirm_gpu_smoke: bool) -> None:
     print(f"SAC-Flow GPU smoke passed: steps={result.steps} checkpoint={checkpoint_text}")
 
 
+def run_train_run(
+    cli_overrides: list[str],
+    *,
+    run_fn=None,
+    logger_cls=None,
+    parse_train_config_fn=None,
+) -> None:
+    from lerobot.rlinf_smolvla_libero.config import SACFlowConfig
+    from lerobot.rlinf_smolvla_libero.runtime_probe import _extract_override_value, build_runtime_probe
+    from lerobot.rlinf_smolvla_libero.smoke_runner import SACFlowRunConfig, run_sac_flow_training_run
+    from lerobot.rlinf_smolvla_libero.wandb_logger import SACFlowWandBLogger
+
+    device = _extract_override_value(cli_overrides, "sac-flow.device") or "cpu"
+    run_cfg = SACFlowRunConfig(
+        device=device,
+        max_train_steps=_extract_int_override(cli_overrides, "sac-flow.max-train-steps", 100),
+        max_chunk_steps=_extract_int_override(cli_overrides, "sac-flow.max-chunk-steps", 1),
+        num_updates_per_step=_extract_int_override(cli_overrides, "sac-flow.num-updates-per-step", 4),
+        batch_size=_extract_int_override(cli_overrides, "sac-flow.batch-size", 2),
+        min_buffer_size=_extract_int_override(cli_overrides, "sac-flow.min-buffer-size", 2),
+        replay_capacity=_extract_int_override(cli_overrides, "sac-flow.replay-capacity", 64),
+    )
+    sac_config = SACFlowConfig(
+        device=device,
+        actor_train_scope=_extract_str_override(cli_overrides, "sac-flow.actor-train-scope", "action_path"),
+        actor_lr=_extract_float_override(cli_overrides, "sac-flow.actor-lr", 1e-5),
+        critic_lr=_extract_float_override(cli_overrides, "sac-flow.critic-lr", 3e-4),
+        alpha_lr=_extract_float_override(cli_overrides, "sac-flow.alpha-lr", 3e-4),
+        wandb_enable=_extract_bool_override(cli_overrides, "sac-flow.wandb-enable", True),
+        wandb_project=_extract_str_override(
+            cli_overrides,
+            "sac-flow.wandb-project",
+            os.environ.get("WANDB_PROJECT"),
+        ),
+        wandb_run_name=_extract_str_override(
+            cli_overrides,
+            "sac-flow.wandb-run-name",
+            os.environ.get("WANDB_RUN_NAME"),
+        ),
+        wandb_mode=_extract_str_override(
+            cli_overrides,
+            "sac-flow.wandb-mode",
+            os.environ.get("WANDB_MODE", "online"),
+        )
+        or "online",
+        wandb_tags=_extract_tags_override(cli_overrides, "sac-flow.wandb-tags", ("action_path",)),
+    )
+
+    build_runtime_probe(env=os.environ, cli_overrides=cli_overrides)
+    require_train_config_hint(cli_overrides)
+    parse_fn = parse_train_config_fn or parse_train_config_from_overrides
+    run = run_fn or run_sac_flow_training_run
+    logger_factory = logger_cls or SACFlowWandBLogger
+    lerobot_overrides, _ = _split_lerobot_and_sac_flow_overrides(cli_overrides)
+    with _temporary_cli_overrides(lerobot_overrides):
+        train_cfg = parse_fn(cli_overrides)
+        logger = logger_factory(sac_config)
+        logger.start(
+            {
+                "actor_train_scope": sac_config.actor_train_scope,
+                "max_train_steps": run_cfg.max_train_steps,
+                "num_updates_per_step": run_cfg.num_updates_per_step,
+                "batch_size": run_cfg.batch_size,
+            }
+        )
+        try:
+            result = run(
+                train_cfg=train_cfg,
+                run_cfg=run_cfg,
+                sac_config=sac_config,
+                logger=logger,
+            )
+        finally:
+            logger.finish()
+    checkpoint_text = result.checkpoint_dir if result.checkpoint_dir is not None else "not-saved"
+    print(f"SAC-Flow training run finished: steps={result.steps} checkpoint={checkpoint_text}")
+
+
 def main(argv: list[str] | None = None) -> int:
     parser = argparse.ArgumentParser(description="Safe SAC-Flow smoke entry for SmolVLA LIBERO.")
     parser.add_argument("--dry-run", action="store_true", help="Check imports/config/env only; do not load models, envs, train, or use GPU.")
@@ -232,6 +350,7 @@ def main(argv: list[str] | None = None) -> int:
     parser.add_argument("--preflight-device", action="store_true", help="Check requested SAC-Flow device availability without loading models/envs.")
     parser.add_argument("--gpu-smoke", action="store_true", help="Run the hard-budget real SmolVLA/LIBERO SAC-Flow smoke.")
     parser.add_argument("--confirm-gpu-smoke", action="store_true", help="Required for --gpu-smoke.")
+    parser.add_argument("--train-run", action="store_true", help="Run a controlled SmolVLA/LIBERO SAC-Flow training run.")
     args, cli_overrides = parser.parse_known_args(argv)
 
     if args.dry_run:
@@ -250,8 +369,12 @@ def main(argv: list[str] | None = None) -> int:
         run_gpu_smoke(cli_overrides, confirm_gpu_smoke=args.confirm_gpu_smoke)
         return 0
 
+    if args.train_run:
+        run_train_run(cli_overrides)
+        return 0
+
     require_libero_root()
-    raise NotImplementedError(_REAL_TRAINING_NOT_READY)
+    raise RuntimeError(_CHOOSE_EXPLICIT_MODE)
 
 
 if __name__ == "__main__":

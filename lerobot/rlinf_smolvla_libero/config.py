@@ -26,6 +26,12 @@ class SACFlowConfig:
     alpha_lr: float = 3e-4
     grad_clip_norm: float = 1.0
     device: str = "cpu"
+    actor_train_scope: str = "action_path"
+    wandb_enable: bool = True
+    wandb_project: str | None = None
+    wandb_run_name: str | None = None
+    wandb_mode: str = "online"
+    wandb_tags: tuple[str, ...] = ()
 
     def __post_init__(self) -> None:
         # 数值超参在构造时尽早失败，避免训练更新中出现难追踪的 NaN 或空采样。
@@ -59,6 +65,20 @@ class SACFlowConfig:
             _require_number("target_entropy", self.target_entropy)
         if not isinstance(self.device, str) or not self.device:
             raise ValueError(f"device must be a non-empty string, got {self.device!r}.")
+        if self.actor_train_scope != "action_path":
+            raise ValueError(f"actor_train_scope must be 'action_path', got {self.actor_train_scope!r}.")
+        if not isinstance(self.wandb_enable, bool):
+            raise ValueError(f"wandb_enable must be a bool, got {self.wandb_enable!r}.")
+        if self.wandb_project is not None and not isinstance(self.wandb_project, str):
+            raise ValueError(f"wandb_project must be a string or None, got {self.wandb_project!r}.")
+        if self.wandb_run_name is not None and not isinstance(self.wandb_run_name, str):
+            raise ValueError(f"wandb_run_name must be a string or None, got {self.wandb_run_name!r}.")
+        if self.wandb_mode not in {"online", "offline", "disabled"}:
+            raise ValueError(f"wandb_mode must be one of online/offline/disabled, got {self.wandb_mode!r}.")
+        if isinstance(self.wandb_tags, list):
+            self.wandb_tags = tuple(self.wandb_tags)
+        if not isinstance(self.wandb_tags, tuple) or not all(isinstance(tag, str) for tag in self.wandb_tags):
+            raise ValueError(f"wandb_tags must be a tuple of strings, got {self.wandb_tags!r}.")
 
 
 def _require_number(name: str, value: float) -> None:

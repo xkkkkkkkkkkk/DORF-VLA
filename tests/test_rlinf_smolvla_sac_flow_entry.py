@@ -185,6 +185,67 @@ class SACFlowEntryTest(unittest.TestCase):
                 else:
                     os.environ["LEROBOT_LIBERO_ROOT"] = old_libero_root
 
+    def test_train_run_builds_wandb_enabled_config_and_calls_runner(self):
+        import importlib.util
+        import tempfile
+        from types import SimpleNamespace
+
+        spec = importlib.util.spec_from_file_location("sac_flow_entry", SCRIPT)
+        module = importlib.util.module_from_spec(spec)
+        assert spec.loader is not None
+        spec.loader.exec_module(module)
+
+        events = []
+
+        class FakeLogger:
+            def __init__(self, config):
+                events.append(("logger", config.wandb_enable, config.wandb_project, config.actor_train_scope))
+
+            def start(self, run_config):
+                events.append(("start", run_config["actor_train_scope"]))
+
+            def finish(self):
+                events.append(("finish",))
+
+        def fake_run(**kwargs):
+            events.append(
+                (
+                    "run",
+                    kwargs["run_cfg"].max_train_steps,
+                    kwargs["run_cfg"].num_updates_per_step,
+                    kwargs["sac_config"].wandb_enable,
+                    kwargs["sac_config"].actor_train_scope,
+                )
+            )
+            return SimpleNamespace(steps=100, checkpoint_dir=None)
+
+        with tempfile.TemporaryDirectory() as libero_root, tempfile.TemporaryDirectory() as policy_path:
+            old_libero_root = os.environ.get("LEROBOT_LIBERO_ROOT")
+            os.environ["LEROBOT_LIBERO_ROOT"] = libero_root
+            try:
+                module.run_train_run(
+                    [
+                        f"--policy.path={policy_path}",
+                        "--dataset.repo_id=local/test",
+                        "--sac-flow.max-train-steps=100",
+                        "--sac-flow.num-updates-per-step=4",
+                        "--sac-flow.wandb-project=manual-project",
+                    ],
+                    run_fn=fake_run,
+                    logger_cls=FakeLogger,
+                    parse_train_config_fn=lambda overrides: SimpleNamespace(),
+                )
+            finally:
+                if old_libero_root is None:
+                    os.environ.pop("LEROBOT_LIBERO_ROOT", None)
+                else:
+                    os.environ["LEROBOT_LIBERO_ROOT"] = old_libero_root
+
+        self.assertEqual(events[0], ("logger", True, "manual-project", "action_path"))
+        self.assertEqual(events[1], ("start", "action_path"))
+        self.assertEqual(events[2], ("run", 100, 4, True, "action_path"))
+        self.assertEqual(events[3], ("finish",))
+
     def test_preflight_device_accepts_cpu_without_model_or_env_creation(self):
         result = self.run_script("--preflight-device", "--sac-flow.device=cpu")
 
@@ -226,10 +287,10 @@ class SACFlowEntryTest(unittest.TestCase):
         self.assertIn("--config_path or --dataset.repo_id", result.stderr)
         self.assertNotIn("No module named 'draccus'", result.stderr)
 
-    def test_non_dry_run_is_not_implemented(self):
+    def test_non_dry_run_requires_explicit_mode(self):
         result = self.run_script(env={"LEROBOT_LIBERO_ROOT": "/tmp/libero"})
         self.assertNotEqual(result.returncode, 0)
-        self.assertIn("Real SmolVLA/LIBERO SAC-Flow training is not wired yet", result.stderr)
+        self.assertIn("Choose --dry-run, --probe-runtime, --preflight-device, --gpu-smoke, or --train-run", result.stderr)
 
 
 if __name__ == "__main__":

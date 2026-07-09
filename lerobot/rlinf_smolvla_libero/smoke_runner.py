@@ -7,7 +7,9 @@ from typing import Any, Callable, Mapping
 from .checkpointing import assert_sac_flow_device_ready, save_sac_flow_checkpoint
 from .config import SACFlowConfig
 from .runtime_builder import build_smolvla_policy_runtime
+from .trainable_scope import apply_actor_trainable_scope
 from .training_loop import SACFlowOnlineLoop
+from .wandb_logger import format_sac_update_metrics
 
 
 @dataclass(frozen=True)
@@ -39,10 +41,62 @@ class SACFlowSmokeConfig:
 
 
 @dataclass(frozen=True)
+class SACFlowRunConfig:
+    """受控 SAC-Flow 训练配置；不带 smoke 的硬预算上限。"""
+
+    device: str = "cpu"
+    seed: int = 0
+    max_train_steps: int = 100
+    max_chunk_steps: int = 1
+    num_updates_per_step: int = 4
+    batch_size: int = 2
+    min_buffer_size: int = 2
+    replay_capacity: int = 64
+
+    def __post_init__(self) -> None:
+        if not isinstance(self.device, str) or not self.device:
+            raise ValueError(f"device must be a non-empty string, got {self.device!r}.")
+        for name in (
+            "max_train_steps",
+            "max_chunk_steps",
+            "num_updates_per_step",
+            "batch_size",
+            "min_buffer_size",
+            "replay_capacity",
+        ):
+            _require_positive_integer(name, getattr(self, name))
+
+
+@dataclass(frozen=True)
 class SACFlowSmokeResult:
     steps: int
     checkpoint_dir: Path | None
     update_metrics: list[dict[str, float]]
+
+
+def log_sac_flow_step_results(
+    step_results: list[Any],
+    *,
+    logger: Any,
+    replay_buffer: Any,
+    start_step: int = 0,
+) -> None:
+    """把 rollout 与 SAC 更新指标写入 logger。"""
+    for offset, result in enumerate(step_results):
+        global_step = start_step + offset
+        rollout = result.rollout
+        transition = rollout.transition
+        metrics: dict[str, Any] = {
+            "train/global_step": global_step,
+            "env/reward": float(sum(rollout.raw_rewards)),
+            "env/discounted_return": float(transition.chunk_reward),
+            "env/success": 1.0 if rollout.success else 0.0,
+            "env/chunk_steps": int(transition.horizon),
+            "train/replay_buffer/size": len(replay_buffer),
+        }
+        for update_metric in result.update_metrics:
+            metrics.update(format_sac_update_metrics(update_metric))
+        logger.log(metrics, step=global_step)
 
 
 def prepare_policy_observation(
@@ -177,6 +231,116 @@ def run_sac_flow_gpu_smoke(
         close_envs_fn(envs)
 
 
+def run_sac_flow_training_run(
+    *,
+    train_cfg: Any,
+    run_cfg: SACFlowRunConfig,
+    sac_config: SACFlowConfig | None = None,
+    logger: Any | None = None,
+    build_runtime_fn: Callable[..., Any] = build_smolvla_policy_runtime,
+    make_env_fn: Callable[..., Any] | None = None,
+    make_env_processors_fn: Callable[..., tuple[Any, Any]] | None = None,
+    build_loop_components_fn: Callable[..., Mapping[str, Any]] | None = None,
+    loop_cls: type = SACFlowOnlineLoop,
+    save_checkpoint_fn: Callable[..., Path] = save_sac_flow_checkpoint,
+    close_envs_fn: Callable[[Any], None] | None = None,
+    preprocess_observation_fn: Callable[[Any], Any] | None = None,
+    add_envs_task_fn: Callable[[Any, Any], Any] | None = None,
+) -> SACFlowSmokeResult:
+    """运行受控 SAC-Flow 训练，用于 short-run/baseline-run。"""
+    effective_config = _effective_sac_config_from_run(sac_config, run_cfg)
+    assert_sac_flow_device_ready(effective_config.device)
+
+    runtime = build_runtime_fn(train_cfg, validate_config=True)
+    env_cfg = getattr(runtime.train_cfg, "env", getattr(train_cfg, "env", None))
+    policy_cfg = getattr(runtime.train_cfg, "policy", getattr(train_cfg, "policy", None))
+
+    if make_env_fn is None:
+        from lerobot.envs.factory import make_env as make_env_fn
+    if make_env_processors_fn is None:
+        from lerobot.envs.factory import make_env_pre_post_processors as make_env_processors_fn
+    if preprocess_observation_fn is None:
+        from lerobot.envs.utils import preprocess_observation as preprocess_observation_fn
+    if add_envs_task_fn is None:
+        from lerobot.envs.utils import add_envs_task as add_envs_task_fn
+    if close_envs_fn is None:
+        from lerobot.envs.utils import close_envs as close_envs_fn
+
+    envs = make_env_fn(env_cfg, n_envs=1, use_async_envs=False)
+    try:
+        env = select_single_libero_vector_env(envs)
+        env_preprocessor, action_postprocessor = make_env_processors_fn(env_cfg, policy_cfg)
+
+        raw_obs = _reset_vector_env(env, seed=run_cfg.seed)
+        initial_obs = prepare_policy_observation(
+            raw_obs=raw_obs,
+            env=env,
+            env_preprocessor=env_preprocessor,
+            policy_preprocessor=runtime.preprocessor,
+            preprocess_observation_fn=preprocess_observation_fn,
+            add_envs_task_fn=add_envs_task_fn,
+        )
+
+        if build_loop_components_fn is None:
+            build_loop_components_fn = build_default_loop_components
+        components = dict(
+            build_loop_components_fn(
+                runtime=runtime,
+                sac_config=effective_config,
+                initial_obs=initial_obs,
+            )
+        )
+
+        loop = loop_cls(
+            actor=components["actor"],
+            env=env,
+            replay_buffer=components["replay_buffer"],
+            trainer=components["trainer"],
+            config=effective_config,
+            action_postprocessor=lambda action: postprocess_env_action(
+                action,
+                policy_postprocessor=runtime.postprocessor,
+                env_postprocessor=action_postprocessor,
+            ),
+            observation_preparer=lambda raw_next_obs, next_env=env: prepare_policy_observation(
+                raw_obs=raw_next_obs,
+                env=next_env,
+                env_preprocessor=env_preprocessor,
+                policy_preprocessor=runtime.preprocessor,
+                preprocess_observation_fn=preprocess_observation_fn,
+                add_envs_task_fn=add_envs_task_fn,
+            ),
+            max_chunk_steps=run_cfg.max_chunk_steps,
+            stop_on_success=True,
+        )
+        step_results = loop.run(initial_obs, num_steps=run_cfg.max_train_steps)
+        if logger is not None:
+            log_sac_flow_step_results(
+                step_results,
+                logger=logger,
+                replay_buffer=components["replay_buffer"],
+            )
+
+        checkpoint_dir = save_checkpoint_fn(
+            output_dir=_output_dir(runtime.train_cfg, train_cfg),
+            step=run_cfg.max_train_steps,
+            policy=runtime.policy,
+            q_network=components["q_network"],
+            target_q_network=components["target_q_network"],
+            temperature=components["temperature"],
+            config=effective_config,
+            extra_state={"train_steps": run_cfg.max_train_steps},
+        )
+        metrics = [metric for result in step_results for metric in result.update_metrics]
+        return SACFlowSmokeResult(
+            steps=run_cfg.max_train_steps,
+            checkpoint_dir=checkpoint_dir,
+            update_metrics=metrics,
+        )
+    finally:
+        close_envs_fn(envs)
+
+
 def build_default_loop_components(*, runtime: Any, sac_config: SACFlowConfig, initial_obs: dict[str, Any]) -> dict[str, Any]:
     """创建真实 actor、critic、trainer 和 replay；维度从一次 policy 采样中推断。"""
     import copy
@@ -190,6 +354,7 @@ def build_default_loop_components(*, runtime: Any, sac_config: SACFlowConfig, in
 
     device = torch.device(sac_config.device)
     policy = move_policy_to_device(runtime.policy, device)
+    trainable_audit = configure_actor_trainable_scope(policy, sac_config)
     actor = SmolVLASACFlowActor(
         policy=policy,
         device=device,
@@ -224,7 +389,18 @@ def build_default_loop_components(*, runtime: Any, sac_config: SACFlowConfig, in
         "q_network": q_network,
         "target_q_network": target_q_network,
         "temperature": temperature,
+        "trainable_audit": trainable_audit,
     }
+
+
+def configure_actor_trainable_scope(
+    policy: Any,
+    sac_config: SACFlowConfig,
+    *,
+    apply_scope_fn: Callable[..., Any] = apply_actor_trainable_scope,
+) -> Any:
+    """按 SAC 配置应用 actor 参数训练范围。"""
+    return apply_scope_fn(policy, scope=sac_config.actor_train_scope)
 
 
 def move_policy_to_device(policy: Any, device: Any) -> Any:
@@ -267,6 +443,18 @@ def _effective_sac_config(sac_config: SACFlowConfig | None, smoke_cfg: SACFlowSm
     )
 
 
+def _effective_sac_config_from_run(sac_config: SACFlowConfig | None, run_cfg: SACFlowRunConfig) -> SACFlowConfig:
+    base = sac_config if sac_config is not None else SACFlowConfig()
+    return replace(
+        base,
+        device=run_cfg.device,
+        num_updates_per_step=run_cfg.num_updates_per_step,
+        batch_size=run_cfg.batch_size,
+        min_buffer_size=run_cfg.min_buffer_size,
+        replay_capacity=run_cfg.replay_capacity,
+    )
+
+
 def _collect_vector_env_leaves(value: Any) -> list[Any]:
     if isinstance(value, Mapping):
         leaves: list[Any] = []
@@ -297,3 +485,8 @@ def _output_dir(runtime_train_cfg: Any, train_cfg: Any) -> Path:
 def _require_budget(name: str, value: int, *, maximum: int) -> None:
     if isinstance(value, bool) or not isinstance(value, int) or value < 1 or value > maximum:
         raise ValueError(f"{name} must be an integer in [1, {maximum}], got {value!r}.")
+
+
+def _require_positive_integer(name: str, value: int) -> None:
+    if isinstance(value, bool) or not isinstance(value, int) or value < 1:
+        raise ValueError(f"{name} must be a positive integer, got {value!r}.")
