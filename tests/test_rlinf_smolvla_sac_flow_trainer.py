@@ -79,6 +79,7 @@ class SACFlowTrainerTest(unittest.TestCase):
             actor_optimizer=torch.optim.Adam(actor.parameters(), lr=1e-3),
             critic_optimizer=torch.optim.Adam(q.parameters(), lr=1e-3),
         )
+        trainer.update_step = 1
         before_log_alpha = trainer.temperature.log_alpha.detach().clone()
         before_target = [p.detach().clone() for p in target_q.parameters()]
         metrics = trainer.update_sac(make_batch())
@@ -86,7 +87,7 @@ class SACFlowTrainerTest(unittest.TestCase):
         self.assertIn("actor_loss", metrics)
         self.assertIn("alpha_loss", metrics)
         self.assertIn("alpha", metrics)
-        self.assertEqual(trainer.update_step, 1)
+        self.assertEqual(trainer.update_step, 2)
         self.assertFalse(torch.equal(before_log_alpha, trainer.temperature.log_alpha.detach()))
         self.assertTrue(any(not torch.equal(a, b) for a, b in zip(before_target, target_q.parameters())))
 
