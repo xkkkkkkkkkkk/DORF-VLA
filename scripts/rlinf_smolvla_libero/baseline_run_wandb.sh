@@ -8,6 +8,10 @@ conda activate "${CONDA_ENV:-lerobot}"
 RUN_STAMP="$(date +%Y%m%d-%H%M%S)"
 WANDB_PROJECT="${WANDB_PROJECT:-smolvla-sac-flow-baseline-${RUN_STAMP}}"
 WANDB_RUN_NAME="${WANDB_RUN_NAME:-libero_object_task0_action_path_baseline-${RUN_STAMP}}"
+RESUME_ARGS=()
+if [[ -n "${SAC_FLOW_RESUME_CHECKPOINT:-}" ]]; then
+  RESUME_ARGS+=("--sac-flow.resume-checkpoint=${SAC_FLOW_RESUME_CHECKPOINT}")
+fi
 
 export LEROBOT_LIBERO_ROOT="${LEROBOT_LIBERO_ROOT:-/root/autodl-fs/hf_libero_full}"
 export HF_DATASETS_CACHE="${HF_DATASETS_CACHE:-/root/autodl-fs/hf_datasets_cache}"
@@ -21,6 +25,7 @@ export WANDB_RUN_NAME
 
 python lerobot/scripts/rlinf_smolvla_libero_sac_flow_train.py \
   --train-run \
+  "${RESUME_ARGS[@]}" \
   --policy.path=HuggingFaceVLA/smolvla_libero \
   --dataset.repo_id=HuggingFaceVLA/libero \
   --dataset.root=/root/autodl-fs/hf_libero_full \

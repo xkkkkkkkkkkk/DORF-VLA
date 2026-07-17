@@ -22,6 +22,18 @@ class FakeModule:
         self.loaded = state
 
 
+class FakeStateful:
+    def __init__(self, state):
+        self.state = state
+        self.loaded = None
+
+    def state_dict(self):
+        return self.state
+
+    def load_state_dict(self, state):
+        self.loaded = state
+
+
 class FakePolicy:
     def __init__(self):
         self.saved_to = None
@@ -100,6 +112,44 @@ class CheckpointingTest(unittest.TestCase):
         self.assertEqual(q.loaded, {"q": 2})
         self.assertEqual(target.loaded, {"target": 3})
         self.assertEqual(temp.loaded, {"temp": 4})
+
+    def test_checkpoint_round_trip_restores_trainer_and_replay_state(self):
+        saved = {}
+
+        def fake_torch_save(payload, path):
+            saved[Path(path).name] = payload
+
+        with tempfile.TemporaryDirectory() as tmpdir:
+            checkpoint_dir = save_sac_flow_checkpoint(
+                output_dir=tmpdir,
+                step=280,
+                policy=None,
+                q_network=FakeModule("q"),
+                target_q_network=FakeModule("target"),
+                temperature=FakeModule("temp"),
+                trainer=FakeStateful({"update_step": 1116}),
+                replay_buffer=FakeStateful({"capacity": 256, "items": ["transition"]}),
+                config=SACFlowConfig(device="cpu"),
+                rng_state={"python": "state", "torch": "state"},
+                torch_save_fn=fake_torch_save,
+            )
+
+        trainer = FakeStateful({})
+        replay = FakeStateful({})
+        payload = saved["sac_flow_state.pt"]
+        load_sac_flow_checkpoint(
+            checkpoint_dir=checkpoint_dir,
+            q_network=FakeModule("q"),
+            target_q_network=FakeModule("target"),
+            temperature=FakeModule("temp"),
+            trainer=trainer,
+            replay_buffer=replay,
+            restore_rng=False,
+            torch_load_fn=lambda path, map_location=None: payload,
+        )
+
+        self.assertEqual(trainer.loaded, {"update_step": 1116})
+        self.assertEqual(replay.loaded, {"capacity": 256, "items": ["transition"]})
 
     def test_cuda_preflight_rejects_unavailable_gpu_but_allows_cpu(self):
         assert_sac_flow_device_ready("cpu", cuda_available_fn=lambda: False)

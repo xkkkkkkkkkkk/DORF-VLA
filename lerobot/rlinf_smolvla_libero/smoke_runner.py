@@ -4,7 +4,7 @@ from dataclasses import dataclass, replace
 from pathlib import Path
 from typing import Any, Callable, Mapping
 
-from .checkpointing import assert_sac_flow_device_ready, save_sac_flow_checkpoint
+from .checkpointing import assert_sac_flow_device_ready, load_sac_flow_checkpoint, save_sac_flow_checkpoint
 from .config import SACFlowConfig
 from .runtime_builder import build_smolvla_policy_runtime
 from .trainable_scope import apply_actor_trainable_scope
@@ -244,6 +244,8 @@ def run_sac_flow_gpu_smoke(
             target_q_network=components["target_q_network"],
             temperature=components["temperature"],
             config=effective_config,
+            trainer=components["trainer"],
+            replay_buffer=components["replay_buffer"],
             extra_state={"smoke_steps": smoke_cfg.max_train_steps},
         )
         metrics = [metric for result in step_results for metric in result.update_metrics]
@@ -268,6 +270,8 @@ def run_sac_flow_training_run(
     build_loop_components_fn: Callable[..., Mapping[str, Any]] | None = None,
     loop_cls: type = SACFlowOnlineLoop,
     save_checkpoint_fn: Callable[..., Path] = save_sac_flow_checkpoint,
+    resume_checkpoint: str | Path | None = None,
+    load_checkpoint_fn: Callable[..., dict[str, Any]] = load_sac_flow_checkpoint,
     close_envs_fn: Callable[[Any], None] | None = None,
     preprocess_observation_fn: Callable[[Any], Any] | None = None,
     add_envs_task_fn: Callable[[Any, Any], Any] | None = None,
@@ -275,6 +279,8 @@ def run_sac_flow_training_run(
     """运行受控 SAC-Flow 训练，用于 short-run/baseline-run。"""
     effective_config = _effective_sac_config_from_run(sac_config, run_cfg)
     assert_sac_flow_device_ready(effective_config.device)
+    if resume_checkpoint is None:
+        _seed_sac_flow_rng(run_cfg.seed)
 
     runtime = build_runtime_fn(train_cfg, validate_config=True)
     env_cfg = getattr(runtime.train_cfg, "env", getattr(train_cfg, "env", None))
@@ -315,6 +321,19 @@ def run_sac_flow_training_run(
                 initial_obs=initial_obs,
             )
         )
+        start_step = 0
+        if resume_checkpoint is not None:
+            payload = load_checkpoint_fn(
+                checkpoint_dir=resume_checkpoint,
+                q_network=components["q_network"],
+                target_q_network=components["target_q_network"],
+                temperature=components["temperature"],
+                trainer=components["trainer"],
+                replay_buffer=components["replay_buffer"],
+                map_location=effective_config.device,
+                restore_rng=True,
+            )
+            start_step = _checkpoint_global_step(payload)
 
         loop = loop_cls(
             actor=components["actor"],
@@ -344,11 +363,13 @@ def run_sac_flow_training_run(
                 step_results,
                 logger=logger,
                 replay_buffer=components["replay_buffer"],
+                start_step=start_step,
             )
 
+        completed_step = start_step + run_cfg.max_train_steps
         checkpoint_dir = save_checkpoint_fn(
             output_dir=_output_dir(runtime.train_cfg, train_cfg),
-            step=run_cfg.max_train_steps,
+            step=completed_step,
             policy=runtime.policy,
             policy_preprocessor=runtime.preprocessor,
             policy_postprocessor=runtime.postprocessor,
@@ -356,11 +377,17 @@ def run_sac_flow_training_run(
             target_q_network=components["target_q_network"],
             temperature=components["temperature"],
             config=effective_config,
-            extra_state={"train_steps": run_cfg.max_train_steps},
+            trainer=components["trainer"],
+            replay_buffer=components["replay_buffer"],
+            extra_state={
+                "train_steps": run_cfg.max_train_steps,
+                "global_step": completed_step,
+                "resumed_from": str(resume_checkpoint) if resume_checkpoint is not None else None,
+            },
         )
         metrics = [metric for result in step_results for metric in result.update_metrics]
         return SACFlowSmokeResult(
-            steps=run_cfg.max_train_steps,
+            steps=completed_step,
             checkpoint_dir=checkpoint_dir,
             update_metrics=metrics,
         )
@@ -418,6 +445,33 @@ def build_default_loop_components(*, runtime: Any, sac_config: SACFlowConfig, in
         "temperature": temperature,
         "trainable_audit": trainable_audit,
     }
+
+
+def _checkpoint_global_step(payload: Mapping[str, Any]) -> int:
+    step = int(payload.get("step", -1))
+    if step < 0:
+        raise RuntimeError(f"SAC-Flow checkpoint has invalid step {step}.")
+    return step
+
+
+def _seed_sac_flow_rng(seed: int) -> None:
+    """Seed local stochastic components for a fresh SAC-Flow run only."""
+    import random
+
+    random.seed(seed)
+    try:
+        import torch
+    except ImportError:
+        return
+
+    torch.manual_seed(seed)
+    if torch.cuda.is_available():
+        torch.cuda.manual_seed_all(seed)
+    try:
+        import numpy as np
+    except ImportError:
+        return
+    np.random.seed(seed)
 
 
 def configure_actor_trainable_scope(

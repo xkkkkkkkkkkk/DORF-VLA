@@ -50,6 +50,30 @@ class SACFlowTrainer:
         self.target_entropy = config.target_entropy if config.target_entropy is not None else -float(action_dim)
         self.update_step = 0
 
+    def state_dict(self) -> dict[str, Any]:
+        """Return optimizer and scheduling state needed by a SAC continuation."""
+        return {
+            "update_step": self.update_step,
+            "actor_optimizer": self.actor_optimizer.state_dict(),
+            "critic_optimizer": self.critic_optimizer.state_dict(),
+            "alpha_optimizer": self.alpha_optimizer.state_dict(),
+        }
+
+    def load_state_dict(self, state: Mapping[str, Any]) -> None:
+        """Restore optimizer moments and actor-warm-up progress."""
+        for key in ("update_step", "actor_optimizer", "critic_optimizer", "alpha_optimizer"):
+            if key not in state:
+                raise RuntimeError(f"Trainer checkpoint is missing {key!r}.")
+
+        update_step = int(state["update_step"])
+        if update_step < 0:
+            raise ValueError(f"Trainer update_step must be non-negative, got {update_step}.")
+
+        self.actor_optimizer.load_state_dict(state["actor_optimizer"])
+        self.critic_optimizer.load_state_dict(state["critic_optimizer"])
+        self.alpha_optimizer.load_state_dict(state["alpha_optimizer"])
+        self.update_step = update_step
+
     def update_sac(self, batch: Mapping[str, Any]) -> dict[str, float]:
         missing_keys = [key for key in self._REQUIRED_BATCH_KEYS if key not in batch]
         if missing_keys:

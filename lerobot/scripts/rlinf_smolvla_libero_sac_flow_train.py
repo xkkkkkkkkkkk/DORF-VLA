@@ -235,6 +235,28 @@ def _extract_tags_override(cli_overrides: list[str], key: str, default: tuple[st
     return tuple(tag.strip() for tag in value.split(",") if tag.strip())
 
 
+def _apply_sac_flow_resume_policy_path(cli_overrides: list[str], resume_checkpoint: str | None) -> list[str]:
+    """Point LeRobot's policy loader at the self-contained SAC checkpoint policy."""
+    if resume_checkpoint is None:
+        return list(cli_overrides)
+
+    checkpoint_dir = Path(resume_checkpoint).expanduser()
+    policy_dir = checkpoint_dir / "policy"
+    state_path = checkpoint_dir / "sac_flow_state.pt"
+    if not state_path.is_file() or not policy_dir.is_dir():
+        raise RuntimeError(
+            "--sac-flow.resume-checkpoint must contain both sac_flow_state.pt and policy/. "
+            f"Got {checkpoint_dir}."
+        )
+
+    normalized = _normalize_split_override_forms(cli_overrides)
+    policy_override = f"--policy.path={policy_dir}"
+    rewritten = [policy_override if item.startswith("--policy.path=") else item for item in normalized]
+    if not any(item.startswith("--policy.path=") for item in rewritten):
+        rewritten.append(policy_override)
+    return rewritten
+
+
 def run_gpu_smoke(
     cli_overrides: list[str],
     *,
@@ -311,54 +333,56 @@ def run_train_run(
     from lerobot.rlinf_smolvla_libero.smoke_runner import SACFlowRunConfig, run_sac_flow_training_run
     from lerobot.rlinf_smolvla_libero.wandb_logger import SACFlowWandBLogger
 
-    device = _extract_override_value(cli_overrides, "sac-flow.device") or "cpu"
+    resume_checkpoint = _extract_str_override(cli_overrides, "sac-flow.resume-checkpoint")
+    effective_cli_overrides = _apply_sac_flow_resume_policy_path(cli_overrides, resume_checkpoint)
+    device = _extract_override_value(effective_cli_overrides, "sac-flow.device") or "cpu"
     run_cfg = SACFlowRunConfig(
         device=device,
-        max_train_steps=_extract_int_override(cli_overrides, "sac-flow.max-train-steps", 100),
-        max_chunk_steps=_extract_int_override(cli_overrides, "sac-flow.max-chunk-steps", 1),
-        num_updates_per_step=_extract_int_override(cli_overrides, "sac-flow.num-updates-per-step", 4),
-        batch_size=_extract_int_override(cli_overrides, "sac-flow.batch-size", 2),
-        min_buffer_size=_extract_int_override(cli_overrides, "sac-flow.min-buffer-size", 2),
-        replay_capacity=_extract_int_override(cli_overrides, "sac-flow.replay-capacity", 64),
-        num_envs=_extract_int_override(cli_overrides, "sac-flow.num-envs", 1),
+        max_train_steps=_extract_int_override(effective_cli_overrides, "sac-flow.max-train-steps", 100),
+        max_chunk_steps=_extract_int_override(effective_cli_overrides, "sac-flow.max-chunk-steps", 1),
+        num_updates_per_step=_extract_int_override(effective_cli_overrides, "sac-flow.num-updates-per-step", 4),
+        batch_size=_extract_int_override(effective_cli_overrides, "sac-flow.batch-size", 2),
+        min_buffer_size=_extract_int_override(effective_cli_overrides, "sac-flow.min-buffer-size", 2),
+        replay_capacity=_extract_int_override(effective_cli_overrides, "sac-flow.replay-capacity", 64),
+        num_envs=_extract_int_override(effective_cli_overrides, "sac-flow.num-envs", 1),
     )
     sac_config = SACFlowConfig(
         device=device,
-        actor_train_scope=_extract_str_override(cli_overrides, "sac-flow.actor-train-scope", "action_path"),
-        actor_lr=_extract_float_override(cli_overrides, "sac-flow.actor-lr", 1e-5),
-        critic_lr=_extract_float_override(cli_overrides, "sac-flow.critic-lr", 3e-4),
-        alpha_lr=_extract_float_override(cli_overrides, "sac-flow.alpha-lr", 3e-4),
-        actor_warmup_updates=_extract_int_override(cli_overrides, "sac-flow.actor-warmup-updates", 2000),
-        noise_std_train=_extract_float_override(cli_overrides, "sac-flow.noise-std-train", 0.02),
-        noise_std_rollout=_extract_float_override(cli_overrides, "sac-flow.noise-std-rollout", 0.02),
-        wandb_enable=_extract_bool_override(cli_overrides, "sac-flow.wandb-enable", True),
+        actor_train_scope=_extract_str_override(effective_cli_overrides, "sac-flow.actor-train-scope", "action_path"),
+        actor_lr=_extract_float_override(effective_cli_overrides, "sac-flow.actor-lr", 1e-5),
+        critic_lr=_extract_float_override(effective_cli_overrides, "sac-flow.critic-lr", 3e-4),
+        alpha_lr=_extract_float_override(effective_cli_overrides, "sac-flow.alpha-lr", 3e-4),
+        actor_warmup_updates=_extract_int_override(effective_cli_overrides, "sac-flow.actor-warmup-updates", 2000),
+        noise_std_train=_extract_float_override(effective_cli_overrides, "sac-flow.noise-std-train", 0.02),
+        noise_std_rollout=_extract_float_override(effective_cli_overrides, "sac-flow.noise-std-rollout", 0.02),
+        wandb_enable=_extract_bool_override(effective_cli_overrides, "sac-flow.wandb-enable", True),
         wandb_project=_extract_str_override(
-            cli_overrides,
+            effective_cli_overrides,
             "sac-flow.wandb-project",
             os.environ.get("WANDB_PROJECT"),
         ),
         wandb_run_name=_extract_str_override(
-            cli_overrides,
+            effective_cli_overrides,
             "sac-flow.wandb-run-name",
             os.environ.get("WANDB_RUN_NAME"),
         ),
         wandb_mode=_extract_str_override(
-            cli_overrides,
+            effective_cli_overrides,
             "sac-flow.wandb-mode",
             os.environ.get("WANDB_MODE", "online"),
         )
         or "online",
-        wandb_tags=_extract_tags_override(cli_overrides, "sac-flow.wandb-tags", ("action_path",)),
+        wandb_tags=_extract_tags_override(effective_cli_overrides, "sac-flow.wandb-tags", ("action_path",)),
     )
 
-    build_runtime_probe(env=os.environ, cli_overrides=cli_overrides)
-    require_train_config_hint(cli_overrides)
+    build_runtime_probe(env=os.environ, cli_overrides=effective_cli_overrides)
+    require_train_config_hint(effective_cli_overrides)
     parse_fn = parse_train_config_fn or parse_train_config_from_overrides
     run = run_fn or run_sac_flow_training_run
     logger_factory = logger_cls or SACFlowWandBLogger
-    lerobot_overrides, _ = _split_lerobot_and_sac_flow_overrides(cli_overrides)
+    lerobot_overrides, _ = _split_lerobot_and_sac_flow_overrides(effective_cli_overrides)
     with _temporary_cli_overrides(lerobot_overrides):
-        train_cfg = parse_fn(cli_overrides)
+        train_cfg = parse_fn(effective_cli_overrides)
         logger = logger_factory(sac_config)
         logger.start(
             {
@@ -368,6 +392,7 @@ def run_train_run(
                 "batch_size": run_cfg.batch_size,
                 "num_envs": run_cfg.num_envs,
                 "actor_warmup_updates": sac_config.actor_warmup_updates,
+                "resume_checkpoint": resume_checkpoint,
             }
         )
         try:
@@ -376,6 +401,7 @@ def run_train_run(
                 run_cfg=run_cfg,
                 sac_config=sac_config,
                 logger=logger,
+                resume_checkpoint=resume_checkpoint,
             )
         finally:
             logger.finish()

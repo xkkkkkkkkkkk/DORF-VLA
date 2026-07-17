@@ -137,6 +137,27 @@ class SACFlowEntryTest(unittest.TestCase):
 
         self.assertTrue(module._should_parse_train_config(["--config_path", "/tmp/train.yaml"]))
 
+    def test_resume_checkpoint_replaces_policy_path_with_saved_policy(self):
+        import importlib.util
+        import tempfile
+
+        spec = importlib.util.spec_from_file_location("sac_flow_entry", SCRIPT)
+        module = importlib.util.module_from_spec(spec)
+        assert spec.loader is not None
+        spec.loader.exec_module(module)
+
+        with tempfile.TemporaryDirectory() as root:
+            checkpoint = Path(root) / "checkpoint_000280"
+            (checkpoint / "policy").mkdir(parents=True)
+            (checkpoint / "sac_flow_state.pt").touch()
+            overrides = module._apply_sac_flow_resume_policy_path(
+                ["--policy.path=HuggingFaceVLA/smolvla_libero", "--dataset.repo_id=local/test"],
+                str(checkpoint),
+            )
+
+        self.assertIn(f"--policy.path={checkpoint / 'policy'}", overrides)
+        self.assertNotIn("--policy.path=HuggingFaceVLA/smolvla_libero", overrides)
+
     def test_temporary_cli_overrides_expose_policy_path_to_validate_helpers(self):
         import importlib.util
 

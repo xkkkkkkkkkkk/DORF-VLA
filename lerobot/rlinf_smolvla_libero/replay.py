@@ -99,6 +99,37 @@ class ChunkReplayBuffer:
             raise ValueError("transition horizon must be positive")
         self._items.append(transition)
 
+    def state_dict(self) -> dict[str, Any]:
+        """Return all replay state needed for deterministic continuation."""
+        return {
+            "capacity": self._items.maxlen,
+            "items": list(self._items),
+            "rng_state": self._rng.getstate(),
+        }
+
+    def load_state_dict(self, state: dict[str, Any]) -> None:
+        """Restore replay contents and sampling RNG without silently dropping data."""
+        for key in ("capacity", "items", "rng_state"):
+            if key not in state:
+                raise RuntimeError(f"Replay checkpoint is missing {key!r}.")
+
+        saved_capacity = int(state["capacity"])
+        if saved_capacity != self._items.maxlen:
+            raise ValueError(
+                "Replay capacity must match when resuming "
+                f"(checkpoint={saved_capacity}, configured={self._items.maxlen})."
+            )
+
+        items = list(state["items"])
+        if len(items) > saved_capacity:
+            raise RuntimeError("Replay checkpoint contains more items than its declared capacity.")
+        for transition in items:
+            if not isinstance(transition, ChunkTransition):
+                raise TypeError("Replay checkpoint contains an invalid transition.")
+
+        self._items = deque(items, maxlen=saved_capacity)
+        self._rng.setstate(state["rng_state"])
+
     def sample(self, *, batch_size: int, device: Any) -> dict[str, Any]:
         if not self._items:
             raise RuntimeError("empty ChunkReplayBuffer")
