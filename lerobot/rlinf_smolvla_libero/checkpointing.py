@@ -150,9 +150,11 @@ def load_sac_flow_checkpoint(
     if torch_load_fn is None:
         import torch
 
-        torch_load_fn = torch.load
-
-    payload = torch_load_fn(checkpoint_path, map_location=map_location)
+        # SAC checkpoints deliberately contain replay transitions and NumPy/Python RNG state,
+        # not just tensors. They are loaded only from the user-supplied local checkpoint path.
+        payload = torch.load(checkpoint_path, map_location=map_location, weights_only=False)
+    else:
+        payload = torch_load_fn(checkpoint_path, map_location=map_location)
     for key in ("q_network", "target_q_network", "temperature"):
         if key not in payload:
             raise RuntimeError(f"SAC-Flow checkpoint is missing {key!r}.")
