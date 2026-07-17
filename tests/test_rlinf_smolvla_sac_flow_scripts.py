@@ -6,10 +6,13 @@ SCRIPT_DIR = Path("scripts/rlinf_smolvla_libero")
 
 
 class SACFlowScriptTest(unittest.TestCase):
-    def test_gpu_smoke_script_disables_wandb_and_uses_safe_budget(self):
+    def test_gpu_smoke_script_supports_opt_in_wandb_and_uses_safe_budget(self):
         script = (SCRIPT_DIR / "gpu_smoke.sh").read_text(encoding="utf-8")
 
+        self.assertIn('WANDB_ENABLE="${WANDB_ENABLE:-false}"', script)
+        self.assertIn('WANDB_PROJECT="${WANDB_PROJECT:-smolvla-sac-flow-smoke-', script)
         self.assertIn("WANDB_MODE=disabled", script)
+        self.assertIn("--sac-flow.wandb-enable=true", script)
         self.assertIn("--gpu-smoke", script)
         self.assertIn("--confirm-gpu-smoke", script)
         self.assertIn("--sac-flow.actor-train-scope=action_path", script)

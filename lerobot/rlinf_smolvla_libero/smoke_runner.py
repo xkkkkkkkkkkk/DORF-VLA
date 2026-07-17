@@ -133,6 +133,7 @@ def run_sac_flow_gpu_smoke(
     train_cfg: Any,
     smoke_cfg: SACFlowSmokeConfig,
     sac_config: SACFlowConfig | None = None,
+    logger: Any | None = None,
     build_runtime_fn: Callable[..., Any] = build_smolvla_policy_runtime,
     make_env_fn: Callable[..., Any] | None = None,
     make_env_processors_fn: Callable[..., tuple[Any, Any]] | None = None,
@@ -210,6 +211,12 @@ def run_sac_flow_gpu_smoke(
             stop_on_success=True,
         )
         step_results = loop.run(initial_obs, num_steps=smoke_cfg.max_train_steps)
+        if logger is not None:
+            log_sac_flow_step_results(
+                step_results,
+                logger=logger,
+                replay_buffer=components["replay_buffer"],
+            )
 
         checkpoint_dir = save_checkpoint_fn(
             output_dir=_output_dir(runtime.train_cfg, train_cfg),

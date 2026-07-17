@@ -235,10 +235,18 @@ def _extract_tags_override(cli_overrides: list[str], key: str, default: tuple[st
     return tuple(tag.strip() for tag in value.split(",") if tag.strip())
 
 
-def run_gpu_smoke(cli_overrides: list[str], *, confirm_gpu_smoke: bool) -> None:
+def run_gpu_smoke(
+    cli_overrides: list[str],
+    *,
+    confirm_gpu_smoke: bool,
+    run_fn=None,
+    logger_cls=None,
+    parse_train_config_fn=None,
+) -> None:
     from lerobot.rlinf_smolvla_libero.config import SACFlowConfig
     from lerobot.rlinf_smolvla_libero.runtime_probe import _extract_override_value, build_runtime_probe
     from lerobot.rlinf_smolvla_libero.smoke_runner import SACFlowSmokeConfig, run_sac_flow_gpu_smoke
+    from lerobot.rlinf_smolvla_libero.wandb_logger import SACFlowWandBLogger
 
     device = _extract_override_value(cli_overrides, "sac-flow.device") or "cpu"
     smoke_cfg = SACFlowSmokeConfig(
@@ -254,13 +262,39 @@ def run_gpu_smoke(cli_overrides: list[str], *, confirm_gpu_smoke: bool) -> None:
     build_runtime_probe(env=os.environ, cli_overrides=cli_overrides)
     require_train_config_hint(cli_overrides)
     lerobot_overrides, _ = _split_lerobot_and_sac_flow_overrides(cli_overrides)
+    sac_config = SACFlowConfig(
+        device=device,
+        wandb_enable=_extract_bool_override(cli_overrides, "sac-flow.wandb-enable", False),
+        wandb_project=_extract_str_override(cli_overrides, "sac-flow.wandb-project", os.environ.get("WANDB_PROJECT")),
+        wandb_run_name=_extract_str_override(cli_overrides, "sac-flow.wandb-run-name", os.environ.get("WANDB_RUN_NAME")),
+        wandb_mode=_extract_str_override(cli_overrides, "sac-flow.wandb-mode", os.environ.get("WANDB_MODE", "online"))
+        or "online",
+        wandb_tags=_extract_tags_override(cli_overrides, "sac-flow.wandb-tags", ("smoke", "action_path")),
+    )
+    parse_fn = parse_train_config_fn or parse_train_config_from_overrides
+    run = run_fn or run_sac_flow_gpu_smoke
+    logger_factory = logger_cls or SACFlowWandBLogger
     with _temporary_cli_overrides(lerobot_overrides):
-        train_cfg = parse_train_config_from_overrides(cli_overrides)
-        result = run_sac_flow_gpu_smoke(
-            train_cfg=train_cfg,
-            smoke_cfg=smoke_cfg,
-            sac_config=SACFlowConfig(device=device),
+        train_cfg = parse_fn(cli_overrides)
+        logger = logger_factory(sac_config)
+        logger.start(
+            {
+                "run_type": "gpu_smoke",
+                "actor_train_scope": sac_config.actor_train_scope,
+                "max_train_steps": smoke_cfg.max_train_steps,
+                "num_updates_per_step": smoke_cfg.num_updates_per_step,
+                "batch_size": smoke_cfg.batch_size,
+            }
         )
+        try:
+            result = run(
+                train_cfg=train_cfg,
+                smoke_cfg=smoke_cfg,
+                sac_config=sac_config,
+                logger=logger,
+            )
+        finally:
+            logger.finish()
     checkpoint_text = result.checkpoint_dir if result.checkpoint_dir is not None else "not-saved"
     print(f"SAC-Flow GPU smoke passed: steps={result.steps} checkpoint={checkpoint_text}")
 

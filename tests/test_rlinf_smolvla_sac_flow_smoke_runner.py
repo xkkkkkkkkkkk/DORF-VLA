@@ -351,6 +351,7 @@ class SmokeRunnerTest(unittest.TestCase):
     def test_run_smoke_wires_runtime_env_loop_and_checkpoint(self):
         events = []
         vec = FakeVectorEnv()
+        logger = FakeWandBLogger()
         runtime = SimpleNamespace(
             train_cfg=SimpleNamespace(env="env_cfg", output_dir=Path("/tmp/out")),
             policy="policy",
@@ -387,7 +388,16 @@ class SmokeRunnerTest(unittest.TestCase):
 
             def run(self, initial_obs, *, num_steps):
                 events.append(("run", initial_obs, num_steps))
-                return [SimpleNamespace(update_metrics=[{"critic_loss": 1.0}])]
+                return [
+                    SimpleNamespace(
+                        rollout=SimpleNamespace(
+                            raw_rewards=[1.0],
+                            success=False,
+                            transition=SimpleNamespace(chunk_reward=1.0, horizon=1),
+                        ),
+                        update_metrics=[{"critic_loss": 1.0}],
+                    )
+                ]
 
         def save_checkpoint(**kwargs):
             events.append(("save", kwargs["step"], kwargs["output_dir"]))
@@ -400,6 +410,7 @@ class SmokeRunnerTest(unittest.TestCase):
             train_cfg=SimpleNamespace(policy="policy_cfg", env="env_cfg", output_dir=Path("/tmp/out")),
             smoke_cfg=SACFlowSmokeConfig(device="cpu", confirm_gpu_smoke=True, max_train_steps=2),
             sac_config=SACFlowConfig(device="cpu", min_buffer_size=1, num_updates_per_step=1, batch_size=1),
+            logger=logger,
             build_runtime_fn=build_runtime,
             make_env_fn=make_env,
             make_env_processors_fn=make_env_processors,
@@ -421,6 +432,8 @@ class SmokeRunnerTest(unittest.TestCase):
         self.assertEqual(events[4][1]["action_postprocessor"]("raw"), "env_post:policy_post:raw")
         self.assertEqual(events[-2][0], "save")
         self.assertEqual(events[-1], ("close", {"libero_10": {0: vec}}))
+        self.assertEqual(len(logger.logged), 1)
+        self.assertEqual(logger.logged[0][0]["train/sac/critic_loss"], 1.0)
 
 
 if __name__ == "__main__":

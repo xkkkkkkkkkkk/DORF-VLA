@@ -11,7 +11,27 @@ export TMPDIR="${TMPDIR:-/root/autodl-fs/tmp}"
 export HF_HUB_OFFLINE="${HF_HUB_OFFLINE:-1}"
 export TRANSFORMERS_OFFLINE="${TRANSFORMERS_OFFLINE:-1}"
 export HF_DATASETS_OFFLINE="${HF_DATASETS_OFFLINE:-1}"
-export WANDB_MODE=disabled
+
+# Keep the historical offline-safe default. Set WANDB_ENABLE=true to publish
+# the two-step smoke metrics to WandB without changing the smoke budget.
+WANDB_ENABLE="${WANDB_ENABLE:-false}"
+WANDB_ARGS=(--sac-flow.wandb-enable=false)
+if [[ "${WANDB_ENABLE}" == "true" ]]; then
+  RUN_STAMP="$(date +%Y%m%d-%H%M%S)"
+  WANDB_PROJECT="${WANDB_PROJECT:-smolvla-sac-flow-smoke-${RUN_STAMP}}"
+  WANDB_RUN_NAME="${WANDB_RUN_NAME:-libero_object_task0_action_path_smoke-${RUN_STAMP}}"
+  export WANDB_MODE="${WANDB_MODE:-online}"
+  export WANDB_PROJECT
+  export WANDB_RUN_NAME
+  WANDB_ARGS=(
+    --sac-flow.wandb-enable=true
+    --sac-flow.wandb-project="${WANDB_PROJECT}"
+    --sac-flow.wandb-run-name="${WANDB_RUN_NAME}"
+    --sac-flow.wandb-tags=smoke,action_path
+  )
+else
+  export WANDB_MODE=disabled
+fi
 
 python lerobot/scripts/rlinf_smolvla_libero_sac_flow_train.py \
   --gpu-smoke \
@@ -29,4 +49,4 @@ python lerobot/scripts/rlinf_smolvla_libero_sac_flow_train.py \
   --sac-flow.num-updates-per-step=1 \
   --sac-flow.batch-size=1 \
   --sac-flow.min-buffer-size=1 \
-  --sac-flow.wandb-enable=false
+  "${WANDB_ARGS[@]}"

@@ -185,6 +185,60 @@ class SACFlowEntryTest(unittest.TestCase):
                 else:
                     os.environ["LEROBOT_LIBERO_ROOT"] = old_libero_root
 
+    def test_gpu_smoke_builds_wandb_enabled_config_and_calls_runner(self):
+        import importlib.util
+        import tempfile
+        from types import SimpleNamespace
+
+        spec = importlib.util.spec_from_file_location("sac_flow_entry", SCRIPT)
+        module = importlib.util.module_from_spec(spec)
+        assert spec.loader is not None
+        spec.loader.exec_module(module)
+
+        events = []
+
+        class FakeLogger:
+            def __init__(self, config):
+                events.append(("logger", config.wandb_enable, config.wandb_project, config.wandb_tags))
+
+            def start(self, run_config):
+                events.append(("start", run_config["run_type"]))
+
+            def finish(self):
+                events.append(("finish",))
+
+        def fake_smoke(**kwargs):
+            events.append(("run", kwargs["smoke_cfg"].max_train_steps, kwargs["sac_config"].wandb_enable))
+            return SimpleNamespace(steps=2, checkpoint_dir=None)
+
+        with tempfile.TemporaryDirectory() as libero_root, tempfile.TemporaryDirectory() as policy_path:
+            old_libero_root = os.environ.get("LEROBOT_LIBERO_ROOT")
+            os.environ["LEROBOT_LIBERO_ROOT"] = libero_root
+            try:
+                module.run_gpu_smoke(
+                    [
+                        f"--policy.path={policy_path}",
+                        "--dataset.repo_id=local/test",
+                        "--sac-flow.device=cpu",
+                        "--sac-flow.wandb-enable=true",
+                        "--sac-flow.wandb-project=manual-project",
+                    ],
+                    confirm_gpu_smoke=True,
+                    run_fn=fake_smoke,
+                    logger_cls=FakeLogger,
+                    parse_train_config_fn=lambda overrides: SimpleNamespace(),
+                )
+            finally:
+                if old_libero_root is None:
+                    os.environ.pop("LEROBOT_LIBERO_ROOT", None)
+                else:
+                    os.environ["LEROBOT_LIBERO_ROOT"] = old_libero_root
+
+        self.assertEqual(events[0], ("logger", True, "manual-project", ("smoke", "action_path")))
+        self.assertEqual(events[1], ("start", "gpu_smoke"))
+        self.assertEqual(events[2], ("run", 2, True))
+        self.assertEqual(events[3], ("finish",))
+
     def test_train_run_builds_wandb_enabled_config_and_calls_runner(self):
         import importlib.util
         import tempfile
