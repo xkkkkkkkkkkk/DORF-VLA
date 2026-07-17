@@ -29,6 +29,8 @@ def save_sac_flow_checkpoint(
     target_q_network: Any,
     temperature: Any,
     config: Any,
+    policy_preprocessor: Any | None = None,
+    policy_postprocessor: Any | None = None,
     extra_state: dict[str, Any] | None = None,
     torch_save_fn: Callable[[dict[str, Any], Path], None] | None = None,
 ) -> Path:
@@ -42,6 +44,16 @@ def save_sac_flow_checkpoint(
         policy_dir = checkpoint_dir / "policy"
         policy_dir.mkdir(parents=True, exist_ok=True)
         policy.save_pretrained(policy_dir)
+        _save_processor_if_available(
+            policy_preprocessor,
+            policy_dir,
+            config_filename="policy_preprocessor.json",
+        )
+        _save_processor_if_available(
+            policy_postprocessor,
+            policy_dir,
+            config_filename="policy_postprocessor.json",
+        )
 
     if torch_save_fn is None:
         import torch
@@ -58,6 +70,13 @@ def save_sac_flow_checkpoint(
     }
     torch_save_fn(payload, checkpoint_dir / "sac_flow_state.pt")
     return checkpoint_dir
+
+
+def _save_processor_if_available(processor: Any, policy_dir: Path, *, config_filename: str) -> None:
+    """Keep a SAC policy checkpoint directly consumable by ``lerobot_eval.py``."""
+    save_pretrained = getattr(processor, "save_pretrained", None)
+    if callable(save_pretrained):
+        save_pretrained(policy_dir, config_filename=config_filename)
 
 
 def load_sac_flow_checkpoint(

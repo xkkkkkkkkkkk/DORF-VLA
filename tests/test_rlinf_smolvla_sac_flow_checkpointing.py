@@ -30,6 +30,14 @@ class FakePolicy:
         self.saved_to = Path(path)
 
 
+class FakeProcessor:
+    def __init__(self):
+        self.saved = []
+
+    def save_pretrained(self, path, *, config_filename):
+        self.saved.append((Path(path), config_filename))
+
+
 class CheckpointingTest(unittest.TestCase):
     def test_save_checkpoint_writes_policy_and_sac_state_payload(self):
         saved = {}
@@ -39,10 +47,14 @@ class CheckpointingTest(unittest.TestCase):
 
         with tempfile.TemporaryDirectory() as tmpdir:
             policy = FakePolicy()
+            preprocessor = FakeProcessor()
+            postprocessor = FakeProcessor()
             checkpoint_dir = save_sac_flow_checkpoint(
                 output_dir=tmpdir,
                 step=7,
                 policy=policy,
+                policy_preprocessor=preprocessor,
+                policy_postprocessor=postprocessor,
                 q_network=FakeModule("q"),
                 target_q_network=FakeModule("target"),
                 temperature=FakeModule("temp"),
@@ -53,6 +65,8 @@ class CheckpointingTest(unittest.TestCase):
 
         self.assertEqual(checkpoint_dir.name, "checkpoint_000007")
         self.assertEqual(policy.saved_to, checkpoint_dir / "policy")
+        self.assertEqual(preprocessor.saved, [(checkpoint_dir / "policy", "policy_preprocessor.json")])
+        self.assertEqual(postprocessor.saved, [(checkpoint_dir / "policy", "policy_postprocessor.json")])
         payload = saved["sac_flow_state.pt"]
         self.assertEqual(payload["step"], 7)
         self.assertEqual(payload["q_network"], {"q": 1})
