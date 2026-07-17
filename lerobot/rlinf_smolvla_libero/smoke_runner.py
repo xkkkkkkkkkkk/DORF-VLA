@@ -274,6 +274,7 @@ def run_sac_flow_training_run(
     loop_cls: type = SACFlowOnlineLoop,
     save_checkpoint_fn: Callable[..., Path] = save_sac_flow_checkpoint,
     resume_checkpoint: str | Path | None = None,
+    override_actor_lr_on_resume: bool = False,
     load_checkpoint_fn: Callable[..., dict[str, Any]] = load_sac_flow_checkpoint,
     close_envs_fn: Callable[[Any], None] | None = None,
     preprocess_observation_fn: Callable[[Any], Any] | None = None,
@@ -337,6 +338,8 @@ def run_sac_flow_training_run(
                 restore_rng=True,
             )
             start_step = _checkpoint_global_step(payload)
+            if override_actor_lr_on_resume:
+                _override_optimizer_lr(components["trainer"].actor_optimizer, effective_config.actor_lr)
 
         loop = loop_cls(
             actor=components["actor"],
@@ -530,6 +533,12 @@ def _seed_sac_flow_rng(seed: int) -> None:
     except ImportError:
         return
     np.random.seed(seed)
+
+
+def _override_optimizer_lr(optimizer: Any, learning_rate: float) -> None:
+    """Apply an explicitly requested actor LR after optimizer-state restoration."""
+    for parameter_group in optimizer.param_groups:
+        parameter_group["lr"] = learning_rate
 
 
 def configure_actor_trainable_scope(

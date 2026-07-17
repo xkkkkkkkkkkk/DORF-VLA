@@ -344,6 +344,11 @@ def run_train_run(
     from lerobot.rlinf_smolvla_libero.wandb_logger import SACFlowWandBLogger
 
     resume_checkpoint = _extract_str_override(cli_overrides, "sac-flow.resume-checkpoint")
+    override_actor_lr_on_resume = _extract_bool_override(
+        cli_overrides,
+        "sac-flow.override-actor-lr-on-resume",
+        False,
+    )
     effective_cli_overrides = _apply_sac_flow_resume_policy_path(cli_overrides, resume_checkpoint)
     device = _extract_override_value(effective_cli_overrides, "sac-flow.device") or "cpu"
     run_cfg = SACFlowRunConfig(
@@ -413,6 +418,7 @@ def run_train_run(
                 sac_config=sac_config,
                 logger=logger,
                 resume_checkpoint=resume_checkpoint,
+                override_actor_lr_on_resume=override_actor_lr_on_resume,
             )
         finally:
             logger.finish()
