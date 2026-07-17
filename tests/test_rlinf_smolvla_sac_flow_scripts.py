@@ -19,6 +19,8 @@ class SACFlowScriptTest(unittest.TestCase):
         self.assertIn("--sac-flow.max-train-steps=2", script)
         self.assertIn("--sac-flow.num-updates-per-step=1", script)
         self.assertIn("--dataset.root=/root/autodl-fs/hf_libero_full", script)
+        self.assertIn("--env.observation_height=256", script)
+        self.assertIn("--env.observation_width=256", script)
 
     def test_short_run_script_enables_wandb_and_supports_manual_project(self):
         script = (SCRIPT_DIR / "short_run_wandb.sh").read_text(encoding="utf-8")
@@ -29,7 +31,12 @@ class SACFlowScriptTest(unittest.TestCase):
         self.assertIn("--sac-flow.wandb-enable=true", script)
         self.assertIn("--sac-flow.actor-train-scope=action_path", script)
         self.assertIn("--sac-flow.max-train-steps=100", script)
+        self.assertIn("--sac-flow.num-envs=4", script)
+        self.assertIn("--sac-flow.batch-size=8", script)
+        self.assertIn("--sac-flow.min-buffer-size=8", script)
         self.assertIn("--sac-flow.actor-lr=1e-5", script)
+        self.assertIn("--env.observation_height=256", script)
+        self.assertIn("--env.observation_width=256", script)
 
     def test_baseline_script_enables_wandb_and_keeps_gradual_updates(self):
         script = (SCRIPT_DIR / "baseline_run_wandb.sh").read_text(encoding="utf-8")
@@ -40,7 +47,11 @@ class SACFlowScriptTest(unittest.TestCase):
         self.assertIn("--sac-flow.wandb-enable=true", script)
         self.assertIn("--sac-flow.actor-train-scope=action_path", script)
         self.assertIn("--sac-flow.num-updates-per-step=16", script)
-        self.assertIn("--sac-flow.batch-size=4", script)
+        self.assertIn("--sac-flow.num-envs=4", script)
+        self.assertIn("--sac-flow.batch-size=16", script)
+        self.assertIn("--sac-flow.min-buffer-size=16", script)
+        self.assertIn("--env.observation_height=256", script)
+        self.assertIn("--env.observation_width=256", script)
 
 
 if __name__ == "__main__":

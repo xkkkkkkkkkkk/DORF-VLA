@@ -1,6 +1,8 @@
 import unittest
 from types import SimpleNamespace
 
+import torch
+
 from lerobot.rlinf_smolvla_libero.config import SACFlowConfig
 from lerobot.rlinf_smolvla_libero.replay import ChunkTransition
 from lerobot.rlinf_smolvla_libero.training_loop import SACFlowOnlineLoop
@@ -136,6 +138,43 @@ class SACFlowOnlineLoopTest(unittest.TestCase):
         self.assertEqual(step.next_obs, {"states": "next_obs"})
         self.assertTrue(step.rollout.success)
         self.assertEqual(step.update_metrics, [{"critic_loss": 1.0}])
+
+    def test_batched_collection_adds_one_transition_per_vector_slot(self):
+        replay = FakeReplay()
+
+        class BatchedActor:
+            def sample_chunk(self, obs, train):
+                return "flat", "log_pi", "features", torch.zeros(2, 1, 2)
+
+        transitions = [
+            make_transition({"states": "first"}, {"states": "first-next"}),
+            make_transition({"states": "second"}, {"states": "second-next"}),
+        ]
+
+        def batched_rollout_fn(**kwargs):
+            return SimpleNamespace(
+                rollouts=[
+                    SimpleNamespace(transition=transitions[0], raw_rewards=[1.0], success=False, truncated=False),
+                    SimpleNamespace(transition=transitions[1], raw_rewards=[2.0], success=True, truncated=False),
+                ],
+                next_obs={"states": "batched-next"},
+            )
+
+        loop = SACFlowOnlineLoop(
+            actor=BatchedActor(),
+            env="vector-env",
+            replay_buffer=replay,
+            trainer=FakeTrainer(),
+            config=SACFlowConfig(min_buffer_size=10),
+            batched_rollout_fn=batched_rollout_fn,
+        )
+
+        step = loop.train_step({"states": "batched"})
+
+        self.assertEqual(replay.items, transitions)
+        self.assertEqual(step.next_obs, {"states": "batched-next"})
+        self.assertEqual(len(step.rollouts), 2)
+        self.assertTrue(step.rollouts[1].success)
 
 
 if __name__ == "__main__":

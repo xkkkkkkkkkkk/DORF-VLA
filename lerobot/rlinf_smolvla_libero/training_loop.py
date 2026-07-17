@@ -4,7 +4,7 @@ from dataclasses import dataclass
 from typing import Any, Callable
 
 from .config import SACFlowConfig
-from .libero_adapter import ChunkRolloutResult, execute_action_chunk
+from .libero_adapter import BatchedChunkRolloutResult, ChunkRolloutResult, execute_action_chunk, execute_batched_action_chunk
 
 
 @dataclass(frozen=True)
@@ -14,6 +14,7 @@ class SACFlowTrainStepResult:
     rollout: ChunkRolloutResult
     update_metrics: list[dict[str, float]]
     next_obs: dict[str, Any]
+    rollouts: tuple[ChunkRolloutResult, ...] = ()
 
 
 class SACFlowOnlineLoop:
@@ -32,6 +33,7 @@ class SACFlowOnlineLoop:
         max_chunk_steps: int | None = None,
         stop_on_success: bool = True,
         rollout_fn: Callable[..., ChunkRolloutResult] = execute_action_chunk,
+        batched_rollout_fn: Callable[..., BatchedChunkRolloutResult] = execute_batched_action_chunk,
     ) -> None:
         self.actor = actor
         self.env = env
@@ -43,6 +45,7 @@ class SACFlowOnlineLoop:
         self.max_chunk_steps = max_chunk_steps
         self.stop_on_success = stop_on_success
         self.rollout_fn = rollout_fn
+        self.batched_rollout_fn = batched_rollout_fn
 
     def collect_transition(self, curr_obs: dict[str, Any]) -> ChunkRolloutResult:
         """用 actor 采样 action chunk，执行环境前缀，并写入 replay。"""
@@ -50,6 +53,26 @@ class SACFlowOnlineLoop:
         if not isinstance(sample_result, (tuple, list)) or len(sample_result) != 4:
             raise ValueError("actor.sample_chunk must return (flat_actions, log_pi, obs_features, raw_chunk)")
         _, _, _, raw_chunk = sample_result
+
+        batch_size = int(getattr(raw_chunk, "shape", (1,))[0])
+        if batch_size > 1:
+            batched_rollout = self.batched_rollout_fn(
+                env=self.env,
+                curr_obs=curr_obs,
+                raw_chunk=raw_chunk,
+                gamma=self.config.gamma,
+                max_chunk_steps=self.max_chunk_steps,
+                action_postprocessor=self.action_postprocessor,
+                stop_on_success=self.stop_on_success,
+                observation_preparer=self.observation_preparer,
+            )
+            for rollout in batched_rollout.rollouts:
+                self.replay_buffer.add(rollout.transition)
+            if not batched_rollout.rollouts:
+                raise ValueError("batched rollout must contain at least one transition")
+            self._last_next_obs = batched_rollout.next_obs
+            self._last_rollouts = tuple(batched_rollout.rollouts)
+            return batched_rollout.rollouts[0]
 
         rollout = self.rollout_fn(
             env=self.env,
@@ -62,6 +85,8 @@ class SACFlowOnlineLoop:
             observation_preparer=self.observation_preparer,
         )
         self.replay_buffer.add(rollout.transition)
+        self._last_next_obs = rollout.transition.next_obs
+        self._last_rollouts = (rollout,)
         return rollout
 
     def update_if_ready(self) -> list[dict[str, float]]:
@@ -82,7 +107,8 @@ class SACFlowOnlineLoop:
         return SACFlowTrainStepResult(
             rollout=rollout,
             update_metrics=update_metrics,
-            next_obs=rollout.transition.next_obs,
+            next_obs=self._last_next_obs,
+            rollouts=self._last_rollouts,
         )
 
     def run(self, initial_obs: dict[str, Any], *, num_steps: int) -> list[SACFlowTrainStepResult]:

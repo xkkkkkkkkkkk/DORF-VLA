@@ -52,6 +52,7 @@ class SACFlowRunConfig:
     batch_size: int = 2
     min_buffer_size: int = 2
     replay_capacity: int = 64
+    num_envs: int = 1
 
     def __post_init__(self) -> None:
         if not isinstance(self.device, str) or not self.device:
@@ -63,6 +64,7 @@ class SACFlowRunConfig:
             "batch_size",
             "min_buffer_size",
             "replay_capacity",
+            "num_envs",
         ):
             _require_positive_integer(name, getattr(self, name))
 
@@ -84,16 +86,30 @@ def log_sac_flow_step_results(
     """把 rollout 与 SAC 更新指标写入 logger。"""
     for offset, result in enumerate(step_results):
         global_step = start_step + offset
-        rollout = result.rollout
+        rollouts = getattr(result, "rollouts", ()) or (result.rollout,)
+        rollout = rollouts[0]
         transition = rollout.transition
+        if len(rollouts) == 1:
+            raw_reward = float(sum(rollout.raw_rewards))
+            chunk_reward = float(transition.chunk_reward)
+            success = 1.0 if rollout.success else 0.0
+            chunk_steps: float | int = int(transition.horizon)
+        else:
+            raw_reward = float(sum(sum(item.raw_rewards) for item in rollouts) / len(rollouts))
+            chunk_reward = float(sum(item.transition.chunk_reward for item in rollouts) / len(rollouts))
+            success = float(sum(1.0 if item.success else 0.0 for item in rollouts) / len(rollouts))
+            chunk_steps = float(sum(item.transition.horizon for item in rollouts) / len(rollouts))
         metrics: dict[str, Any] = {
             "train/global_step": global_step,
-            "env/reward": float(sum(rollout.raw_rewards)),
-            "env/discounted_return": float(transition.chunk_reward),
-            "env/success": 1.0 if rollout.success else 0.0,
-            "env/chunk_steps": int(transition.horizon),
+            "env/reward": raw_reward,
+            "env/discounted_return": chunk_reward,
+            "env/success": success,
+            "env/chunk_steps": chunk_steps,
             "train/replay_buffer/size": len(replay_buffer),
         }
+        if len(rollouts) > 1:
+            metrics["env/parallel_envs"] = len(rollouts)
+            metrics["train/transitions_collected"] = len(rollouts)
         for update_metric in result.update_metrics:
             metrics.update(format_sac_update_metrics(update_metric))
         logger.log(metrics, step=global_step)
@@ -116,15 +132,15 @@ def prepare_policy_observation(
     return observation
 
 
-def select_single_libero_vector_env(envs: Any) -> Any:
+def select_single_libero_vector_env(envs: Any, *, expected_num_envs: int = 1) -> Any:
     """从 LeRobot env factory 的嵌套返回值中选出唯一 vector env。"""
     leaves = _collect_vector_env_leaves(envs)
     if len(leaves) != 1:
         raise ValueError(f"SAC-Flow smoke requires exactly one vector env, found {len(leaves)}.")
     vector_env = leaves[0]
     num_envs = int(getattr(vector_env, "num_envs", 1))
-    if num_envs != 1:
-        raise ValueError(f"SAC-Flow smoke requires num_envs=1, got {num_envs}.")
+    if num_envs != expected_num_envs:
+        raise ValueError(f"SAC-Flow runner requires num_envs={expected_num_envs}, got {num_envs}.")
     return vector_env
 
 
@@ -165,7 +181,7 @@ def run_sac_flow_gpu_smoke(
 
     envs = make_env_fn(env_cfg, n_envs=1, use_async_envs=False)
     try:
-        env = select_single_libero_vector_env(envs)
+        env = select_single_libero_vector_env(envs, expected_num_envs=1)
         env_preprocessor, action_postprocessor = make_env_processors_fn(env_cfg, policy_cfg)
 
         raw_obs = _reset_vector_env(env, seed=smoke_cfg.seed)
@@ -273,9 +289,9 @@ def run_sac_flow_training_run(
     if close_envs_fn is None:
         from lerobot.envs.utils import close_envs as close_envs_fn
 
-    envs = make_env_fn(env_cfg, n_envs=1, use_async_envs=False)
+    envs = make_env_fn(env_cfg, n_envs=run_cfg.num_envs, use_async_envs=False)
     try:
-        env = select_single_libero_vector_env(envs)
+        env = select_single_libero_vector_env(envs, expected_num_envs=run_cfg.num_envs)
         env_preprocessor, action_postprocessor = make_env_processors_fn(env_cfg, policy_cfg)
 
         raw_obs = _reset_vector_env(env, seed=run_cfg.seed)

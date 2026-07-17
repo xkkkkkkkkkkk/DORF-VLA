@@ -6,7 +6,12 @@ try:
 except ImportError:  # pragma: no cover
     np = None
 
-from lerobot.rlinf_smolvla_libero.libero_adapter import ChunkRolloutResult, execute_action_chunk
+from lerobot.rlinf_smolvla_libero.libero_adapter import (
+    BatchedChunkRolloutResult,
+    ChunkRolloutResult,
+    execute_action_chunk,
+    execute_batched_action_chunk,
+)
 
 
 class DummyEnv:
@@ -50,6 +55,19 @@ class VectorOneEnv:
 
 class VectorTwoEnv(VectorOneEnv):
     num_envs = 2
+
+    def __init__(self):
+        self.actions = []
+
+    def step(self, action):
+        self.actions.append(action)
+        return (
+            {"states": torch.tensor([[3.0, 4.0], [5.0, 6.0]])},
+            torch.tensor([1.0, 2.0]),
+            torch.tensor([False, True]),
+            torch.tensor([False, False]),
+            {"final_info": {"is_success": torch.tensor([False, True])}},
+        )
 
 
 def identity_action_postprocessor(action):
@@ -180,14 +198,38 @@ class LiberoAdapterTest(unittest.TestCase):
         self.assertEqual(tuple(env.actions[0].shape), (1, 2))
         torch.testing.assert_close(env.actions[0], torch.tensor([[0.1, 0.2]]))
 
-    def test_rejects_vector_env_num_envs_not_one(self):
-        with self.assertRaisesRegex(ValueError, r"num_envs=2.*only num_envs=1"):
+    def test_rejects_vector_env_when_chunk_batch_size_does_not_match(self):
+        with self.assertRaisesRegex(ValueError, r"num_envs=2.*batch size 1"):
             execute_action_chunk(
                 env=VectorTwoEnv(),
                 curr_obs=self.make_obs(),
                 raw_chunk=torch.zeros(1, 1, 2),
                 gamma=0.99,
             )
+
+    def test_batched_chunk_splits_vector_env_transitions(self):
+        env = VectorTwoEnv()
+        curr_obs = {"states": torch.tensor([[1.0, 2.0], [7.0, 8.0]])}
+        raw_chunk = torch.tensor([[[0.1, 0.2]], [[0.3, 0.4]]])
+
+        result = execute_batched_action_chunk(
+            env=env,
+            curr_obs=curr_obs,
+            raw_chunk=raw_chunk,
+            gamma=0.9,
+            stop_on_success=True,
+        )
+
+        self.assertIsInstance(result, BatchedChunkRolloutResult)
+        self.assertEqual(len(result.rollouts), 2)
+        self.assertEqual(tuple(env.actions[0].shape), (2, 2))
+        self.assertEqual(result.rollouts[0].transition.actions.shape, (1, 2))
+        self.assertEqual(result.rollouts[1].transition.actions.shape, (1, 2))
+        self.assertFalse(result.rollouts[0].success)
+        self.assertTrue(result.rollouts[1].success)
+        self.assertTrue(result.rollouts[1].transition.done)
+        torch.testing.assert_close(result.rollouts[0].transition.curr_obs["states"], torch.tensor([[1.0, 2.0]]))
+        torch.testing.assert_close(result.rollouts[1].transition.curr_obs["states"], torch.tensor([[7.0, 8.0]]))
 
     def test_vector_env_scalar_step_outputs_are_unwrapped(self):
         scalar_cases = [

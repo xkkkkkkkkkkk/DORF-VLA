@@ -42,6 +42,8 @@ python lerobot/scripts/rlinf_smolvla_libero_sac_flow_train.py \
   --env.type=libero \
   --env.task=libero_object \
   --env.task_ids=[0] \
+  --env.observation_height=256 \
+  --env.observation_width=256 \
   --sac-flow.device="${SAC_FLOW_DEVICE:-cuda:0}" \
   --sac-flow.actor-train-scope=action_path \
   --sac-flow.max-train-steps=2 \

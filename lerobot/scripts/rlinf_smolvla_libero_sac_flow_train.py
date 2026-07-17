@@ -320,6 +320,7 @@ def run_train_run(
         batch_size=_extract_int_override(cli_overrides, "sac-flow.batch-size", 2),
         min_buffer_size=_extract_int_override(cli_overrides, "sac-flow.min-buffer-size", 2),
         replay_capacity=_extract_int_override(cli_overrides, "sac-flow.replay-capacity", 64),
+        num_envs=_extract_int_override(cli_overrides, "sac-flow.num-envs", 1),
     )
     sac_config = SACFlowConfig(
         device=device,
@@ -362,6 +363,7 @@ def run_train_run(
                 "max_train_steps": run_cfg.max_train_steps,
                 "num_updates_per_step": run_cfg.num_updates_per_step,
                 "batch_size": run_cfg.batch_size,
+                "num_envs": run_cfg.num_envs,
             }
         )
         try:
