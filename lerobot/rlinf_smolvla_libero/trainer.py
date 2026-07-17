@@ -85,7 +85,10 @@ class SACFlowTrainer:
             "alpha": float(self.temperature.alpha.detach().cpu()),
         }
 
-        if self.update_step % self.config.critic_actor_ratio == 0:
+        if (
+            self.update_step >= self.config.actor_warmup_updates
+            and self.update_step % self.config.critic_actor_ratio == 0
+        ):
             self._set_requires_grad(self.q_network, requires_grad=False)
             try:
                 curr_actions, log_pi, actor_features, _ = self.actor.sample_chunk(batch["curr_obs"], train=True)
@@ -104,7 +107,7 @@ class SACFlowTrainer:
             finally:
                 self._set_requires_grad(self.q_network, requires_grad=True)
 
-            alpha_objective = alpha_loss(self.temperature.alpha, log_pi.detach(), self.target_entropy)
+            alpha_objective = alpha_loss(self.temperature.log_alpha, log_pi.detach(), self.target_entropy)
             self.alpha_optimizer.zero_grad(set_to_none=True)
             alpha_objective.backward()
             self.alpha_optimizer.step()

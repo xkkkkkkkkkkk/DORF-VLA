@@ -10,6 +10,7 @@ class SACFlowConfig:
     initial_alpha: float = 0.01
     target_entropy: float | None = None
     critic_actor_ratio: int = 4
+    actor_warmup_updates: int = 2000
     num_updates_per_step: int = 64
     replay_capacity: int = 200
     min_buffer_size: int = 2
@@ -50,7 +51,7 @@ class SACFlowConfig:
         if not isinstance(self.tau, (int, float)) or isinstance(self.tau, bool) or not 0.0 <= float(self.tau) <= 1.0:
             raise ValueError(f"tau must be a number in [0, 1], got {self.tau}.")
 
-        for name in ("critic_actor_ratio", "num_updates_per_step", "batch_size"):
+        for name in ("critic_actor_ratio", "actor_warmup_updates", "num_updates_per_step", "batch_size"):
             _require_minimum_integer(name, getattr(self, name), minimum=1)
 
         for name in ("replay_capacity", "min_buffer_size", "num_q_heads", "hidden_dim"):

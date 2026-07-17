@@ -328,6 +328,9 @@ def run_train_run(
         actor_lr=_extract_float_override(cli_overrides, "sac-flow.actor-lr", 1e-5),
         critic_lr=_extract_float_override(cli_overrides, "sac-flow.critic-lr", 3e-4),
         alpha_lr=_extract_float_override(cli_overrides, "sac-flow.alpha-lr", 3e-4),
+        actor_warmup_updates=_extract_int_override(cli_overrides, "sac-flow.actor-warmup-updates", 2000),
+        noise_std_train=_extract_float_override(cli_overrides, "sac-flow.noise-std-train", 0.02),
+        noise_std_rollout=_extract_float_override(cli_overrides, "sac-flow.noise-std-rollout", 0.02),
         wandb_enable=_extract_bool_override(cli_overrides, "sac-flow.wandb-enable", True),
         wandb_project=_extract_str_override(
             cli_overrides,
@@ -364,6 +367,7 @@ def run_train_run(
                 "num_updates_per_step": run_cfg.num_updates_per_step,
                 "batch_size": run_cfg.batch_size,
                 "num_envs": run_cfg.num_envs,
+                "actor_warmup_updates": sac_config.actor_warmup_updates,
             }
         )
         try:

@@ -46,6 +46,7 @@ class SACFlowTrainerTest(unittest.TestCase):
         self.assertEqual(cfg.initial_alpha, 0.01)
         self.assertIsNone(cfg.target_entropy)
         self.assertEqual(cfg.critic_actor_ratio, 4)
+        self.assertEqual(cfg.actor_warmup_updates, 2000)
         self.assertEqual(cfg.num_updates_per_step, 64)
         self.assertEqual(cfg.replay_capacity, 200)
         self.assertEqual(cfg.min_buffer_size, 2)
@@ -69,7 +70,7 @@ class SACFlowTrainerTest(unittest.TestCase):
         q = MultiQHead(3, 2, 16, 2)
         target_q = MultiQHead(3, 2, 16, 2)
         target_q.load_state_dict(q.state_dict())
-        cfg = SACFlowConfig(critic_actor_ratio=1, hidden_dim=16, num_q_heads=2)
+        cfg = SACFlowConfig(critic_actor_ratio=1, actor_warmup_updates=1, hidden_dim=16, num_q_heads=2)
         trainer = SACFlowTrainer(
             actor=actor,
             q_network=q,
@@ -95,7 +96,7 @@ class SACFlowTrainerTest(unittest.TestCase):
         q = MultiQHead(3, 2, 16, 2)
         target_q = MultiQHead(3, 2, 16, 2)
         target_q.load_state_dict(q.state_dict())
-        cfg = SACFlowConfig(critic_actor_ratio=4, hidden_dim=16, num_q_heads=2)
+        cfg = SACFlowConfig(critic_actor_ratio=4, actor_warmup_updates=1, hidden_dim=16, num_q_heads=2)
         trainer = SACFlowTrainer(
             actor=actor,
             q_network=q,
@@ -113,6 +114,20 @@ class SACFlowTrainerTest(unittest.TestCase):
         self.assertEqual(trainer.update_step, 2)
         self.assertTrue(all(torch.equal(a, b) for a, b in zip(before_actor, actor.parameters())))
         self.assertTrue(any(not torch.equal(a, b) for a, b in zip(before_target, target_q.parameters())))
+
+    def test_update_sac_skips_actor_during_critic_warmup(self):
+        actor = DummyActor()
+        q = MultiQHead(3, 2, 16, 2)
+        target_q = MultiQHead(3, 2, 16, 2)
+        cfg = SACFlowConfig(critic_actor_ratio=1, actor_warmup_updates=2, hidden_dim=16, num_q_heads=2)
+        trainer = SACFlowTrainer(actor=actor, q_network=q, target_q_network=target_q, config=cfg)
+
+        before_actor = [parameter.detach().clone() for parameter in actor.parameters()]
+        metrics = trainer.update_sac(make_batch())
+
+        self.assertIn("critic_loss", metrics)
+        self.assertNotIn("actor_loss", metrics)
+        self.assertTrue(all(torch.equal(a, b) for a, b in zip(before_actor, actor.parameters())))
 
     def test_infers_target_entropy_from_action_dim_when_missing(self):
         trainer = SACFlowTrainer(

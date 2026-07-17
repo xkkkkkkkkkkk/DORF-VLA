@@ -38,6 +38,9 @@ python lerobot/scripts/rlinf_smolvla_libero_sac_flow_train.py \
   --sac-flow.batch-size=16 \
   --sac-flow.min-buffer-size=16 \
   --sac-flow.replay-capacity=1000 \
+  --sac-flow.actor-warmup-updates=2000 \
+  --sac-flow.noise-std-train=0.02 \
+  --sac-flow.noise-std-rollout=0.02 \
   --sac-flow.actor-lr=1e-5 \
   --sac-flow.critic-lr=3e-4 \
   --sac-flow.alpha-lr=3e-4 \

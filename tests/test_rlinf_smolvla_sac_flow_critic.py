@@ -147,18 +147,18 @@ class SACFlowCriticTest(unittest.TestCase):
             actor_loss(torch.ones(2, 2), torch.zeros(2, 1), torch.ones(2), "min")
 
     def test_alpha_loss_matches_formula_and_rejects_bad_shape(self):
-        alpha = torch.tensor(0.2)
+        log_alpha = torch.tensor(-1.6094379)
         log_pi = torch.tensor([[-1.5], [-2.5]])
         target_entropy = -3.0
-        loss = alpha_loss(alpha, log_pi, target_entropy)
-        expected = -alpha * (log_pi.detach().mean() + target_entropy)
+        loss = alpha_loss(log_alpha, log_pi, target_entropy)
+        expected = -(log_alpha * (log_pi.detach() + target_entropy)).mean()
         self.assertTrue(torch.allclose(loss, expected))
 
         with self.assertRaisesRegex(ValueError, r"log_pi must have shape \[batch, 1\]"):
-            alpha_loss(alpha, torch.zeros(2), target_entropy)
+            alpha_loss(log_alpha, torch.zeros(2), target_entropy)
 
     def test_alpha_loss_rejects_vector_alpha(self):
-        with self.assertRaisesRegex(ValueError, "alpha must be a scalar tensor"):
+        with self.assertRaisesRegex(ValueError, "log_alpha must be a scalar tensor"):
             alpha_loss(torch.ones(2), torch.zeros(2, 1), -3.0)
 
     def test_alpha_is_positive(self):

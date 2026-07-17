@@ -114,10 +114,11 @@ def actor_loss(q_pi: torch.Tensor, log_pi: torch.Tensor, alpha: torch.Tensor, ag
     return (alpha * log_pi - aggregate_q(q_pi, agg=agg)).mean()
 
 
-def alpha_loss(alpha: torch.Tensor, log_pi: torch.Tensor, target_entropy: float) -> torch.Tensor:
-    _require_scalar("alpha", alpha)
+def alpha_loss(log_alpha: torch.Tensor, log_pi: torch.Tensor, target_entropy: float) -> torch.Tensor:
+    """Standard SAC temperature objective, optimized in log-alpha space."""
+    _require_scalar("log_alpha", log_alpha)
     _require_column("log_pi", log_pi)
-    return -alpha * (log_pi.detach().mean() + target_entropy)
+    return -(log_alpha * (log_pi.detach() + target_entropy)).mean()
 
 
 def _require_positive_integer(name: str, value: int) -> None:
