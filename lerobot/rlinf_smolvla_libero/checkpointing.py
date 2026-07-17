@@ -38,11 +38,11 @@ def restore_rng_state(state: dict[str, Any]) -> None:
         if key not in state:
             raise RuntimeError(f"RNG checkpoint is missing {key!r}.")
     random.setstate(state["python"])
-    torch.set_rng_state(state["torch"])
+    torch.set_rng_state(state["torch"].cpu())
     if "torch_cuda" in state:
         if not torch.cuda.is_available():
             raise RuntimeError("Checkpoint contains CUDA RNG state, but CUDA is unavailable.")
-        torch.cuda.set_rng_state_all(state["torch_cuda"])
+        torch.cuda.set_rng_state_all([rng_state.cpu() for rng_state in state["torch_cuda"]])
     if "numpy" in state:
         try:
             import numpy as np
