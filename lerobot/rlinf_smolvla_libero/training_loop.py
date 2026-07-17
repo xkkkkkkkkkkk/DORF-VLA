@@ -34,6 +34,7 @@ class SACFlowOnlineLoop:
         stop_on_success: bool = True,
         rollout_fn: Callable[..., ChunkRolloutResult] = execute_action_chunk,
         batched_rollout_fn: Callable[..., BatchedChunkRolloutResult] = execute_batched_action_chunk,
+        update_callback: Callable[[dict[str, float], int], None] | None = None,
     ) -> None:
         self.actor = actor
         self.env = env
@@ -46,6 +47,7 @@ class SACFlowOnlineLoop:
         self.stop_on_success = stop_on_success
         self.rollout_fn = rollout_fn
         self.batched_rollout_fn = batched_rollout_fn
+        self.update_callback = update_callback
 
     def collect_transition(self, curr_obs: dict[str, Any]) -> ChunkRolloutResult:
         """用 actor 采样 action chunk，执行环境前缀，并写入 replay。"""
@@ -89,7 +91,7 @@ class SACFlowOnlineLoop:
         self._last_rollouts = (rollout,)
         return rollout
 
-    def update_if_ready(self) -> list[dict[str, float]]:
+    def update_if_ready(self, *, collection_step: int = 0) -> list[dict[str, float]]:
         """replay 达到 min_buffer_size 后执行固定次数 SAC update。"""
         if len(self.replay_buffer) < self.config.min_buffer_size:
             return []
@@ -97,13 +99,16 @@ class SACFlowOnlineLoop:
         update_metrics: list[dict[str, float]] = []
         for _ in range(self.config.num_updates_per_step):
             batch = self.replay_buffer.sample(batch_size=self.config.batch_size, device=self.config.device)
-            update_metrics.append(self.trainer.update_sac(batch))
+            metrics = self.trainer.update_sac(batch)
+            update_metrics.append(metrics)
+            if self.update_callback is not None:
+                self.update_callback(metrics, collection_step)
         return update_metrics
 
-    def train_step(self, curr_obs: dict[str, Any]) -> SACFlowTrainStepResult:
+    def train_step(self, curr_obs: dict[str, Any], *, collection_step: int = 0) -> SACFlowTrainStepResult:
         """执行一次 collect + optional updates，并返回下一步 observation。"""
         rollout = self.collect_transition(curr_obs)
-        update_metrics = self.update_if_ready()
+        update_metrics = self.update_if_ready(collection_step=collection_step)
         return SACFlowTrainStepResult(
             rollout=rollout,
             update_metrics=update_metrics,
@@ -117,8 +122,8 @@ class SACFlowOnlineLoop:
             raise ValueError(f"num_steps must be non-negative, got {num_steps}.")
         obs = initial_obs
         results: list[SACFlowTrainStepResult] = []
-        for _ in range(num_steps):
-            result = self.train_step(obs)
+        for collection_step in range(num_steps):
+            result = self.train_step(obs, collection_step=collection_step)
             results.append(result)
             obs = result.next_obs
         return results

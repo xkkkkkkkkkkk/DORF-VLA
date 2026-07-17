@@ -235,6 +235,16 @@ def _extract_tags_override(cli_overrides: list[str], key: str, default: tuple[st
     return tuple(tag.strip() for tag in value.split(",") if tag.strip())
 
 
+def _extract_int_tuple_override(cli_overrides: list[str], key: str) -> tuple[int, ...]:
+    value = _extract_str_override(cli_overrides, key)
+    if value is None or not value.strip():
+        return ()
+    try:
+        return tuple(int(item.strip()) for item in value.split(",") if item.strip())
+    except ValueError as exc:
+        raise RuntimeError(f"--{key} must be comma-separated integers, got {value!r}.") from exc
+
+
 def _apply_sac_flow_resume_policy_path(cli_overrides: list[str], resume_checkpoint: str | None) -> list[str]:
     """Point LeRobot's policy loader at the self-contained SAC checkpoint policy."""
     if resume_checkpoint is None:
@@ -345,6 +355,7 @@ def run_train_run(
         min_buffer_size=_extract_int_override(effective_cli_overrides, "sac-flow.min-buffer-size", 2),
         replay_capacity=_extract_int_override(effective_cli_overrides, "sac-flow.replay-capacity", 64),
         num_envs=_extract_int_override(effective_cli_overrides, "sac-flow.num-envs", 1),
+        actor_snapshot_updates=_extract_int_tuple_override(effective_cli_overrides, "sac-flow.actor-snapshot-updates"),
     )
     sac_config = SACFlowConfig(
         device=device,

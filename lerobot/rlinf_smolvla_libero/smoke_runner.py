@@ -53,6 +53,7 @@ class SACFlowRunConfig:
     min_buffer_size: int = 2
     replay_capacity: int = 64
     num_envs: int = 1
+    actor_snapshot_updates: tuple[int, ...] = ()
 
     def __post_init__(self) -> None:
         if not isinstance(self.device, str) or not self.device:
@@ -67,6 +68,8 @@ class SACFlowRunConfig:
             "num_envs",
         ):
             _require_positive_integer(name, getattr(self, name))
+        if any(not isinstance(item, int) or item < 1 for item in self.actor_snapshot_updates):
+            raise ValueError("actor_snapshot_updates must contain positive integers")
 
 
 @dataclass(frozen=True)
@@ -356,6 +359,15 @@ def run_sac_flow_training_run(
             ),
             max_chunk_steps=run_cfg.max_chunk_steps,
             stop_on_success=True,
+            update_callback=_build_actor_snapshot_callback(
+                requested_updates=run_cfg.actor_snapshot_updates,
+                start_step=start_step,
+                runtime=runtime,
+                train_cfg=train_cfg,
+                sac_config=effective_config,
+                components=components,
+                save_checkpoint_fn=save_checkpoint_fn,
+            ),
         )
         step_results = loop.run(initial_obs, num_steps=run_cfg.max_train_steps)
         if logger is not None:
@@ -452,6 +464,52 @@ def _checkpoint_global_step(payload: Mapping[str, Any]) -> int:
     if step < 0:
         raise RuntimeError(f"SAC-Flow checkpoint has invalid step {step}.")
     return step
+
+
+def _build_actor_snapshot_callback(
+    *,
+    requested_updates: tuple[int, ...],
+    start_step: int,
+    runtime: Any,
+    train_cfg: Any,
+    sac_config: SACFlowConfig,
+    components: Mapping[str, Any],
+    save_checkpoint_fn: Callable[..., Path],
+) -> Callable[[dict[str, float], int], None] | None:
+    if not requested_updates:
+        return None
+    pending = set(requested_updates)
+    actor_update_count = 0
+
+    def callback(metrics: dict[str, float], collection_step: int) -> None:
+        nonlocal actor_update_count
+        if "actor_loss" not in metrics:
+            return
+        actor_update_count += 1
+        if actor_update_count not in pending:
+            return
+        pending.remove(actor_update_count)
+        checkpoint_step = start_step + collection_step + 1
+        save_checkpoint_fn(
+            output_dir=_output_dir(runtime.train_cfg, train_cfg),
+            step=checkpoint_step,
+            policy=runtime.policy,
+            policy_preprocessor=runtime.preprocessor,
+            policy_postprocessor=runtime.postprocessor,
+            q_network=components["q_network"],
+            target_q_network=components["target_q_network"],
+            temperature=components["temperature"],
+            config=sac_config,
+            trainer=components["trainer"],
+            replay_buffer=components["replay_buffer"],
+            extra_state={
+                "global_step": checkpoint_step,
+                "actor_update_count": actor_update_count,
+                "snapshot": True,
+            },
+        )
+
+    return callback
 
 
 def _seed_sac_flow_rng(seed: int) -> None:
