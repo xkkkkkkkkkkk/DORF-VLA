@@ -290,6 +290,7 @@ class SACFlowEntryTest(unittest.TestCase):
                     kwargs["run_cfg"].num_updates_per_step,
                     kwargs["sac_config"].wandb_enable,
                     kwargs["sac_config"].actor_train_scope,
+                    kwargs["sac_config"].kl_penalty_coef,
                 )
             )
             return SimpleNamespace(steps=100, checkpoint_dir=None)
@@ -304,6 +305,7 @@ class SACFlowEntryTest(unittest.TestCase):
                         "--dataset.repo_id=local/test",
                         "--sac-flow.max-train-steps=100",
                         "--sac-flow.num-updates-per-step=4",
+                        "--sac-flow.kl-penalty-coef=0.07",
                         "--sac-flow.wandb-project=manual-project",
                     ],
                     run_fn=fake_run,
@@ -318,7 +320,7 @@ class SACFlowEntryTest(unittest.TestCase):
 
         self.assertEqual(events[0], ("logger", True, "manual-project", "action_path"))
         self.assertEqual(events[1], ("start", "action_path"))
-        self.assertEqual(events[2], ("run", 100, 4, True, "action_path"))
+        self.assertEqual(events[2], ("run", 100, 4, True, "action_path", 0.07))
         self.assertEqual(events[3], ("finish",))
 
     def test_preflight_device_accepts_cpu_without_model_or_env_creation(self):

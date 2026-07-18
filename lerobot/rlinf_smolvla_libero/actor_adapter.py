@@ -10,10 +10,20 @@ from lerobot.rlinf_smolvla_libero.replay import flatten_chunk
 class SmolVLASACFlowActor:
     """把 SmolVLA policy 的 SAC-Flow 相关方法包装成稳定 actor 接口。"""
 
-    def __init__(self, policy: Any, device: Any, train_noise_std: float, rollout_noise_std: float) -> None:
+    def __init__(
+        self,
+        policy: Any,
+        device: Any,
+        train_noise_std: float,
+        rollout_noise_std: float,
+        reference_policy: Any | None = None,
+    ) -> None:
         self._require_callable(policy, "sac_sample_action_chunk")
         self._require_callable(policy, "sac_encode_observation")
+        if reference_policy is not None:
+            self._require_callable(reference_policy, "sac_log_prob_action_trajectory")
         self.policy = policy
+        self.reference_policy = reference_policy
         self.device = device
         self.train_noise_std = train_noise_std
         self.rollout_noise_std = rollout_noise_std
@@ -65,6 +75,59 @@ class SmolVLASACFlowActor:
                 rollout_noise_std=self.rollout_noise_std,
                 train_noise_std=self.train_noise_std,
             )
+        return self._format_sample_result(sample_result)
+
+    def sample_chunk_with_kl(self, obs: Any) -> tuple[Any, Any, Any, Any, Any]:
+        """Sample from the live actor and estimate KL to the frozen phase-start policy.
+
+        The estimate is the likelihood ratio over the complete stochastic flow
+        trajectory, normalized per denoising state dimension.  The reference policy's
+        parameters are frozen, but its score retains gradients through the supplied
+        trajectory to the live actor.
+        """
+
+        if self.reference_policy is None:
+            raise RuntimeError("KL sampling requires a frozen reference_policy.")
+        batch = self._move_obs_to_device(obs)
+        sample_result = self.policy.sac_sample_action_chunk(
+            batch,
+            train=True,
+            rollout_noise_std=self.rollout_noise_std,
+            train_noise_std=self.train_noise_std,
+            return_trajectory=True,
+        )
+        if not isinstance(sample_result, (tuple, list)) or len(sample_result) != 4:
+            raise ValueError(
+                "policy.sac_sample_action_chunk(return_trajectory=True) must return "
+                "(raw_chunk, log_pi, obs_features, trajectory)"
+            )
+        raw_chunk, log_pi, obs_features, trajectory = sample_result
+        flat_actions, log_pi, obs_features, raw_chunk = self._format_sample_result(
+            (raw_chunk, log_pi, obs_features)
+        )
+        self._require_tensor_like(trajectory, "trajectory")
+        if trajectory.ndim != 4 or trajectory.shape[1] != flat_actions.shape[0]:
+            raise ValueError(
+                "trajectory must have shape [steps, batch, chunk, action_dim] with matching batch size, "
+                f"got {getattr(trajectory, 'shape', None)}"
+            )
+
+        reference_log_pi = self.reference_policy.sac_log_prob_action_trajectory(
+            batch,
+            trajectory,
+            noise_std=self.train_noise_std,
+        )
+        reference_log_pi = self._format_log_pi(reference_log_pi, batch_size=flat_actions.shape[0])
+        normalization = trajectory.shape[0] * trajectory.shape[2] * trajectory.shape[3]
+        if normalization <= 0:
+            raise ValueError(f"trajectory normalization must be positive, got {normalization}.")
+        kl_estimate = (log_pi - reference_log_pi) / float(normalization)
+        self._require_tensor_like(kl_estimate, "kl_estimate")
+        if not _is_finite(kl_estimate):
+            raise RuntimeError("Encountered non-finite normalized SAC flow KL estimate.")
+        return flat_actions, log_pi, obs_features, raw_chunk, kl_estimate
+
+    def _format_sample_result(self, sample_result: Any) -> tuple[Any, Any, Any, Any]:
         if not isinstance(sample_result, (tuple, list)) or len(sample_result) != 3:
             raise ValueError("policy.sac_sample_action_chunk must return (raw_chunk, log_pi, obs_features)")
         raw_chunk, log_pi, obs_features = sample_result
@@ -125,3 +188,9 @@ def _no_grad_context() -> Any:
     import torch
 
     return torch.no_grad()
+
+
+def _is_finite(value: Any) -> bool:
+    import torch
+
+    return bool(torch.isfinite(value).all())

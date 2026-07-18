@@ -23,6 +23,9 @@ class SACFlowConfig:
     agg_q: str = "min"
     actor_agg_q: str = "mean"
     actor_lr: float = 3e-4
+    # Applied to trajectory-space KL normalized by (num_steps + 1) * chunk_size * action_dim.
+    # This is deliberately non-zero: every actor update is anchored to its phase-start policy.
+    kl_penalty_coef: float = 0.05
     critic_lr: float = 3e-4
     alpha_lr: float = 3e-4
     grad_clip_norm: float = 1.0
@@ -42,6 +45,7 @@ class SACFlowConfig:
             "noise_std_train",
             "noise_std_rollout",
             "actor_lr",
+            "kl_penalty_coef",
             "critic_lr",
             "alpha_lr",
             "grad_clip_norm",

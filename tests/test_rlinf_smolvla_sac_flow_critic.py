@@ -138,6 +138,14 @@ class SACFlowCriticTest(unittest.TestCase):
         loss = actor_loss(q_pi, log_pi, torch.tensor(0.2), "min")
         self.assertAlmostEqual(float(loss.item()), 0.2 * -1.5 - 2.0)
 
+    def test_actor_loss_adds_trajectory_kl_penalty(self):
+        q_pi = torch.tensor([[2.0, 3.0], [4.0, 5.0]])
+        log_pi = torch.tensor([[-1.5], [-0.5]])
+        kl_estimate = torch.tensor([[0.4], [0.2]])
+        loss = actor_loss(q_pi, log_pi, torch.tensor(0.2), "min", kl_estimate, 0.05)
+        expected = (0.2 * log_pi - torch.tensor([[2.0], [4.0]]) + 0.05 * kl_estimate).mean()
+        self.assertTrue(torch.allclose(loss, expected))
+
     def test_actor_loss_rejects_bad_log_pi_shape(self):
         with self.assertRaisesRegex(ValueError, r"log_pi must have shape \[batch, 1\]"):
             actor_loss(torch.ones(2, 2), torch.zeros(2), torch.tensor(0.2), "min")

@@ -424,11 +424,20 @@ def build_default_loop_components(*, runtime: Any, sac_config: SACFlowConfig, in
     device = torch.device(sac_config.device)
     policy = move_policy_to_device(runtime.policy, device)
     trainable_audit = configure_actor_trainable_scope(policy, sac_config)
+    reference_policy = None
+    if sac_config.kl_penalty_coef > 0.0:
+        # Anchor each fresh/resumed phase to the exact policy loaded at its start.
+        # Keep the reference weights frozen while allowing gradients through its
+        # trajectory inputs back to the live policy.
+        reference_policy = copy.deepcopy(policy).eval()
+        for parameter in reference_policy.parameters():
+            parameter.requires_grad_(False)
     actor = SmolVLASACFlowActor(
         policy=policy,
         device=device,
         train_noise_std=sac_config.noise_std_train,
         rollout_noise_std=sac_config.noise_std_rollout,
+        reference_policy=reference_policy,
     )
     with torch.no_grad():
         flat_actions, _, obs_features, _ = actor.sample_chunk(initial_obs, train=False)
@@ -459,6 +468,7 @@ def build_default_loop_components(*, runtime: Any, sac_config: SACFlowConfig, in
         "target_q_network": target_q_network,
         "temperature": temperature,
         "trainable_audit": trainable_audit,
+        "reference_policy": reference_policy,
     }
 
 

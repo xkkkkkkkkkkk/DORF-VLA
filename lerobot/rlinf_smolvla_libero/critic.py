@@ -106,12 +106,26 @@ def critic_loss(q_data: torch.Tensor, target: torch.Tensor) -> torch.Tensor:
     return F.mse_loss(q_data, target.expand_as(q_data))
 
 
-def actor_loss(q_pi: torch.Tensor, log_pi: torch.Tensor, alpha: torch.Tensor, agg: str) -> torch.Tensor:
+def actor_loss(
+    q_pi: torch.Tensor,
+    log_pi: torch.Tensor,
+    alpha: torch.Tensor,
+    agg: str,
+    kl_estimate: torch.Tensor | None = None,
+    kl_penalty_coef: float = 0.0,
+) -> torch.Tensor:
     _require_scalar("alpha", alpha)
     _require_2d("q_pi", q_pi)
     _require_column("log_pi", log_pi)
     _require_same_batch("q_pi", q_pi, "log_pi", log_pi)
-    return (alpha * log_pi - aggregate_q(q_pi, agg=agg)).mean()
+    objective = alpha * log_pi - aggregate_q(q_pi, agg=agg)
+    if kl_estimate is not None:
+        _require_column("kl_estimate", kl_estimate)
+        _require_same_batch("q_pi", q_pi, "kl_estimate", kl_estimate)
+        if kl_penalty_coef < 0:
+            raise ValueError(f"kl_penalty_coef must be non-negative, got {kl_penalty_coef}.")
+        objective = objective + kl_penalty_coef * kl_estimate
+    return objective.mean()
 
 
 def alpha_loss(log_alpha: torch.Tensor, log_pi: torch.Tensor, target_entropy: float) -> torch.Tensor:

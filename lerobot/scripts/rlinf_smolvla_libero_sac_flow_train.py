@@ -296,6 +296,7 @@ def run_gpu_smoke(
     lerobot_overrides, _ = _split_lerobot_and_sac_flow_overrides(cli_overrides)
     sac_config = SACFlowConfig(
         device=device,
+        kl_penalty_coef=_extract_float_override(cli_overrides, "sac-flow.kl-penalty-coef", 0.05),
         wandb_enable=_extract_bool_override(cli_overrides, "sac-flow.wandb-enable", False),
         wandb_project=_extract_str_override(cli_overrides, "sac-flow.wandb-project", os.environ.get("WANDB_PROJECT")),
         wandb_run_name=_extract_str_override(cli_overrides, "sac-flow.wandb-run-name", os.environ.get("WANDB_RUN_NAME")),
@@ -316,6 +317,7 @@ def run_gpu_smoke(
                 "max_train_steps": smoke_cfg.max_train_steps,
                 "num_updates_per_step": smoke_cfg.num_updates_per_step,
                 "batch_size": smoke_cfg.batch_size,
+                "kl_penalty_coef": sac_config.kl_penalty_coef,
             }
         )
         try:
@@ -366,6 +368,7 @@ def run_train_run(
         device=device,
         actor_train_scope=_extract_str_override(effective_cli_overrides, "sac-flow.actor-train-scope", "action_path"),
         actor_lr=_extract_float_override(effective_cli_overrides, "sac-flow.actor-lr", 1e-5),
+        kl_penalty_coef=_extract_float_override(effective_cli_overrides, "sac-flow.kl-penalty-coef", 0.05),
         critic_lr=_extract_float_override(effective_cli_overrides, "sac-flow.critic-lr", 3e-4),
         alpha_lr=_extract_float_override(effective_cli_overrides, "sac-flow.alpha-lr", 3e-4),
         actor_warmup_updates=_extract_int_override(effective_cli_overrides, "sac-flow.actor-warmup-updates", 2000),
@@ -408,6 +411,7 @@ def run_train_run(
                 "batch_size": run_cfg.batch_size,
                 "num_envs": run_cfg.num_envs,
                 "actor_warmup_updates": sac_config.actor_warmup_updates,
+                "kl_penalty_coef": sac_config.kl_penalty_coef,
                 "resume_checkpoint": resume_checkpoint,
             }
         )

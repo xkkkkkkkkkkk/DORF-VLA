@@ -58,6 +58,70 @@ class SmolVLASACFlowActorTest(unittest.TestCase):
         self.assertEqual(log_pi.shape, (2, 1))
         self.assertEqual(actor.policy.sample_calls[0][1:], (False, 0.02, 0.3))
 
+    def test_sample_chunk_with_kl_normalizes_full_trajectory_likelihood_ratio(self):
+        class TrajectoryPolicy(DummyPolicy):
+            def sac_sample_action_chunk(
+                self, batch, *, train, rollout_noise_std, train_noise_std, return_trajectory=False
+            ):
+                raw_chunk, log_pi, obs_features = super().sac_sample_action_chunk(
+                    batch, train=train, rollout_noise_std=rollout_noise_std, train_noise_std=train_noise_std
+                )
+                if not return_trajectory:
+                    return raw_chunk, log_pi, obs_features
+                trajectory = torch.stack((torch.zeros_like(raw_chunk), raw_chunk), dim=0)
+                return raw_chunk, log_pi, obs_features, trajectory
+
+        class ReferencePolicy:
+            def sac_log_prob_action_trajectory(self, batch, trajectory, *, noise_std):
+                self.batch = batch
+                self.trajectory = trajectory
+                self.noise_std = noise_std
+                return torch.zeros(trajectory.shape[1])
+
+        reference = ReferencePolicy()
+        actor = SmolVLASACFlowActor(TrajectoryPolicy(), torch.device("cpu"), 0.3, 0.02, reference)
+        _, log_pi, _, _, kl_estimate = actor.sample_chunk_with_kl(self.make_obs())
+
+        self.assertTrue(torch.allclose(kl_estimate, log_pi / 12.0))
+        self.assertEqual(reference.trajectory.shape, (2, 2, 2, 3))
+        self.assertEqual(reference.noise_std, 0.3)
+
+    def test_kl_keeps_reference_parameters_frozen_but_backpropagates_to_live_actor(self):
+        class LivePolicy(torch.nn.Module):
+            def __init__(self):
+                super().__init__()
+                self.weight = torch.nn.Parameter(torch.tensor(1.0))
+
+            def sac_sample_action_chunk(
+                self, batch, *, train, rollout_noise_std, train_noise_std, return_trajectory=False
+            ):
+                raw_chunk = self.weight * torch.ones(batch["states"].shape[0], 2, 3)
+                log_pi = raw_chunk.sum(dim=(1, 2))
+                obs_features = torch.ones(raw_chunk.shape[0], 5)
+                if return_trajectory:
+                    return raw_chunk, log_pi, obs_features, torch.stack((torch.zeros_like(raw_chunk), raw_chunk))
+                return raw_chunk, log_pi, obs_features
+
+            def sac_encode_observation(self, batch):
+                return torch.ones(batch["states"].shape[0], 5)
+
+        class FrozenReference(torch.nn.Module):
+            def __init__(self):
+                super().__init__()
+                self.weight = torch.nn.Parameter(torch.tensor(0.5), requires_grad=False)
+
+            def sac_log_prob_action_trajectory(self, batch, trajectory, *, noise_std):
+                return self.weight * trajectory[-1].sum(dim=(1, 2))
+
+        live = LivePolicy()
+        reference = FrozenReference()
+        actor = SmolVLASACFlowActor(live, torch.device("cpu"), 0.3, 0.02, reference)
+        *_, kl_estimate = actor.sample_chunk_with_kl(self.make_obs())
+        kl_estimate.mean().backward()
+
+        self.assertIsNotNone(live.weight.grad)
+        self.assertIsNone(reference.weight.grad)
+
     def test_encode_obs_returns_2d_features(self):
         actor = SmolVLASACFlowActor(DummyPolicy(), torch.device("cpu"), 0.3, 0.02)
         obs_features = actor.encode_obs(self.make_obs())

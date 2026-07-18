@@ -12,6 +12,8 @@ _SAC_METRIC_NAMES = {
     "alpha": "train/sac/alpha",
     "entropy": "train/actor/entropy",
     "log_pi": "train/actor/log_pi",
+    "kl_estimate": "train/actor/kl_estimate",
+    "kl_penalty": "train/actor/kl_penalty",
     "q_mean": "train/critic/q_mean",
 }
 

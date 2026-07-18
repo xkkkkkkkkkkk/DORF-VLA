@@ -436,7 +436,8 @@ class SmolVLAPolicy(PreTrainedPolicy):
         train: bool,
         rollout_noise_std: float,
         train_noise_std: float,
-    ) -> tuple[Tensor, Tensor, Tensor]:
+        return_trajectory: bool = False,
+    ) -> tuple[Tensor, Tensor, Tensor] | tuple[Tensor, Tensor, Tensor, Tensor]:
         """Sample one SmolVLA action chunk with approximate SAC log-prob."""
 
         batch = self._prepare_batch(batch)
@@ -444,17 +445,26 @@ class SmolVLAPolicy(PreTrainedPolicy):
         state = self.prepare_state(batch)
         lang_tokens = batch[f"{OBS_LANGUAGE_TOKENS}"]
         lang_masks = batch[f"{OBS_LANGUAGE_ATTENTION_MASK}"]
-        actions, log_prob, obs_features = self.model.sample_actions_with_log_prob(
+        sample_kwargs = {
+            "noise": noise,
+            "train": train,
+            "rollout_noise_std": rollout_noise_std,
+            "train_noise_std": train_noise_std,
+        }
+        if return_trajectory:
+            sample_kwargs["return_trajectory"] = True
+        sample_result = self.model.sample_actions_with_log_prob(
             images,
             img_masks,
             lang_tokens,
             lang_masks,
             state,
-            noise=noise,
-            train=train,
-            rollout_noise_std=rollout_noise_std,
-            train_noise_std=train_noise_std,
+            **sample_kwargs,
         )
+        if return_trajectory:
+            actions, log_prob, obs_features, trajectory = sample_result
+        else:
+            actions, log_prob, obs_features = sample_result
         expected_batch_size = state.shape[0]
         actions = self._format_sac_action_chunk(actions)
         if actions.shape[0] != expected_batch_size:
@@ -482,7 +492,51 @@ class SmolVLAPolicy(PreTrainedPolicy):
             raise RuntimeError("Encountered non-finite SAC log_prob values while sampling action chunks.")
         if not torch.isfinite(obs_features).all():
             raise RuntimeError("Encountered non-finite SAC observation features while sampling action chunks.")
+        if return_trajectory:
+            if trajectory.ndim != 4:
+                raise RuntimeError(
+                    "Expected SAC denoising trajectory shape [steps, batch, chunk, action_dim], "
+                    f"got {tuple(trajectory.shape)}."
+                )
+            if trajectory.shape[1] != expected_batch_size:
+                raise RuntimeError(
+                    "Expected SAC denoising trajectory batch size "
+                    f"{expected_batch_size}, got {trajectory.shape[1]}."
+                )
+            return actions, log_prob, obs_features, trajectory
         return actions, log_prob, obs_features
+
+    def sac_log_prob_action_trajectory(
+        self,
+        batch: dict[str, Tensor],
+        trajectory: Tensor,
+        *,
+        noise_std: float,
+    ) -> Tensor:
+        """Score a sampled denoising trajectory under this policy's frozen flow distribution."""
+
+        batch = self._prepare_batch(batch)
+        images, img_masks = self.prepare_images(batch)
+        state = self.prepare_state(batch)
+        lang_tokens = batch[f"{OBS_LANGUAGE_TOKENS}"]
+        lang_masks = batch[f"{OBS_LANGUAGE_ATTENTION_MASK}"]
+        log_prob = self.model.log_prob_action_trajectory(
+            images,
+            img_masks,
+            lang_tokens,
+            lang_masks,
+            state,
+            trajectory,
+            noise_std=noise_std,
+        )
+        if log_prob.ndim != 1 or log_prob.shape[0] != state.shape[0]:
+            raise RuntimeError(
+                "Expected trajectory log_prob shape "
+                f"[{state.shape[0]}], got {tuple(log_prob.shape)}."
+            )
+        if not torch.isfinite(log_prob).all():
+            raise RuntimeError("Encountered non-finite trajectory log_prob values while scoring SAC KL.")
+        return log_prob
 
     def sample_action_chunk_with_log_prob(
         self,
@@ -990,7 +1044,8 @@ class VLAFlowMatching(nn.Module):
         train: bool,
         rollout_noise_std: float,
         train_noise_std: float,
-    ) -> tuple[Tensor, Tensor, Tensor]:
+        return_trajectory: bool = False,
+    ) -> tuple[Tensor, Tensor, Tensor] | tuple[Tensor, Tensor, Tensor, Tensor]:
         """Sample action chunks and accumulate approximate flow-policy log-prob.
 
         This mirrors RLinf's SAC-flow semantics closely enough for SmolVLA's
@@ -1019,6 +1074,7 @@ class VLAFlowMatching(nn.Module):
             x_t = self.sample_noise(expected_noise_shape, device)
         else:
             x_t = noise
+        trajectory_states = [x_t] if return_trajectory else None
 
         initial_dist = Normal(torch.zeros_like(x_t), torch.ones_like(x_t))
         total_log_prob = initial_dist.log_prob(x_t).sum(dim=(1, 2))
@@ -1044,8 +1100,73 @@ class VLAFlowMatching(nn.Module):
                 total_log_prob = total_log_prob + step_dist.log_prob(x_t).sum(dim=(1, 2))
             else:
                 x_t = x_next_mean
+            if trajectory_states is not None:
+                trajectory_states.append(x_t)
 
+        if trajectory_states is not None:
+            return x_t, total_log_prob, obs_features, torch.stack(trajectory_states, dim=0)
         return x_t, total_log_prob, obs_features
+
+    def log_prob_action_trajectory(
+        self,
+        images,
+        img_masks,
+        lang_tokens,
+        lang_masks,
+        state,
+        trajectory: Tensor,
+        *,
+        noise_std: float,
+    ) -> Tensor:
+        """Return the flow-path log-probability of an externally supplied trajectory.
+
+        This is used for the SAC actor's KL penalty.  The caller supplies a trajectory
+        sampled by the live policy; this frozen policy only scores it, preserving the
+        input graph so the penalty can still differentiate with respect to the live actor.
+        """
+
+        if noise_std <= 0.0:
+            raise ValueError("noise_std must be positive when scoring a SAC flow trajectory.")
+
+        bsize = state.shape[0]
+        expected_shape = (
+            self.config.num_steps + 1,
+            bsize,
+            self.config.chunk_size,
+            self.config.max_action_dim,
+        )
+        if tuple(trajectory.shape) != expected_shape:
+            raise RuntimeError(
+                f"Expected SAC trajectory shape {expected_shape}, got {tuple(trajectory.shape)}."
+            )
+        if trajectory.device != state.device:
+            raise RuntimeError(
+                f"Expected SAC trajectory device {state.device}, got {trajectory.device}."
+            )
+
+        context = self._build_prefix_context(images, img_masks, lang_tokens, lang_masks, state)
+        prefix_pad_masks = context["prefix_pad_masks"]
+        past_key_values = context["past_key_values"]
+
+        x_t = trajectory[0]
+        initial_dist = Normal(torch.zeros_like(x_t), torch.ones_like(x_t))
+        total_log_prob = initial_dist.log_prob(x_t).sum(dim=(1, 2))
+        dt = -1.0 / self.config.num_steps
+        for step in range(self.config.num_steps):
+            time = 1.0 + step * dt
+            time_tensor = torch.tensor(time, dtype=torch.float32, device=state.device).expand(bsize)
+            v_t = self.denoise_step(
+                x_t=x_t,
+                prefix_pad_masks=prefix_pad_masks,
+                past_key_values=past_key_values,
+                timestep=time_tensor,
+            )
+            x_next_mean = x_t + dt * v_t
+            x_next = trajectory[step + 1]
+            step_dist = Normal(x_next_mean, torch.full_like(x_next_mean, float(noise_std)))
+            total_log_prob = total_log_prob + step_dist.log_prob(x_next).sum(dim=(1, 2))
+            x_t = x_next
+        return total_log_prob
 
     def sample_actions(
         self,

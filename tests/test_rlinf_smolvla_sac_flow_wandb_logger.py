@@ -68,6 +68,8 @@ class SACFlowWandBLoggerTest(unittest.TestCase):
                 "alpha": 0.5,
                 "entropy": 4.0,
                 "log_pi": -5.0,
+                "kl_estimate": 0.3,
+                "kl_penalty": 0.015,
                 "q_mean": 6.0,
             }
         )
@@ -81,6 +83,8 @@ class SACFlowWandBLoggerTest(unittest.TestCase):
                 "train/sac/alpha": 0.5,
                 "train/actor/entropy": 4.0,
                 "train/actor/log_pi": -5.0,
+                "train/actor/kl_estimate": 0.3,
+                "train/actor/kl_penalty": 0.015,
                 "train/critic/q_mean": 6.0,
             },
         )

@@ -25,6 +25,12 @@ class DummyActor(nn.Module):
         raw_chunk = flat_actions.reshape(flat_actions.shape[0], 1, flat_actions.shape[1])
         return flat_actions, log_pi, features, raw_chunk
 
+    def sample_chunk_with_kl(self, obs):
+        flat_actions, log_pi, features, raw_chunk = self.sample_chunk(obs, train=True)
+        # Keep the KL differentiable so this exercises the actor gradient path.
+        kl_estimate = 0.1 + 0.01 * flat_actions.sum(dim=-1, keepdim=True)
+        return flat_actions, log_pi, features, raw_chunk, kl_estimate
+
 
 def make_batch(batch_size=4):
     return {
@@ -59,6 +65,7 @@ class SACFlowTrainerTest(unittest.TestCase):
         self.assertEqual(cfg.agg_q, "min")
         self.assertEqual(cfg.actor_agg_q, "mean")
         self.assertEqual(cfg.actor_lr, 3e-4)
+        self.assertEqual(cfg.kl_penalty_coef, 0.05)
         self.assertEqual(cfg.critic_lr, 3e-4)
         self.assertEqual(cfg.alpha_lr, 3e-4)
         self.assertEqual(cfg.grad_clip_norm, 1.0)
@@ -86,6 +93,8 @@ class SACFlowTrainerTest(unittest.TestCase):
         self.assertIn("critic_loss", metrics)
         self.assertIn("actor_loss", metrics)
         self.assertIn("alpha_loss", metrics)
+        self.assertIn("kl_estimate", metrics)
+        self.assertIn("kl_penalty", metrics)
         self.assertIn("alpha", metrics)
         self.assertEqual(trainer.update_step, 2)
         self.assertFalse(torch.equal(before_log_alpha, trainer.temperature.log_alpha.detach()))

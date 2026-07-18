@@ -115,13 +115,24 @@ class SACFlowTrainer:
         ):
             self._set_requires_grad(self.q_network, requires_grad=False)
             try:
-                curr_actions, log_pi, actor_features, _ = self.actor.sample_chunk(batch["curr_obs"], train=True)
+                if self.config.kl_penalty_coef > 0.0:
+                    sample_with_kl = getattr(self.actor, "sample_chunk_with_kl", None)
+                    if not callable(sample_with_kl):
+                        raise AttributeError(
+                            "A positive kl_penalty_coef requires actor.sample_chunk_with_kl and a frozen reference policy."
+                        )
+                    curr_actions, log_pi, actor_features, _, kl_estimate = sample_with_kl(batch["curr_obs"])
+                else:
+                    curr_actions, log_pi, actor_features, _ = self.actor.sample_chunk(batch["curr_obs"], train=True)
+                    kl_estimate = None
                 q_pi = self.q_network(actor_features, curr_actions)
                 actor_objective = actor_loss(
                     q_pi,
                     log_pi,
                     self.temperature.alpha.detach(),
                     self.config.actor_agg_q,
+                    kl_estimate=kl_estimate,
+                    kl_penalty_coef=self.config.kl_penalty_coef,
                 )
 
                 self.actor_optimizer.zero_grad(set_to_none=True)
@@ -136,15 +147,23 @@ class SACFlowTrainer:
             alpha_objective.backward()
             self.alpha_optimizer.step()
 
-            metrics.update(
-                {
-                    "actor_loss": float(actor_objective.detach().cpu()),
-                    "alpha_loss": float(alpha_objective.detach().cpu()),
-                    "entropy": float((-log_pi.detach()).mean().cpu()),
-                    "log_pi": float(log_pi.detach().mean().cpu()),
-                    "alpha": float(self.temperature.alpha.detach().cpu()),
-                }
-            )
+            actor_metrics = {
+                "actor_loss": float(actor_objective.detach().cpu()),
+                "alpha_loss": float(alpha_objective.detach().cpu()),
+                "entropy": float((-log_pi.detach()).mean().cpu()),
+                "log_pi": float(log_pi.detach().mean().cpu()),
+                "alpha": float(self.temperature.alpha.detach().cpu()),
+            }
+            if kl_estimate is not None:
+                actor_metrics.update(
+                    {
+                        "kl_estimate": float(kl_estimate.detach().mean().cpu()),
+                        "kl_penalty": float(
+                            (self.config.kl_penalty_coef * kl_estimate.detach()).mean().cpu()
+                        ),
+                    }
+                )
+            metrics.update(actor_metrics)
 
         soft_update(self.q_network, self.target_q_network, self.config.tau)
         self.update_step += 1
