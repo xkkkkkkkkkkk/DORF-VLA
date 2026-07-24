@@ -19,9 +19,13 @@ class SACFlowConfig:
     hidden_dim: int = 256
     noise_std_train: float = 0.3
     noise_std_rollout: float = 0.02
-    backup_entropy: bool = True
+    # Flow trajectory likelihood is not an environment-action log probability.
+    # Keep it out of SAC entropy objectives until a correctly normalized action
+    # density is implemented.
+    entropy_regularization: bool = False
+    backup_entropy: bool = False
     agg_q: str = "min"
-    actor_agg_q: str = "mean"
+    actor_agg_q: str = "min"
     actor_lr: float = 3e-4
     # Applied to trajectory-space KL normalized by (num_steps + 1) * chunk_size * action_dim.
     # This is deliberately non-zero: every actor update is anchored to its phase-start policy.
@@ -68,6 +72,14 @@ class SACFlowConfig:
 
         if self.target_entropy is not None:
             _require_number("target_entropy", self.target_entropy)
+        if not isinstance(self.entropy_regularization, bool):
+            raise ValueError(
+                f"entropy_regularization must be a bool, got {self.entropy_regularization!r}."
+            )
+        if not isinstance(self.backup_entropy, bool):
+            raise ValueError(f"backup_entropy must be a bool, got {self.backup_entropy!r}.")
+        if self.backup_entropy and not self.entropy_regularization:
+            raise ValueError("backup_entropy requires entropy_regularization=True.")
         if not isinstance(self.device, str) or not self.device:
             raise ValueError(f"device must be a non-empty string, got {self.device!r}.")
         if self.actor_train_scope != "action_path":

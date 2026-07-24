@@ -129,20 +129,28 @@ class SACFlowCriticTest(unittest.TestCase):
     def test_actor_loss_matches_sac_formula(self):
         q_pi = torch.tensor([[2.0, 3.0]])
         log_pi = torch.tensor([[-1.5]])
-        loss = actor_loss(q_pi, log_pi, torch.tensor(0.2), agg="min")
+        loss = actor_loss(q_pi, log_pi, torch.tensor(0.2), agg="min", entropy_regularization=True)
         self.assertAlmostEqual(float(loss.item()), 0.2 * -1.5 - 2.0)
 
     def test_actor_loss_accepts_positional_agg(self):
         q_pi = torch.tensor([[2.0, 3.0]])
         log_pi = torch.tensor([[-1.5]])
-        loss = actor_loss(q_pi, log_pi, torch.tensor(0.2), "min")
+        loss = actor_loss(q_pi, log_pi, torch.tensor(0.2), "min", entropy_regularization=True)
         self.assertAlmostEqual(float(loss.item()), 0.2 * -1.5 - 2.0)
 
     def test_actor_loss_adds_trajectory_kl_penalty(self):
         q_pi = torch.tensor([[2.0, 3.0], [4.0, 5.0]])
         log_pi = torch.tensor([[-1.5], [-0.5]])
         kl_estimate = torch.tensor([[0.4], [0.2]])
-        loss = actor_loss(q_pi, log_pi, torch.tensor(0.2), "min", kl_estimate, 0.05)
+        loss = actor_loss(
+            q_pi,
+            log_pi,
+            torch.tensor(0.2),
+            "min",
+            kl_estimate,
+            0.05,
+            entropy_regularization=True,
+        )
         expected = (0.2 * log_pi - torch.tensor([[2.0], [4.0]]) + 0.05 * kl_estimate).mean()
         self.assertTrue(torch.allclose(loss, expected))
 

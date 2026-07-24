@@ -36,7 +36,7 @@ def execute_action_chunk(
     stop_on_success: bool = False,
     observation_preparer: Callable[..., Any] | None = None,
 ) -> ChunkRolloutResult:
-    """在 dummy/LIBERO-like env 中顺序执行一个 action chunk 的前缀。"""
+    """Execute a policy chunk prefix and store only the actions actually executed."""
     _validate_raw_chunk(raw_chunk)
     vector_num_envs = _vector_num_envs(env)
 
@@ -88,8 +88,7 @@ def execute_action_chunk(
 
     transition = ChunkTransition(
         curr_obs=curr_obs,
-        # SAC critic/actor 以完整 action chunk 为动作；环境 smoke 可只执行前缀来限制预算。
-        actions=flatten_chunk(raw_chunk),
+        actions=flatten_chunk(raw_chunk[:, :horizon]),
         next_obs=next_obs,
         rewards=raw_rewards,
         done=done_result,
@@ -181,7 +180,7 @@ def execute_batched_action_chunk(
         horizon = len(raw_rewards)
         transition = ChunkTransition(
             curr_obs=_slice_batch(curr_obs, env_idx, batch_size),
-            actions=flatten_chunk(raw_chunk[env_idx : env_idx + 1]),
+            actions=flatten_chunk(raw_chunk[env_idx : env_idx + 1, :horizon]),
             next_obs=_slice_batch(next_obs, env_idx, batch_size),
             rewards=raw_rewards,
             done=done_by_env[env_idx],

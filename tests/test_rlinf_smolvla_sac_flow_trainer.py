@@ -61,9 +61,10 @@ class SACFlowTrainerTest(unittest.TestCase):
         self.assertEqual(cfg.hidden_dim, 256)
         self.assertEqual(cfg.noise_std_train, 0.3)
         self.assertEqual(cfg.noise_std_rollout, 0.02)
-        self.assertTrue(cfg.backup_entropy)
+        self.assertFalse(cfg.entropy_regularization)
+        self.assertFalse(cfg.backup_entropy)
         self.assertEqual(cfg.agg_q, "min")
-        self.assertEqual(cfg.actor_agg_q, "mean")
+        self.assertEqual(cfg.actor_agg_q, "min")
         self.assertEqual(cfg.actor_lr, 3e-4)
         self.assertEqual(cfg.kl_penalty_coef, 0.05)
         self.assertEqual(cfg.critic_lr, 3e-4)
@@ -77,7 +78,14 @@ class SACFlowTrainerTest(unittest.TestCase):
         q = MultiQHead(3, 2, 16, 2)
         target_q = MultiQHead(3, 2, 16, 2)
         target_q.load_state_dict(q.state_dict())
-        cfg = SACFlowConfig(critic_actor_ratio=1, actor_warmup_updates=1, hidden_dim=16, num_q_heads=2)
+        cfg = SACFlowConfig(
+            critic_actor_ratio=1,
+            actor_warmup_updates=1,
+            hidden_dim=16,
+            num_q_heads=2,
+            entropy_regularization=True,
+            backup_entropy=True,
+        )
         trainer = SACFlowTrainer(
             actor=actor,
             q_network=q,
@@ -124,6 +132,23 @@ class SACFlowTrainerTest(unittest.TestCase):
         self.assertEqual(trainer.update_step, 2)
         self.assertTrue(all(torch.equal(a, b) for a, b in zip(before_actor, actor.parameters())))
         self.assertTrue(any(not torch.equal(a, b) for a, b in zip(before_target, target_q.parameters())))
+
+    def test_default_update_excludes_path_entropy_and_keeps_alpha_fixed(self):
+        torch.manual_seed(0)
+        actor = DummyActor()
+        q = MultiQHead(3, 2, 16, 2)
+        target_q = MultiQHead(3, 2, 16, 2)
+        target_q.load_state_dict(q.state_dict())
+        cfg = SACFlowConfig(critic_actor_ratio=1, actor_warmup_updates=1, hidden_dim=16, num_q_heads=2)
+        trainer = SACFlowTrainer(actor=actor, q_network=q, target_q_network=target_q, config=cfg)
+        trainer.update_step = 1
+
+        before_log_alpha = trainer.temperature.log_alpha.detach().clone()
+        metrics = trainer.update_sac(make_batch())
+
+        self.assertIn("actor_loss", metrics)
+        self.assertNotIn("alpha_loss", metrics)
+        torch.testing.assert_close(trainer.temperature.log_alpha.detach(), before_log_alpha)
 
     def test_update_sac_skips_actor_during_critic_warmup(self):
         actor = DummyActor()

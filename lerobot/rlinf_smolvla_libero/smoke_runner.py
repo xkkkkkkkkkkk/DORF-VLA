@@ -60,7 +60,6 @@ class SACFlowRunConfig:
             raise ValueError(f"device must be a non-empty string, got {self.device!r}.")
         for name in (
             "max_train_steps",
-            "max_chunk_steps",
             "num_updates_per_step",
             "batch_size",
             "min_buffer_size",
@@ -68,6 +67,7 @@ class SACFlowRunConfig:
             "num_envs",
         ):
             _require_positive_integer(name, getattr(self, name))
+        _require_budget("max_chunk_steps", self.max_chunk_steps, maximum=1)
         if any(not isinstance(item, int) or item < 1 for item in self.actor_snapshot_updates):
             raise ValueError("actor_snapshot_updates must contain positive integers")
 
@@ -438,6 +438,7 @@ def build_default_loop_components(*, runtime: Any, sac_config: SACFlowConfig, in
         train_noise_std=sac_config.noise_std_train,
         rollout_noise_std=sac_config.noise_std_rollout,
         reference_policy=reference_policy,
+        critic_action_steps=1,
     )
     with torch.no_grad():
         flat_actions, _, obs_features, _ = actor.sample_chunk(initial_obs, train=False)

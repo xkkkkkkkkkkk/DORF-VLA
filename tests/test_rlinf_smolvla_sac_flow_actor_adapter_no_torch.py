@@ -19,6 +19,12 @@ class Tensor:
         resolved = tuple(6 if dim == -1 else dim for dim in shape)
         return Tensor(resolved)
 
+    def __getitem__(self, key):
+        batch_slice, step_slice = key
+        assert batch_slice == slice(None)
+        step_count = step_slice.stop - (step_slice.start or 0)
+        return Tensor((self.shape[0], step_count, self.shape[2]))
+
 
 class FakeNoGrad(contextlib.AbstractContextManager):
     active = False

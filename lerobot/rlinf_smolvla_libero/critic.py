@@ -113,12 +113,15 @@ def actor_loss(
     agg: str,
     kl_estimate: torch.Tensor | None = None,
     kl_penalty_coef: float = 0.0,
+    entropy_regularization: bool = False,
 ) -> torch.Tensor:
     _require_scalar("alpha", alpha)
     _require_2d("q_pi", q_pi)
     _require_column("log_pi", log_pi)
     _require_same_batch("q_pi", q_pi, "log_pi", log_pi)
-    objective = alpha * log_pi - aggregate_q(q_pi, agg=agg)
+    objective = -aggregate_q(q_pi, agg=agg)
+    if entropy_regularization:
+        objective = objective + alpha * log_pi
     if kl_estimate is not None:
         _require_column("kl_estimate", kl_estimate)
         _require_same_batch("q_pi", q_pi, "kl_estimate", kl_estimate)

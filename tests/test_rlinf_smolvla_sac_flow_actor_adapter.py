@@ -31,7 +31,7 @@ class SmolVLASACFlowActorTest(unittest.TestCase):
     def make_obs(self):
         return {"states": torch.zeros(2, 4)}
 
-    def test_sample_chunk_flattens_actions_and_formats_log_pi(self):
+    def test_sample_chunk_uses_only_replanned_environment_action_for_critic(self):
         actor = SmolVLASACFlowActor(
             policy=DummyPolicy(),
             device=torch.device("cpu"),
@@ -40,7 +40,8 @@ class SmolVLASACFlowActorTest(unittest.TestCase):
         )
         flat_actions, log_pi, obs_features, raw_chunk = actor.sample_chunk(self.make_obs(), train=True)
         self.assertEqual(raw_chunk.shape, (2, 2, 3))
-        self.assertEqual(flat_actions.shape, (2, 6))
+        self.assertEqual(flat_actions.shape, (2, 3))
+        torch.testing.assert_close(flat_actions, raw_chunk[:, 0])
         self.assertEqual(log_pi.shape, (2, 1))
         self.assertEqual(obs_features.shape, (2, 5))
         self.assertEqual(actor.policy.sample_calls[0][1:], (True, 0.02, 0.3))
@@ -57,6 +58,10 @@ class SmolVLASACFlowActorTest(unittest.TestCase):
         _, log_pi, _, _ = actor.sample_chunk(self.make_obs(), train=False)
         self.assertEqual(log_pi.shape, (2, 1))
         self.assertEqual(actor.policy.sample_calls[0][1:], (False, 0.02, 0.3))
+
+    def test_rejects_multi_step_critic_actions(self):
+        with self.assertRaisesRegex(ValueError, "critic_action_steps must be 1"):
+            SmolVLASACFlowActor(DummyPolicy(), torch.device("cpu"), 0.3, 0.02, critic_action_steps=2)
 
     def test_sample_chunk_with_kl_normalizes_full_trajectory_likelihood_ratio(self):
         class TrajectoryPolicy(DummyPolicy):

@@ -17,6 +17,7 @@ class SmolVLASACFlowActor:
         train_noise_std: float,
         rollout_noise_std: float,
         reference_policy: Any | None = None,
+        critic_action_steps: int = 1,
     ) -> None:
         self._require_callable(policy, "sac_sample_action_chunk")
         self._require_callable(policy, "sac_encode_observation")
@@ -27,6 +28,15 @@ class SmolVLASACFlowActor:
         self.device = device
         self.train_noise_std = train_noise_std
         self.rollout_noise_std = rollout_noise_std
+        if (
+            isinstance(critic_action_steps, bool)
+            or not isinstance(critic_action_steps, int)
+            or critic_action_steps != 1
+        ):
+            raise ValueError(
+                "critic_action_steps must be 1: the online loop replans after each environment step."
+            )
+        self.critic_action_steps = critic_action_steps
 
     @staticmethod
     def _require_callable(policy: Any, method_name: str) -> None:
@@ -141,7 +151,9 @@ class SmolVLASACFlowActor:
                 f"got shape={tuple(raw_chunk.shape)}"
             )
 
-        flat_actions = flatten_chunk(raw_chunk)
+        # The online MDP replans after one environment step, so Q(s, a) must only
+        # receive the action that actually caused reward and next_obs.
+        flat_actions = flatten_chunk(raw_chunk[:, : self.critic_action_steps])
         self._require_tensor_like(flat_actions, "flat_actions")
         if flat_actions.ndim != 2:
             raise ValueError("flat_actions must have shape [batch, action_dim]")

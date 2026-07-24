@@ -297,6 +297,10 @@ def run_gpu_smoke(
     sac_config = SACFlowConfig(
         device=device,
         kl_penalty_coef=_extract_float_override(cli_overrides, "sac-flow.kl-penalty-coef", 0.05),
+        entropy_regularization=_extract_bool_override(
+            cli_overrides, "sac-flow.entropy-regularization", False
+        ),
+        backup_entropy=_extract_bool_override(cli_overrides, "sac-flow.backup-entropy", False),
         wandb_enable=_extract_bool_override(cli_overrides, "sac-flow.wandb-enable", False),
         wandb_project=_extract_str_override(cli_overrides, "sac-flow.wandb-project", os.environ.get("WANDB_PROJECT")),
         wandb_run_name=_extract_str_override(cli_overrides, "sac-flow.wandb-run-name", os.environ.get("WANDB_RUN_NAME")),
@@ -374,6 +378,11 @@ def run_train_run(
         actor_warmup_updates=_extract_int_override(effective_cli_overrides, "sac-flow.actor-warmup-updates", 2000),
         noise_std_train=_extract_float_override(effective_cli_overrides, "sac-flow.noise-std-train", 0.02),
         noise_std_rollout=_extract_float_override(effective_cli_overrides, "sac-flow.noise-std-rollout", 0.02),
+        entropy_regularization=_extract_bool_override(
+            effective_cli_overrides, "sac-flow.entropy-regularization", False
+        ),
+        backup_entropy=_extract_bool_override(effective_cli_overrides, "sac-flow.backup-entropy", False),
+        actor_agg_q=_extract_str_override(effective_cli_overrides, "sac-flow.actor-agg-q", "min"),
         wandb_enable=_extract_bool_override(effective_cli_overrides, "sac-flow.wandb-enable", True),
         wandb_project=_extract_str_override(
             effective_cli_overrides,

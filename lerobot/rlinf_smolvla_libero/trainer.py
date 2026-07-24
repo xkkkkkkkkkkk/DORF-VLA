@@ -133,6 +133,7 @@ class SACFlowTrainer:
                     self.config.actor_agg_q,
                     kl_estimate=kl_estimate,
                     kl_penalty_coef=self.config.kl_penalty_coef,
+                    entropy_regularization=self.config.entropy_regularization,
                 )
 
                 self.actor_optimizer.zero_grad(set_to_none=True)
@@ -142,18 +143,19 @@ class SACFlowTrainer:
             finally:
                 self._set_requires_grad(self.q_network, requires_grad=True)
 
-            alpha_objective = alpha_loss(self.temperature.log_alpha, log_pi.detach(), self.target_entropy)
-            self.alpha_optimizer.zero_grad(set_to_none=True)
-            alpha_objective.backward()
-            self.alpha_optimizer.step()
-
             actor_metrics = {
                 "actor_loss": float(actor_objective.detach().cpu()),
-                "alpha_loss": float(alpha_objective.detach().cpu()),
                 "entropy": float((-log_pi.detach()).mean().cpu()),
                 "log_pi": float(log_pi.detach().mean().cpu()),
                 "alpha": float(self.temperature.alpha.detach().cpu()),
             }
+            if self.config.entropy_regularization:
+                alpha_objective = alpha_loss(self.temperature.log_alpha, log_pi.detach(), self.target_entropy)
+                self.alpha_optimizer.zero_grad(set_to_none=True)
+                alpha_objective.backward()
+                self.alpha_optimizer.step()
+                actor_metrics["alpha_loss"] = float(alpha_objective.detach().cpu())
+                actor_metrics["alpha"] = float(self.temperature.alpha.detach().cpu())
             if kl_estimate is not None:
                 actor_metrics.update(
                     {

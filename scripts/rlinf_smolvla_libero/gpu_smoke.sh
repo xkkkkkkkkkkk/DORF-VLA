@@ -46,6 +46,8 @@ python lerobot/scripts/rlinf_smolvla_libero_sac_flow_train.py \
   --env.observation_width=256 \
   --sac-flow.device="${SAC_FLOW_DEVICE:-cuda:0}" \
   --sac-flow.actor-train-scope=action_path \
+  --sac-flow.entropy-regularization=false \
+  --sac-flow.backup-entropy=false \
   --sac-flow.max-train-steps=2 \
   --sac-flow.max-chunk-steps=1 \
   --sac-flow.num-updates-per-step=1 \
