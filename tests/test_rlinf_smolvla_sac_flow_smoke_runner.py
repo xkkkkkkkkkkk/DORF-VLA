@@ -111,6 +111,7 @@ class SmokeRunnerTest(unittest.TestCase):
 
         self.assertEqual(config.max_train_steps, 100)
         self.assertEqual(config.num_updates_per_step, 4)
+        self.assertFalse(config.save_checkpoint)
 
     def test_configures_actor_trainable_scope_from_sac_config(self):
         policy = object()
@@ -201,10 +202,11 @@ class SmokeRunnerTest(unittest.TestCase):
             def __init__(self, **kwargs):
                 events.append(("loop", kwargs["max_chunk_steps"]))
                 self.replay_buffer = kwargs["replay_buffer"]
+                self.step_callback = kwargs["step_callback"]
 
             def run(self, initial_obs, *, num_steps):
                 events.append(("run", num_steps))
-                return [
+                results = [
                     SimpleNamespace(
                         rollout=SimpleNamespace(
                             raw_rewards=[1.0],
@@ -215,6 +217,9 @@ class SmokeRunnerTest(unittest.TestCase):
                     )
                     for _ in range(num_steps)
                 ]
+                for step, result in enumerate(results):
+                    self.step_callback(result, step)
+                return results
 
         def save_checkpoint(**kwargs):
             events.append(("save", kwargs["step"]))
@@ -222,7 +227,12 @@ class SmokeRunnerTest(unittest.TestCase):
 
         result = run_sac_flow_training_run(
             train_cfg=SimpleNamespace(policy="policy_cfg", env="env_cfg", output_dir=Path("/tmp/out")),
-            run_cfg=SACFlowRunConfig(device="cpu", max_train_steps=3, max_chunk_steps=1),
+            run_cfg=SACFlowRunConfig(
+                device="cpu",
+                max_train_steps=3,
+                max_chunk_steps=1,
+                save_checkpoint=True,
+            ),
             sac_config=SACFlowConfig(device="cpu", wandb_enable=True),
             logger=logger,
             build_runtime_fn=build_runtime,
@@ -241,9 +251,8 @@ class SmokeRunnerTest(unittest.TestCase):
         self.assertIn(("run", 3), events)
         self.assertIn(("save", 3), events)
         self.assertEqual(len(logger.logged), 3)
-        # Optimizer metrics are emitted through the per-update callback. The
-        # collection log remains valid even when a fake loop does not call it.
         self.assertEqual(logger.logged[0][0]["train/global_step"], 0)
+        self.assertIsNone(logger.logged[0][1])
 
     def test_training_run_resume_keeps_global_step_continuous(self):
         events = []
@@ -295,7 +304,12 @@ class SmokeRunnerTest(unittest.TestCase):
 
         result = run_sac_flow_training_run(
             train_cfg=SimpleNamespace(policy="policy_cfg", env="env_cfg", output_dir=Path("/tmp/out")),
-            run_cfg=SACFlowRunConfig(device="cpu", max_train_steps=280, max_chunk_steps=1),
+            run_cfg=SACFlowRunConfig(
+                device="cpu",
+                max_train_steps=280,
+                max_chunk_steps=1,
+                save_checkpoint=True,
+            ),
             sac_config=SACFlowConfig(device="cpu", wandb_enable=True),
             logger=logger,
             build_runtime_fn=build_runtime,
@@ -484,7 +498,12 @@ class SmokeRunnerTest(unittest.TestCase):
 
         result = run_sac_flow_gpu_smoke(
             train_cfg=SimpleNamespace(policy="policy_cfg", env="env_cfg", output_dir=Path("/tmp/out")),
-            smoke_cfg=SACFlowSmokeConfig(device="cpu", confirm_gpu_smoke=True, max_train_steps=2),
+            smoke_cfg=SACFlowSmokeConfig(
+                device="cpu",
+                confirm_gpu_smoke=True,
+                max_train_steps=2,
+                save_checkpoint=True,
+            ),
             sac_config=SACFlowConfig(device="cpu", min_buffer_size=1, num_updates_per_step=1, batch_size=1),
             logger=logger,
             build_runtime_fn=build_runtime,

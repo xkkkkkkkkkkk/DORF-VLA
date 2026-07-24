@@ -49,6 +49,7 @@ python lerobot/scripts/rlinf_smolvla_libero_sac_flow_train.py \
   --sac-flow.entropy-regularization=false \
   --sac-flow.backup-entropy=false \
   --sac-flow.max-train-steps=2 \
+  --sac-flow.save-checkpoint=false \
   --sac-flow.max-chunk-steps=1 \
   --sac-flow.num-updates-per-step=1 \
   --sac-flow.batch-size=1 \

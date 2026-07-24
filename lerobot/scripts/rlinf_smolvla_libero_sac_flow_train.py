@@ -289,6 +289,7 @@ def run_gpu_smoke(
         num_updates_per_step=_extract_int_override(cli_overrides, "sac-flow.num-updates-per-step", 1),
         batch_size=_extract_int_override(cli_overrides, "sac-flow.batch-size", 1),
         min_buffer_size=_extract_int_override(cli_overrides, "sac-flow.min-buffer-size", 1),
+        save_checkpoint=_extract_bool_override(cli_overrides, "sac-flow.save-checkpoint", False),
     )
 
     build_runtime_probe(env=os.environ, cli_overrides=cli_overrides)
@@ -367,6 +368,7 @@ def run_train_run(
         replay_capacity=_extract_int_override(effective_cli_overrides, "sac-flow.replay-capacity", 64),
         num_envs=_extract_int_override(effective_cli_overrides, "sac-flow.num-envs", 1),
         actor_snapshot_updates=_extract_int_tuple_override(effective_cli_overrides, "sac-flow.actor-snapshot-updates"),
+        save_checkpoint=_extract_bool_override(effective_cli_overrides, "sac-flow.save-checkpoint", False),
     )
     sac_config = SACFlowConfig(
         device=device,

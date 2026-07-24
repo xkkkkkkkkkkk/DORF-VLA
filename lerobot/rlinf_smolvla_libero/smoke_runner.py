@@ -25,6 +25,7 @@ class SACFlowSmokeConfig:
     batch_size: int = 1
     min_buffer_size: int = 1
     replay_capacity: int = 8
+    save_checkpoint: bool = False
 
     def __post_init__(self) -> None:
         if not isinstance(self.device, str) or not self.device:
@@ -38,6 +39,8 @@ class SACFlowSmokeConfig:
         _require_budget("batch_size", self.batch_size, maximum=1)
         _require_budget("min_buffer_size", self.min_buffer_size, maximum=1)
         _require_budget("replay_capacity", self.replay_capacity, maximum=16)
+        if not isinstance(self.save_checkpoint, bool):
+            raise ValueError(f"save_checkpoint must be a bool, got {self.save_checkpoint!r}.")
 
 
 @dataclass(frozen=True)
@@ -54,6 +57,7 @@ class SACFlowRunConfig:
     replay_capacity: int = 64
     num_envs: int = 1
     actor_snapshot_updates: tuple[int, ...] = ()
+    save_checkpoint: bool = False
 
     def __post_init__(self) -> None:
         if not isinstance(self.device, str) or not self.device:
@@ -70,6 +74,8 @@ class SACFlowRunConfig:
         _require_budget("max_chunk_steps", self.max_chunk_steps, maximum=1)
         if any(not isinstance(item, int) or item < 1 for item in self.actor_snapshot_updates):
             raise ValueError("actor_snapshot_updates must contain positive integers")
+        if not isinstance(self.save_checkpoint, bool):
+            raise ValueError(f"save_checkpoint must be a bool, got {self.save_checkpoint!r}.")
 
 
 @dataclass(frozen=True)
@@ -90,34 +96,43 @@ def log_sac_flow_step_results(
     """把 rollout 与 SAC 更新指标写入 logger。"""
     for offset, result in enumerate(step_results):
         global_step = start_step + offset
-        rollouts = getattr(result, "rollouts", ()) or (result.rollout,)
-        rollout = rollouts[0]
-        transition = rollout.transition
-        if len(rollouts) == 1:
-            raw_reward = float(sum(rollout.raw_rewards))
-            chunk_reward = float(transition.chunk_reward)
-            success = 1.0 if rollout.success else 0.0
-            chunk_steps: float | int = int(transition.horizon)
-        else:
-            raw_reward = float(sum(sum(item.raw_rewards) for item in rollouts) / len(rollouts))
-            chunk_reward = float(sum(item.transition.chunk_reward for item in rollouts) / len(rollouts))
-            success = float(sum(1.0 if item.success else 0.0 for item in rollouts) / len(rollouts))
-            chunk_steps = float(sum(item.transition.horizon for item in rollouts) / len(rollouts))
-        metrics: dict[str, Any] = {
-            "train/global_step": global_step,
-            "env/reward": raw_reward,
-            "env/discounted_return": chunk_reward,
-            "env/success": success,
-            "env/chunk_steps": chunk_steps,
-            "train/replay_buffer/size": len(replay_buffer),
-        }
-        if len(rollouts) > 1:
-            metrics["env/parallel_envs"] = len(rollouts)
-            metrics["train/transitions_collected"] = len(rollouts)
+        metrics = _format_collection_metrics(
+            result,
+            global_step=global_step,
+            replay_size=len(replay_buffer),
+        )
         if include_update_metrics:
             for update_metric in result.update_metrics:
                 metrics.update(format_sac_update_metrics(update_metric))
         logger.log(metrics, step=global_step)
+
+
+def _format_collection_metrics(result: Any, *, global_step: int, replay_size: int) -> dict[str, Any]:
+    rollouts = getattr(result, "rollouts", ()) or (result.rollout,)
+    rollout = rollouts[0]
+    transition = rollout.transition
+    if len(rollouts) == 1:
+        raw_reward = float(sum(rollout.raw_rewards))
+        chunk_reward = float(transition.chunk_reward)
+        success = 1.0 if rollout.success else 0.0
+        chunk_steps: float | int = int(transition.horizon)
+    else:
+        raw_reward = float(sum(sum(item.raw_rewards) for item in rollouts) / len(rollouts))
+        chunk_reward = float(sum(item.transition.chunk_reward for item in rollouts) / len(rollouts))
+        success = float(sum(1.0 if item.success else 0.0 for item in rollouts) / len(rollouts))
+        chunk_steps = float(sum(item.transition.horizon for item in rollouts) / len(rollouts))
+    metrics: dict[str, Any] = {
+        "train/global_step": global_step,
+        "env/reward": raw_reward,
+        "env/discounted_return": chunk_reward,
+        "env/success": success,
+        "env/chunk_steps": chunk_steps,
+        "train/replay_buffer/size": replay_size,
+    }
+    if len(rollouts) > 1:
+        metrics["env/parallel_envs"] = len(rollouts)
+        metrics["train/transitions_collected"] = len(rollouts)
+    return metrics
 
 
 def prepare_policy_observation(
@@ -239,20 +254,22 @@ def run_sac_flow_gpu_smoke(
                 replay_buffer=components["replay_buffer"],
             )
 
-        checkpoint_dir = save_checkpoint_fn(
-            output_dir=_output_dir(runtime.train_cfg, train_cfg),
-            step=smoke_cfg.max_train_steps,
-            policy=runtime.policy,
-            policy_preprocessor=runtime.preprocessor,
-            policy_postprocessor=runtime.postprocessor,
-            q_network=components["q_network"],
-            target_q_network=components["target_q_network"],
-            temperature=components["temperature"],
-            config=effective_config,
-            trainer=components["trainer"],
-            replay_buffer=components["replay_buffer"],
-            extra_state={"smoke_steps": smoke_cfg.max_train_steps},
-        )
+        checkpoint_dir = None
+        if smoke_cfg.save_checkpoint:
+            checkpoint_dir = save_checkpoint_fn(
+                output_dir=_output_dir(runtime.train_cfg, train_cfg),
+                step=smoke_cfg.max_train_steps,
+                policy=runtime.policy,
+                policy_preprocessor=runtime.preprocessor,
+                policy_postprocessor=runtime.postprocessor,
+                q_network=components["q_network"],
+                target_q_network=components["target_q_network"],
+                temperature=components["temperature"],
+                config=effective_config,
+                trainer=components["trainer"],
+                replay_buffer=components["replay_buffer"],
+                extra_state={"smoke_steps": smoke_cfg.max_train_steps},
+            )
         metrics = [metric for result in step_results for metric in result.update_metrics]
         return SACFlowSmokeResult(
             steps=smoke_cfg.max_train_steps,
@@ -343,6 +360,21 @@ def run_sac_flow_training_run(
             if override_actor_lr_on_resume:
                 _override_optimizer_lr(components["trainer"].actor_optimizer, effective_config.actor_lr)
 
+        logged_collection_steps: set[int] = set()
+
+        def log_collection_step(result: Any, collection_step: int) -> None:
+            if logger is None:
+                return
+            logger.log(
+                _format_collection_metrics(
+                    result,
+                    global_step=start_step + collection_step,
+                    replay_size=len(components["replay_buffer"]),
+                ),
+                step=None,
+            )
+            logged_collection_steps.add(collection_step)
+
         loop = loop_cls(
             actor=components["actor"],
             env=env,
@@ -374,36 +406,43 @@ def run_sac_flow_training_run(
                 save_checkpoint_fn=save_checkpoint_fn,
                 logger=logger,
             ),
+            step_callback=log_collection_step if logger is not None else None,
         )
         step_results = loop.run(initial_obs, num_steps=run_cfg.max_train_steps)
-        if logger is not None:
-            log_sac_flow_step_results(
-                step_results,
-                logger=logger,
-                replay_buffer=components["replay_buffer"],
-                start_step=start_step,
-                include_update_metrics=False,
-            )
+        if logger is not None and len(logged_collection_steps) != len(step_results):
+            for offset, result in enumerate(step_results):
+                if offset in logged_collection_steps:
+                    continue
+                logger.log(
+                    _format_collection_metrics(
+                        result,
+                        global_step=start_step + offset,
+                        replay_size=len(components["replay_buffer"]),
+                    ),
+                    step=None,
+                )
 
         completed_step = start_step + run_cfg.max_train_steps
-        checkpoint_dir = save_checkpoint_fn(
-            output_dir=_output_dir(runtime.train_cfg, train_cfg),
-            step=completed_step,
-            policy=runtime.policy,
-            policy_preprocessor=runtime.preprocessor,
-            policy_postprocessor=runtime.postprocessor,
-            q_network=components["q_network"],
-            target_q_network=components["target_q_network"],
-            temperature=components["temperature"],
-            config=effective_config,
-            trainer=components["trainer"],
-            replay_buffer=components["replay_buffer"],
-            extra_state={
-                "train_steps": run_cfg.max_train_steps,
-                "global_step": completed_step,
-                "resumed_from": str(resume_checkpoint) if resume_checkpoint is not None else None,
-            },
-        )
+        checkpoint_dir = None
+        if run_cfg.save_checkpoint:
+            checkpoint_dir = save_checkpoint_fn(
+                output_dir=_output_dir(runtime.train_cfg, train_cfg),
+                step=completed_step,
+                policy=runtime.policy,
+                policy_preprocessor=runtime.preprocessor,
+                policy_postprocessor=runtime.postprocessor,
+                q_network=components["q_network"],
+                target_q_network=components["target_q_network"],
+                temperature=components["temperature"],
+                config=effective_config,
+                trainer=components["trainer"],
+                replay_buffer=components["replay_buffer"],
+                extra_state={
+                    "train_steps": run_cfg.max_train_steps,
+                    "global_step": completed_step,
+                    "resumed_from": str(resume_checkpoint) if resume_checkpoint is not None else None,
+                },
+            )
         metrics = [metric for result in step_results for metric in result.update_metrics]
         return SACFlowSmokeResult(
             steps=completed_step,

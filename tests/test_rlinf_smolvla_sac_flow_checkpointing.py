@@ -1,6 +1,7 @@
 import tempfile
 import unittest
 from pathlib import Path
+from unittest.mock import patch
 
 from lerobot.rlinf_smolvla_libero.checkpointing import (
     assert_sac_flow_device_ready,
@@ -86,6 +87,29 @@ class CheckpointingTest(unittest.TestCase):
         self.assertEqual(payload["temperature"], {"temp": 1})
         self.assertEqual(payload["config"]["device"], "cuda:0")
         self.assertEqual(payload["extra_state"], {"replay_size": 3})
+
+    def test_atomic_save_does_not_publish_a_corrupt_state_file(self):
+        with tempfile.TemporaryDirectory() as tmpdir:
+            checkpoint_dir = Path(tmpdir) / "checkpoint_000007"
+
+            def fail_torch_save(payload, path):
+                Path(path).write_bytes(b"incomplete")
+                raise RuntimeError("disk full")
+
+            with patch("torch.save", side_effect=fail_torch_save):
+                with self.assertRaisesRegex(RuntimeError, "disk full"):
+                    save_sac_flow_checkpoint(
+                        output_dir=tmpdir,
+                        step=7,
+                        policy=None,
+                        q_network=FakeModule("q"),
+                        target_q_network=FakeModule("target"),
+                        temperature=FakeModule("temp"),
+                        config=SACFlowConfig(device="cpu"),
+                    )
+
+            self.assertFalse((checkpoint_dir / "sac_flow_state.pt").exists())
+            self.assertEqual(list(checkpoint_dir.glob(".sac_flow_state.pt.tmp-*")), [])
 
     def test_load_checkpoint_restores_trainable_sac_state(self):
         q = FakeModule("q")

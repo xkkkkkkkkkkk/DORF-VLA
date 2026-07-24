@@ -45,6 +45,7 @@ python lerobot/scripts/rlinf_smolvla_libero_sac_flow_train.py \
   --sac-flow.replay-capacity=2048 \
   --sac-flow.actor-warmup-updates=2000 \
   --sac-flow.actor-updates-enabled="${SAC_FLOW_ACTOR_UPDATES_ENABLED:-false}" \
+  --sac-flow.save-checkpoint="${SAC_FLOW_SAVE_CHECKPOINT:-false}" \
   --sac-flow.noise-std-train=0.02 \
   --sac-flow.noise-std-rollout=0.02 \
   --sac-flow.actor-lr=3e-6 \

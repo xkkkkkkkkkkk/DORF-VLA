@@ -35,6 +35,7 @@ class SACFlowOnlineLoop:
         rollout_fn: Callable[..., ChunkRolloutResult] = execute_action_chunk,
         batched_rollout_fn: Callable[..., BatchedChunkRolloutResult] = execute_batched_action_chunk,
         update_callback: Callable[[dict[str, float], int], None] | None = None,
+        step_callback: Callable[[SACFlowTrainStepResult, int], None] | None = None,
     ) -> None:
         self.actor = actor
         self.env = env
@@ -48,6 +49,7 @@ class SACFlowOnlineLoop:
         self.rollout_fn = rollout_fn
         self.batched_rollout_fn = batched_rollout_fn
         self.update_callback = update_callback
+        self.step_callback = step_callback
 
     def collect_transition(self, curr_obs: dict[str, Any]) -> ChunkRolloutResult:
         """用 actor 采样 action chunk，执行环境前缀，并写入 replay。"""
@@ -125,5 +127,7 @@ class SACFlowOnlineLoop:
         for collection_step in range(num_steps):
             result = self.train_step(obs, collection_step=collection_step)
             results.append(result)
+            if self.step_callback is not None:
+                self.step_callback(result, collection_step)
             obs = result.next_obs
         return results

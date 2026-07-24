@@ -1,8 +1,10 @@
 from __future__ import annotations
 
 from dataclasses import asdict, is_dataclass
+import os
 from pathlib import Path
 from typing import Any, Callable
+import zipfile
 
 
 def capture_rng_state() -> dict[str, Any]:
@@ -104,6 +106,7 @@ def save_sac_flow_checkpoint(
             config_filename="policy_postprocessor.json",
         )
 
+    use_atomic_torch_save = torch_save_fn is None
     if torch_save_fn is None:
         import torch
 
@@ -122,7 +125,28 @@ def save_sac_flow_checkpoint(
         payload["trainer"] = trainer.state_dict()
     if replay_buffer is not None:
         payload["replay_buffer"] = replay_buffer.state_dict()
-    torch_save_fn(payload, checkpoint_dir / "sac_flow_state.pt")
+    checkpoint_path = checkpoint_dir / "sac_flow_state.pt"
+    if not use_atomic_torch_save:
+        torch_save_fn(payload, checkpoint_path)
+        return checkpoint_dir
+
+    temporary_path = checkpoint_dir / f".sac_flow_state.pt.tmp-{os.getpid()}"
+    try:
+        torch_save_fn(payload, temporary_path)
+        with temporary_path.open("rb") as checkpoint_file:
+            os.fsync(checkpoint_file.fileno())
+        with zipfile.ZipFile(temporary_path, mode="r") as checkpoint_archive:
+            if not checkpoint_archive.infolist():
+                raise RuntimeError("SAC-Flow checkpoint archive is empty.")
+        os.replace(temporary_path, checkpoint_path)
+        directory_fd = os.open(checkpoint_dir, os.O_RDONLY)
+        try:
+            os.fsync(directory_fd)
+        finally:
+            os.close(directory_fd)
+    except Exception:
+        temporary_path.unlink(missing_ok=True)
+        raise
     return checkpoint_dir
 
 

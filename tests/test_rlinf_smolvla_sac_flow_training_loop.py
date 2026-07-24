@@ -139,6 +139,38 @@ class SACFlowOnlineLoopTest(unittest.TestCase):
         self.assertTrue(step.rollout.success)
         self.assertEqual(step.update_metrics, [{"critic_loss": 1.0}])
 
+    def test_run_calls_step_callback_after_replay_update(self):
+        replay = FakeReplay()
+        callbacks = []
+
+        def rollout_fn(**kwargs):
+            return SimpleNamespace(
+                transition=make_transition(kwargs["curr_obs"], next_obs={"states": "next_obs"}),
+                raw_rewards=[1.0],
+                success=False,
+                truncated=False,
+            )
+
+        loop = SACFlowOnlineLoop(
+            actor=FakeActor(),
+            env="env",
+            replay_buffer=replay,
+            trainer=FakeTrainer(),
+            config=SACFlowConfig(min_buffer_size=10),
+            rollout_fn=rollout_fn,
+            step_callback=lambda result, step: callbacks.append((step, len(replay), result.next_obs)),
+        )
+
+        loop.run({"states": "obs"}, num_steps=2)
+
+        self.assertEqual(
+            callbacks,
+            [
+                (0, 1, {"states": "next_obs"}),
+                (1, 2, {"states": "next_obs"}),
+            ],
+        )
+
     def test_batched_collection_adds_one_transition_per_vector_slot(self):
         replay = FakeReplay()
 
