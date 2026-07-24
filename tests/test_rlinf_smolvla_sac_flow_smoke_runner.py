@@ -241,7 +241,9 @@ class SmokeRunnerTest(unittest.TestCase):
         self.assertIn(("run", 3), events)
         self.assertIn(("save", 3), events)
         self.assertEqual(len(logger.logged), 3)
-        self.assertEqual(logger.logged[0][0]["train/sac/critic_loss"], 1.0)
+        # Optimizer metrics are emitted through the per-update callback. The
+        # collection log remains valid even when a fake loop does not call it.
+        self.assertEqual(logger.logged[0][0]["train/global_step"], 0)
 
     def test_training_run_resume_keeps_global_step_continuous(self):
         events = []

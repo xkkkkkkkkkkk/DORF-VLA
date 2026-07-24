@@ -15,6 +15,18 @@ _SAC_METRIC_NAMES = {
     "kl_estimate": "train/actor/kl_estimate",
     "kl_penalty": "train/actor/kl_penalty",
     "q_mean": "train/critic/q_mean",
+    "q_min": "train/critic/q_min",
+    "q_max": "train/critic/q_max",
+    "q_std": "train/critic/q_std",
+    "q_head_span": "train/critic/q_head_span",
+    "target_q_mean": "train/critic/target_q_mean",
+    "target_q_std": "train/critic/target_q_std",
+    "batch_positive_reward_fraction": "train/batch/positive_reward_fraction",
+    "critic_grad_norm": "train/critic/grad_norm",
+    "actor_grad_norm": "train/actor/grad_norm",
+    "critic_update_count": "train/critic/update_count",
+    "actor_update_count": "train/actor/update_count",
+    "alpha_update_count": "train/alpha/update_count",
 }
 
 

@@ -85,6 +85,7 @@ def log_sac_flow_step_results(
     logger: Any,
     replay_buffer: Any,
     start_step: int = 0,
+    include_update_metrics: bool = True,
 ) -> None:
     """把 rollout 与 SAC 更新指标写入 logger。"""
     for offset, result in enumerate(step_results):
@@ -113,8 +114,9 @@ def log_sac_flow_step_results(
         if len(rollouts) > 1:
             metrics["env/parallel_envs"] = len(rollouts)
             metrics["train/transitions_collected"] = len(rollouts)
-        for update_metric in result.update_metrics:
-            metrics.update(format_sac_update_metrics(update_metric))
+        if include_update_metrics:
+            for update_metric in result.update_metrics:
+                metrics.update(format_sac_update_metrics(update_metric))
         logger.log(metrics, step=global_step)
 
 
@@ -362,7 +364,7 @@ def run_sac_flow_training_run(
             ),
             max_chunk_steps=run_cfg.max_chunk_steps,
             stop_on_success=True,
-            update_callback=_build_actor_snapshot_callback(
+            update_callback=_build_training_update_callback(
                 requested_updates=run_cfg.actor_snapshot_updates,
                 start_step=start_step,
                 runtime=runtime,
@@ -370,6 +372,7 @@ def run_sac_flow_training_run(
                 sac_config=effective_config,
                 components=components,
                 save_checkpoint_fn=save_checkpoint_fn,
+                logger=logger,
             ),
         )
         step_results = loop.run(initial_obs, num_steps=run_cfg.max_train_steps)
@@ -379,6 +382,7 @@ def run_sac_flow_training_run(
                 logger=logger,
                 replay_buffer=components["replay_buffer"],
                 start_step=start_step,
+                include_update_metrics=False,
             )
 
         completed_step = start_step + run_cfg.max_train_steps
@@ -522,6 +526,45 @@ def _build_actor_snapshot_callback(
                 "snapshot": True,
             },
         )
+
+    return callback
+
+
+def _build_training_update_callback(
+    *,
+    requested_updates: tuple[int, ...],
+    start_step: int,
+    runtime: Any,
+    train_cfg: Any,
+    sac_config: SACFlowConfig,
+    components: Mapping[str, Any],
+    save_checkpoint_fn: Callable[..., Path],
+    logger: Any | None,
+) -> Callable[[dict[str, float], int], None] | None:
+    """Log every optimizer update immediately and optionally save actor milestones."""
+    snapshot_callback = _build_actor_snapshot_callback(
+        requested_updates=requested_updates,
+        start_step=start_step,
+        runtime=runtime,
+        train_cfg=train_cfg,
+        sac_config=sac_config,
+        components=components,
+        save_checkpoint_fn=save_checkpoint_fn,
+    )
+    if snapshot_callback is None and logger is None:
+        return None
+
+    def callback(metrics: dict[str, float], collection_step: int) -> None:
+        if snapshot_callback is not None:
+            snapshot_callback(metrics, collection_step)
+        if logger is None:
+            return
+        payload = format_sac_update_metrics(metrics)
+        payload["train/global_step"] = start_step + collection_step
+        # Do not reuse collection_step as WandB's internal step: several
+        # critic updates occur per collection step and would overwrite each
+        # other. The explicit update counters are the chart x-axes.
+        logger.log(payload, step=None)
 
     return callback
 

@@ -11,6 +11,9 @@ class SACFlowConfig:
     target_entropy: float | None = None
     critic_actor_ratio: int = 4
     actor_warmup_updates: int = 2000
+    # Lets critic-only runs stop at an arbitrary point without relying on the
+    # warm-up threshold to suppress actor gradients.
+    actor_updates_enabled: bool = True
     num_updates_per_step: int = 64
     replay_capacity: int = 200
     min_buffer_size: int = 2
@@ -78,6 +81,8 @@ class SACFlowConfig:
             )
         if not isinstance(self.backup_entropy, bool):
             raise ValueError(f"backup_entropy must be a bool, got {self.backup_entropy!r}.")
+        if not isinstance(self.actor_updates_enabled, bool):
+            raise ValueError(f"actor_updates_enabled must be a bool, got {self.actor_updates_enabled!r}.")
         if self.backup_entropy and not self.entropy_regularization:
             raise ValueError("backup_entropy requires entropy_regularization=True.")
         if not isinstance(self.device, str) or not self.device:

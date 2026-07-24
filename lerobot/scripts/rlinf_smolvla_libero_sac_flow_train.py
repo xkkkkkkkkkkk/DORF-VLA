@@ -376,6 +376,9 @@ def run_train_run(
         critic_lr=_extract_float_override(effective_cli_overrides, "sac-flow.critic-lr", 3e-4),
         alpha_lr=_extract_float_override(effective_cli_overrides, "sac-flow.alpha-lr", 3e-4),
         actor_warmup_updates=_extract_int_override(effective_cli_overrides, "sac-flow.actor-warmup-updates", 2000),
+        actor_updates_enabled=_extract_bool_override(
+            effective_cli_overrides, "sac-flow.actor-updates-enabled", True
+        ),
         noise_std_train=_extract_float_override(effective_cli_overrides, "sac-flow.noise-std-train", 0.02),
         noise_std_rollout=_extract_float_override(effective_cli_overrides, "sac-flow.noise-std-rollout", 0.02),
         entropy_regularization=_extract_bool_override(
@@ -420,6 +423,7 @@ def run_train_run(
                 "batch_size": run_cfg.batch_size,
                 "num_envs": run_cfg.num_envs,
                 "actor_warmup_updates": sac_config.actor_warmup_updates,
+                "actor_updates_enabled": sac_config.actor_updates_enabled,
                 "kl_penalty_coef": sac_config.kl_penalty_coef,
                 "resume_checkpoint": resume_checkpoint,
             }

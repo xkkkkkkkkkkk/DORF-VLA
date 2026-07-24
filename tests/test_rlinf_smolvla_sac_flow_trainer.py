@@ -53,6 +53,7 @@ class SACFlowTrainerTest(unittest.TestCase):
         self.assertIsNone(cfg.target_entropy)
         self.assertEqual(cfg.critic_actor_ratio, 4)
         self.assertEqual(cfg.actor_warmup_updates, 2000)
+        self.assertTrue(cfg.actor_updates_enabled)
         self.assertEqual(cfg.num_updates_per_step, 64)
         self.assertEqual(cfg.replay_capacity, 200)
         self.assertEqual(cfg.min_buffer_size, 2)
@@ -104,6 +105,12 @@ class SACFlowTrainerTest(unittest.TestCase):
         self.assertIn("kl_estimate", metrics)
         self.assertIn("kl_penalty", metrics)
         self.assertIn("alpha", metrics)
+        self.assertIn("critic_grad_norm", metrics)
+        self.assertIn("q_head_span", metrics)
+        self.assertIn("target_q_mean", metrics)
+        self.assertIn("batch_positive_reward_fraction", metrics)
+        self.assertEqual(metrics["critic_update_count"], 2.0)
+        self.assertEqual(metrics["actor_update_count"], 1.0)
         self.assertEqual(trainer.update_step, 2)
         self.assertFalse(torch.equal(before_log_alpha, trainer.temperature.log_alpha.detach()))
         self.assertTrue(any(not torch.equal(a, b) for a, b in zip(before_target, target_q.parameters())))
@@ -162,6 +169,27 @@ class SACFlowTrainerTest(unittest.TestCase):
 
         self.assertIn("critic_loss", metrics)
         self.assertNotIn("actor_loss", metrics)
+        self.assertTrue(all(torch.equal(a, b) for a, b in zip(before_actor, actor.parameters())))
+
+    def test_actor_updates_can_be_explicitly_disabled_after_warmup(self):
+        actor = DummyActor()
+        q = MultiQHead(3, 2, 16, 2)
+        target_q = MultiQHead(3, 2, 16, 2)
+        cfg = SACFlowConfig(
+            critic_actor_ratio=1,
+            actor_warmup_updates=1,
+            actor_updates_enabled=False,
+            hidden_dim=16,
+            num_q_heads=2,
+        )
+        trainer = SACFlowTrainer(actor=actor, q_network=q, target_q_network=target_q, config=cfg)
+        trainer.update_step = 1
+        before_actor = [parameter.detach().clone() for parameter in actor.parameters()]
+
+        metrics = trainer.update_sac(make_batch())
+
+        self.assertNotIn("actor_loss", metrics)
+        self.assertEqual(metrics["actor_update_count"], 0.0)
         self.assertTrue(all(torch.equal(a, b) for a, b in zip(before_actor, actor.parameters())))
 
     def test_infers_target_entropy_from_action_dim_when_missing(self):

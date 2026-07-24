@@ -71,6 +71,17 @@ class SACFlowWandBLoggerTest(unittest.TestCase):
                 "kl_estimate": 0.3,
                 "kl_penalty": 0.015,
                 "q_mean": 6.0,
+                "q_min": -2.0,
+                "q_max": 9.0,
+                "q_std": 1.5,
+                "q_head_span": 2.0,
+                "target_q_mean": 4.0,
+                "target_q_std": 0.7,
+                "batch_positive_reward_fraction": 0.25,
+                "critic_grad_norm": 1.2,
+                "actor_grad_norm": 0.8,
+                "critic_update_count": 10.0,
+                "actor_update_count": 2.0,
             }
         )
 
@@ -86,6 +97,17 @@ class SACFlowWandBLoggerTest(unittest.TestCase):
                 "train/actor/kl_estimate": 0.3,
                 "train/actor/kl_penalty": 0.015,
                 "train/critic/q_mean": 6.0,
+                "train/critic/q_min": -2.0,
+                "train/critic/q_max": 9.0,
+                "train/critic/q_std": 1.5,
+                "train/critic/q_head_span": 2.0,
+                "train/critic/target_q_mean": 4.0,
+                "train/critic/target_q_std": 0.7,
+                "train/batch/positive_reward_fraction": 0.25,
+                "train/critic/grad_norm": 1.2,
+                "train/actor/grad_norm": 0.8,
+                "train/critic/update_count": 10.0,
+                "train/actor/update_count": 2.0,
             },
         )
 
