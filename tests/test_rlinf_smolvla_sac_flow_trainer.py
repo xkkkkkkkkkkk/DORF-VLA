@@ -73,6 +73,15 @@ class SACFlowTrainerTest(unittest.TestCase):
         self.assertEqual(cfg.grad_clip_norm, 1.0)
         self.assertEqual(cfg.device, "cpu")
 
+    def test_config_allows_zero_kl_for_control_experiments(self):
+        cfg = SACFlowConfig(kl_penalty_coef=0.0)
+
+        self.assertEqual(cfg.kl_penalty_coef, 0.0)
+
+    def test_config_rejects_negative_kl_penalty(self):
+        with self.assertRaisesRegex(ValueError, "kl_penalty_coef must be nonnegative"):
+            SACFlowConfig(kl_penalty_coef=-0.01)
+
     def test_update_sac_runs_critic_actor_alpha_and_target_update(self):
         torch.manual_seed(0)
         actor = DummyActor()

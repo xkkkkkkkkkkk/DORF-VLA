@@ -52,12 +52,12 @@ class SACFlowConfig:
             "noise_std_train",
             "noise_std_rollout",
             "actor_lr",
-            "kl_penalty_coef",
             "critic_lr",
             "alpha_lr",
             "grad_clip_norm",
         ):
             _require_positive_number(name, getattr(self, name))
+        _require_nonnegative_number("kl_penalty_coef", self.kl_penalty_coef)
 
         if not isinstance(self.tau, (int, float)) or isinstance(self.tau, bool) or not 0.0 <= float(self.tau) <= 1.0:
             raise ValueError(f"tau must be a number in [0, 1], got {self.tau}.")
@@ -112,6 +112,12 @@ def _require_positive_number(name: str, value: float) -> None:
     _require_number(name, value)
     if float(value) <= 0.0:
         raise ValueError(f"{name} must be positive, got {value}.")
+
+
+def _require_nonnegative_number(name: str, value: float) -> None:
+    _require_number(name, value)
+    if float(value) < 0.0:
+        raise ValueError(f"{name} must be nonnegative, got {value}.")
 
 
 def _require_minimum_integer(name: str, value: int, minimum: int) -> None:
