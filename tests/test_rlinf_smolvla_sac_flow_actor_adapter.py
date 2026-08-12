@@ -142,6 +142,39 @@ class SmolVLASACFlowActorTest(unittest.TestCase):
         self.assertIsNotNone(live.weight.grad)
         self.assertIsNone(reference.weight.grad)
 
+    def test_kl_is_zero_with_zero_live_gradient_at_phase_start(self):
+        class MeanPolicy(torch.nn.Module):
+            def __init__(self, *, requires_grad):
+                super().__init__()
+                self.weight = torch.nn.Parameter(torch.tensor(0.5), requires_grad=requires_grad)
+
+            def sac_sample_action_chunk(
+                self, batch, *, train, rollout_noise_std, train_noise_std, return_trajectory=False
+            ):
+                raw_chunk = self.weight * torch.ones(batch["states"].shape[0], 2, 3)
+                log_pi = raw_chunk.sum(dim=(1, 2))
+                obs_features = torch.ones(raw_chunk.shape[0], 5)
+                if return_trajectory:
+                    trajectory = torch.stack((torch.zeros_like(raw_chunk), raw_chunk))
+                    return raw_chunk, log_pi, obs_features, trajectory
+                return raw_chunk, log_pi, obs_features
+
+            def sac_encode_observation(self, batch):
+                return torch.ones(batch["states"].shape[0], 5)
+
+            def sac_flow_transition_means(self, batch, trajectory):
+                return self.weight * torch.ones_like(trajectory[1:])
+
+        live = MeanPolicy(requires_grad=True)
+        reference = MeanPolicy(requires_grad=False)
+        actor = SmolVLASACFlowActor(live, torch.device("cpu"), 0.3, 0.02, reference)
+        *_, kl_estimate = actor.sample_chunk_with_kl(self.make_obs())
+        kl_estimate.mean().backward()
+
+        torch.testing.assert_close(kl_estimate, torch.zeros_like(kl_estimate))
+        torch.testing.assert_close(live.weight.grad, torch.zeros_like(live.weight.grad))
+        self.assertIsNone(reference.weight.grad)
+
     def test_encode_obs_returns_2d_features(self):
         actor = SmolVLASACFlowActor(DummyPolicy(), torch.device("cpu"), 0.3, 0.02)
         obs_features = actor.encode_obs(self.make_obs())
