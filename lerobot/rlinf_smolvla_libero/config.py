@@ -30,7 +30,8 @@ class SACFlowConfig:
     agg_q: str = "min"
     actor_agg_q: str = "min"
     actor_lr: float = 3e-4
-    # Applied to trajectory-space KL normalized by (num_steps + 1) * chunk_size * action_dim.
+    # Applied to the exact same-variance Gaussian transition KL for token 0 and
+    # real environment action dimensions along the live denoising trajectory.
     # This is deliberately non-zero: every actor update is anchored to its phase-start policy.
     kl_penalty_coef: float = 0.05
     critic_lr: float = 3e-4

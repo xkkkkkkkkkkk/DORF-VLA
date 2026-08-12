@@ -22,7 +22,8 @@ class SmolVLASACFlowActor:
         self._require_callable(policy, "sac_sample_action_chunk")
         self._require_callable(policy, "sac_encode_observation")
         if reference_policy is not None:
-            self._require_callable(reference_policy, "sac_log_prob_action_trajectory")
+            self._require_callable(policy, "sac_flow_transition_means")
+            self._require_callable(reference_policy, "sac_flow_transition_means")
         self.policy = policy
         self.reference_policy = reference_policy
         self.device = device
@@ -90,10 +91,9 @@ class SmolVLASACFlowActor:
     def sample_chunk_with_kl(self, obs: Any) -> tuple[Any, Any, Any, Any, Any]:
         """Sample from the live actor and estimate KL to the frozen phase-start policy.
 
-        The estimate is the likelihood ratio over the complete stochastic flow
-        trajectory, normalized per denoising state dimension.  The reference policy's
-        parameters are frozen, but its score retains gradients through the supplied
-        trajectory to the live actor.
+        The estimate covers only the token-0 environment action dimensions at each
+        denoising transition. The policy-independent initial noise density, unused
+        chunk tokens, and padded action dimensions are excluded.
         """
 
         if self.reference_policy is None:
@@ -122,16 +122,36 @@ class SmolVLASACFlowActor:
                 f"got {getattr(trajectory, 'shape', None)}"
             )
 
-        reference_log_pi = self.reference_policy.sac_log_prob_action_trajectory(
+        live_transition_means = self.policy.sac_flow_transition_means(
             batch,
             trajectory,
-            noise_std=self.train_noise_std,
         )
-        reference_log_pi = self._format_log_pi(reference_log_pi, batch_size=flat_actions.shape[0])
-        normalization = trajectory.shape[0] * trajectory.shape[2] * trajectory.shape[3]
-        if normalization <= 0:
-            raise ValueError(f"trajectory normalization must be positive, got {normalization}.")
-        kl_estimate = (log_pi - reference_log_pi) / float(normalization)
+        reference_transition_means = self.reference_policy.sac_flow_transition_means(
+            batch,
+            trajectory,
+        )
+        expected_mean_shape = trajectory.shape[1:]
+        expected_mean_shape = (trajectory.shape[0] - 1, *expected_mean_shape)
+        if tuple(live_transition_means.shape) != tuple(expected_mean_shape):
+            raise ValueError(
+                "live transition means must have shape [steps, batch, chunk, action_dim], "
+                f"got {getattr(live_transition_means, 'shape', None)}"
+            )
+        if tuple(reference_transition_means.shape) != tuple(expected_mean_shape):
+            raise ValueError(
+                "reference transition means must have shape [steps, batch, chunk, action_dim], "
+                f"got {getattr(reference_transition_means, 'shape', None)}"
+            )
+        env_action_dim = int(flat_actions.shape[1])
+        live_executed_means = live_transition_means[
+            :, :, : self.critic_action_steps, :env_action_dim
+        ]
+        reference_executed_means = reference_transition_means[
+            :, :, : self.critic_action_steps, :env_action_dim
+        ]
+        mean_delta = live_executed_means - reference_executed_means
+        kl_per_dimension = mean_delta.square() / (2.0 * self.train_noise_std**2)
+        kl_estimate = kl_per_dimension.mean(dim=(0, 2, 3)).reshape(flat_actions.shape[0], 1)
         self._require_tensor_like(kl_estimate, "kl_estimate")
         if not _is_finite(kl_estimate):
             raise RuntimeError("Encountered non-finite normalized SAC flow KL estimate.")

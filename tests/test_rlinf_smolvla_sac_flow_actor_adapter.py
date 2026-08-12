@@ -63,8 +63,12 @@ class SmolVLASACFlowActorTest(unittest.TestCase):
         with self.assertRaisesRegex(ValueError, "critic_action_steps must be 1"):
             SmolVLASACFlowActor(DummyPolicy(), torch.device("cpu"), 0.3, 0.02, critic_action_steps=2)
 
-    def test_sample_chunk_with_kl_normalizes_full_trajectory_likelihood_ratio(self):
+    def test_sample_chunk_with_kl_scores_only_executed_action_trajectory(self):
         class TrajectoryPolicy(DummyPolicy):
+            def __init__(self):
+                super().__init__()
+                self.mean_calls = []
+
             def sac_sample_action_chunk(
                 self, batch, *, train, rollout_noise_std, train_noise_std, return_trajectory=False
             ):
@@ -73,23 +77,31 @@ class SmolVLASACFlowActorTest(unittest.TestCase):
                 )
                 if not return_trajectory:
                     return raw_chunk, log_pi, obs_features
-                trajectory = torch.stack((torch.zeros_like(raw_chunk), raw_chunk), dim=0)
+                padded_chunk = torch.cat((raw_chunk, torch.full((*raw_chunk.shape[:2], 2), 100.0)), dim=-1)
+                trajectory = torch.stack((torch.zeros_like(padded_chunk), padded_chunk), dim=0)
                 return raw_chunk, log_pi, obs_features, trajectory
 
+            def sac_flow_transition_means(self, batch, trajectory):
+                self.mean_calls.append((batch, trajectory))
+                means = torch.full_like(trajectory[1:], 0.6)
+                means[:, :, 1:, :] = 100.0
+                means[:, :, :, 3:] = 100.0
+                return means
+
         class ReferencePolicy:
-            def sac_log_prob_action_trajectory(self, batch, trajectory, *, noise_std):
+            def sac_flow_transition_means(self, batch, trajectory):
                 self.batch = batch
                 self.trajectory = trajectory
-                self.noise_std = noise_std
-                return torch.zeros(trajectory.shape[1])
+                return torch.zeros_like(trajectory[1:])
 
+        live = TrajectoryPolicy()
         reference = ReferencePolicy()
-        actor = SmolVLASACFlowActor(TrajectoryPolicy(), torch.device("cpu"), 0.3, 0.02, reference)
-        _, log_pi, _, _, kl_estimate = actor.sample_chunk_with_kl(self.make_obs())
+        actor = SmolVLASACFlowActor(live, torch.device("cpu"), 0.3, 0.02, reference)
+        _, _, _, _, kl_estimate = actor.sample_chunk_with_kl(self.make_obs())
 
-        self.assertTrue(torch.allclose(kl_estimate, log_pi / 12.0))
-        self.assertEqual(reference.trajectory.shape, (2, 2, 2, 3))
-        self.assertEqual(reference.noise_std, 0.3)
+        self.assertTrue(torch.allclose(kl_estimate, torch.full((2, 1), 2.0)))
+        self.assertEqual(reference.trajectory.shape, (2, 2, 2, 5))
+        self.assertIs(live.mean_calls[0][1], reference.trajectory)
 
     def test_kl_keeps_reference_parameters_frozen_but_backpropagates_to_live_actor(self):
         class LivePolicy(torch.nn.Module):
@@ -110,13 +122,16 @@ class SmolVLASACFlowActorTest(unittest.TestCase):
             def sac_encode_observation(self, batch):
                 return torch.ones(batch["states"].shape[0], 5)
 
+            def sac_flow_transition_means(self, batch, trajectory):
+                return self.weight * torch.ones_like(trajectory[1:])
+
         class FrozenReference(torch.nn.Module):
             def __init__(self):
                 super().__init__()
                 self.weight = torch.nn.Parameter(torch.tensor(0.5), requires_grad=False)
 
-            def sac_log_prob_action_trajectory(self, batch, trajectory, *, noise_std):
-                return self.weight * trajectory[-1].sum(dim=(1, 2))
+            def sac_flow_transition_means(self, batch, trajectory):
+                return self.weight * torch.ones_like(trajectory[1:])
 
         live = LivePolicy()
         reference = FrozenReference()
@@ -149,6 +164,20 @@ class SmolVLASACFlowActorTest(unittest.TestCase):
 
         with self.assertRaisesRegex(AttributeError, "sac_encode_observation"):
             SmolVLASACFlowActor(SampleOnlyPolicy(), torch.device("cpu"), 0.3, 0.02)
+
+    def test_constructor_requires_live_transition_means_when_kl_is_enabled(self):
+        class ReferencePolicy:
+            def sac_flow_transition_means(self, batch, trajectory):
+                return None
+
+        with self.assertRaisesRegex(AttributeError, "sac_flow_transition_means"):
+            SmolVLASACFlowActor(
+                DummyPolicy(),
+                torch.device("cpu"),
+                0.3,
+                0.02,
+                reference_policy=ReferencePolicy(),
+            )
 
     def test_encode_obs_rejects_non_tensor_features(self):
         class FakeFeatures:

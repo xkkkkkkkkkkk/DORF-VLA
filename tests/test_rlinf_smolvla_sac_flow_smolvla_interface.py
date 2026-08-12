@@ -260,6 +260,30 @@ class SmolVLASACInterfaceContractTest(unittest.TestCase):
                 noise_std=0.0,
             )
 
+    def test_flow_transition_means_follow_supplied_trajectory_states(self):
+        flow = self.smolvla.VLAFlowMatching.__new__(self.smolvla.VLAFlowMatching)
+        flow.config = SimpleNamespace(chunk_size=2, max_action_dim=3, num_steps=1)
+        flow._build_prefix_context = lambda *args, **kwargs: {
+            "prefix_pad_masks": None,
+            "past_key_values": None,
+        }
+        flow.denoise_step = lambda x_t, **kwargs: torch.full_like(x_t, 0.25)
+        state = torch.zeros(1, 6)
+        trajectory = torch.zeros(2, 1, 2, 3)
+        trajectory[0] = 2.0
+
+        transition_means = flow.flow_transition_means(
+            None,
+            None,
+            None,
+            None,
+            state,
+            trajectory,
+        )
+
+        self.assertEqual(transition_means.shape, (1, 1, 2, 3))
+        torch.testing.assert_close(transition_means, torch.full_like(transition_means, 1.75))
+
     def test_prepare_batch_does_not_mutate_input_when_decoding_pi_aloha_state(self):
         policy = self._policy(model=None, adapt_to_pi_aloha=True)
         policy._pi_aloha_decode_state = lambda state: state + 1.0

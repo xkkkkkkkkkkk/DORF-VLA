@@ -538,6 +538,40 @@ class SmolVLAPolicy(PreTrainedPolicy):
             raise RuntimeError("Encountered non-finite trajectory log_prob values while scoring SAC KL.")
         return log_prob
 
+    def sac_flow_transition_means(
+        self,
+        batch: dict[str, Tensor],
+        trajectory: Tensor,
+    ) -> Tensor:
+        """Return denoising transition means along an externally supplied trajectory."""
+
+        batch = self._prepare_batch(batch)
+        images, img_masks = self.prepare_images(batch)
+        state = self.prepare_state(batch)
+        lang_tokens = batch[f"{OBS_LANGUAGE_TOKENS}"]
+        lang_masks = batch[f"{OBS_LANGUAGE_ATTENTION_MASK}"]
+        transition_means = self.model.flow_transition_means(
+            images,
+            img_masks,
+            lang_tokens,
+            lang_masks,
+            state,
+            trajectory,
+        )
+        expected_shape = (
+            self.config.num_steps,
+            state.shape[0],
+            self.config.chunk_size,
+            self.config.max_action_dim,
+        )
+        if tuple(transition_means.shape) != expected_shape:
+            raise RuntimeError(
+                f"Expected SAC transition mean shape {expected_shape}, got {tuple(transition_means.shape)}."
+            )
+        if not torch.isfinite(transition_means).all():
+            raise RuntimeError("Encountered non-finite SAC flow transition means.")
+        return transition_means
+
     def sample_action_chunk_with_log_prob(
         self,
         batch: dict[str, Tensor],
@@ -1143,30 +1177,72 @@ class VLAFlowMatching(nn.Module):
             raise RuntimeError(
                 f"Expected SAC trajectory device {state.device}, got {trajectory.device}."
             )
-
-        context = self._build_prefix_context(images, img_masks, lang_tokens, lang_masks, state)
-        prefix_pad_masks = context["prefix_pad_masks"]
-        past_key_values = context["past_key_values"]
+        transition_means = self.flow_transition_means(
+            images,
+            img_masks,
+            lang_tokens,
+            lang_masks,
+            state,
+            trajectory,
+        )
 
         x_t = trajectory[0]
         initial_dist = Normal(torch.zeros_like(x_t), torch.ones_like(x_t))
         total_log_prob = initial_dist.log_prob(x_t).sum(dim=(1, 2))
+        for step in range(self.config.num_steps):
+            x_next = trajectory[step + 1]
+            step_dist = Normal(
+                transition_means[step],
+                torch.full_like(transition_means[step], float(noise_std)),
+            )
+            total_log_prob = total_log_prob + step_dist.log_prob(x_next).sum(dim=(1, 2))
+            x_t = x_next
+        return total_log_prob
+
+    def flow_transition_means(
+        self,
+        images,
+        img_masks,
+        lang_tokens,
+        lang_masks,
+        state,
+        trajectory: Tensor,
+    ) -> Tensor:
+        """Return Gaussian denoising means for each transition in a supplied trajectory."""
+
+        bsize = state.shape[0]
+        expected_shape = (
+            self.config.num_steps + 1,
+            bsize,
+            self.config.chunk_size,
+            self.config.max_action_dim,
+        )
+        if tuple(trajectory.shape) != expected_shape:
+            raise RuntimeError(
+                f"Expected SAC trajectory shape {expected_shape}, got {tuple(trajectory.shape)}."
+            )
+        if trajectory.device != state.device:
+            raise RuntimeError(
+                f"Expected SAC trajectory device {state.device}, got {trajectory.device}."
+            )
+
+        context = self._build_prefix_context(images, img_masks, lang_tokens, lang_masks, state)
+        prefix_pad_masks = context["prefix_pad_masks"]
+        past_key_values = context["past_key_values"]
         dt = -1.0 / self.config.num_steps
+        transition_means = []
         for step in range(self.config.num_steps):
             time = 1.0 + step * dt
             time_tensor = torch.tensor(time, dtype=torch.float32, device=state.device).expand(bsize)
+            x_t = trajectory[step]
             v_t = self.denoise_step(
                 x_t=x_t,
                 prefix_pad_masks=prefix_pad_masks,
                 past_key_values=past_key_values,
                 timestep=time_tensor,
             )
-            x_next_mean = x_t + dt * v_t
-            x_next = trajectory[step + 1]
-            step_dist = Normal(x_next_mean, torch.full_like(x_next_mean, float(noise_std)))
-            total_log_prob = total_log_prob + step_dist.log_prob(x_next).sum(dim=(1, 2))
-            x_t = x_next
-        return total_log_prob
+            transition_means.append(x_t + dt * v_t)
+        return torch.stack(transition_means, dim=0)
 
     def sample_actions(
         self,
