@@ -92,6 +92,7 @@ class ChunkTransition:
     episode_return_to_go: float | None = None
     intervention_applied: bool | None = None
     intervention_noise_l2: float | None = None
+    intervention_noise_std: float | None = None
     intervention_task_index: int | None = None
     intervention_slot_index: int | None = None
     pair_id: str | None = None
@@ -375,6 +376,39 @@ class ChunkReplayBuffer:
             "pair_count": float(len(selected)),
             "pair_available_count": float(len(ordered_pairs)),
         }
+
+    def verified_pair_count(self, *, min_length_gap: int = 5) -> int:
+        """Count complete, outcome-ordered clean/intervention pairs without sampling."""
+        if isinstance(min_length_gap, bool) or not isinstance(min_length_gap, int) or min_length_gap < 0:
+            raise ValueError("min_length_gap must be a non-negative integer")
+        by_pair: dict[str, dict[str, ChunkTransition]] = {}
+        for transition in self._items:
+            pair_id = getattr(transition, "pair_id", None)
+            branch = getattr(transition, "pair_branch", None)
+            if (
+                pair_id is None
+                or branch not in {"clean", "intervention"}
+                or not bool(getattr(transition, "pair_anchor", False))
+                or getattr(transition, "episode_length", None) is None
+            ):
+                continue
+            by_pair.setdefault(str(pair_id), {})[branch] = transition
+
+        count = 0
+        for pair in by_pair.values():
+            clean = pair.get("clean")
+            intervention = pair.get("intervention")
+            if clean is None or intervention is None:
+                continue
+            clean_success = bool(getattr(clean, "episode_success", False))
+            intervention_success = bool(getattr(intervention, "episode_success", False))
+            if clean_success != intervention_success:
+                count += 1
+            elif clean_success and abs(
+                int(clean.episode_length) - int(intervention.episode_length)
+            ) >= min_length_gap:
+                count += 1
+        return count
 
     def _sample_transitions(
         self,

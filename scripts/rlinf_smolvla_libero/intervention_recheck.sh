@@ -7,8 +7,12 @@ conda activate "${CONDA_ENV:-lerobot}"
 
 RUN_STAMP="$(date +%Y%m%d-%H%M%S)"
 OUTPUT_DIR="${SAC_FLOW_OUTPUT_DIR:-/root/autodl-fs/sac_flow_intervention_recheck-${RUN_STAMP}}"
-TASK_IDS="${SAC_FLOW_TASK_IDS:-[9]}"
-NUM_ENVS="${SAC_FLOW_NUM_ENVS:-10}"
+TASK_IDS="${SAC_FLOW_TASK_IDS:-[3,9]}"
+NUM_ENVS="${SAC_FLOW_NUM_ENVS:-6}"
+NOISE_STDS="${SAC_FLOW_NOISE_STDS:-0.15,0.3,0.45}"
+TARGET_VALID_PAIRS="${SAC_FLOW_TARGET_PAIRS:-4}"
+MAX_TRAIN_STEPS="${SAC_FLOW_MAX_TRAIN_STEPS:-400}"
+HELDOUT_NUM_STEPS="${SAC_FLOW_HELDOUT_NUM_STEPS:-400}"
 
 export LEROBOT_LIBERO_ROOT="${LEROBOT_LIBERO_ROOT:-/root/autodl-fs/hf_libero_full}"
 export HF_DATASETS_CACHE="${HF_DATASETS_CACHE:-/root/autodl-fs/hf_datasets_cache}"
@@ -33,7 +37,7 @@ python lerobot/scripts/rlinf_smolvla_libero_sac_flow_train.py \
   --sac-flow.device="${SAC_FLOW_DEVICE:-cuda:0}" \
   --sac-flow.seed="${SAC_FLOW_SEED:-0}" \
   --sac-flow.actor-train-scope=action_path \
-  --sac-flow.max-train-steps=280 \
+  --sac-flow.max-train-steps="${MAX_TRAIN_STEPS}" \
   --sac-flow.max-chunk-steps=1 \
   --sac-flow.num-envs="${NUM_ENVS}" \
   --sac-flow.num-updates-per-step=4 \
@@ -43,7 +47,7 @@ python lerobot/scripts/rlinf_smolvla_libero_sac_flow_train.py \
   --sac-flow.actor-warmup-updates=2000 \
   --sac-flow.actor-updates-enabled=false \
   --sac-flow.save-checkpoint=true \
-  --sac-flow.heldout-num-steps=256 \
+  --sac-flow.heldout-num-steps="${HELDOUT_NUM_STEPS}" \
   --sac-flow.heldout-seed=2000 \
   --sac-flow.root-cause-diagnostics=true \
   --sac-flow.root-cause-max-transitions-per-task=32 \
@@ -60,11 +64,13 @@ python lerobot/scripts/rlinf_smolvla_libero_sac_flow_train.py \
   --sac-flow.critic-task-balanced-sampling=true \
   --sac-flow.critic-intervention-fraction=0.5 \
   --sac-flow.critic-intervention-noise-std=0.3 \
+  --sac-flow.critic-intervention-noise-stds="${NOISE_STDS}" \
   --sac-flow.critic-intervention-balanced-sampling=true \
   --sac-flow.critic-intervention-pairing=true \
   --sac-flow.critic-pairwise-coef=1.0 \
   --sac-flow.critic-pairwise-margin=0.05 \
   --sac-flow.critic-pairwise-min-length-gap=5 \
+  --sac-flow.target-valid-pairs="${TARGET_VALID_PAIRS}" \
   --sac-flow.critic-step-penalty=0.001 \
   --sac-flow.critic-conservative-coef=0 \
   --sac-flow.critic-monte-carlo-coef=0.1 \

@@ -386,6 +386,14 @@ class ChunkReplayBufferTest(unittest.TestCase):
             )
         )
 
+    def test_verified_pair_count_matches_pairwise_validity_rules(self):
+        buffer = ChunkReplayBuffer(capacity=8, seed=123)
+        buffer.add(self.make_paired_transition(branch="clean", success=True, length=10, pair_id="p0"))
+        buffer.add(self.make_paired_transition(branch="intervention", success=False, length=20, pair_id="p0"))
+        buffer.add(self.make_paired_transition(branch="clean", success=True, length=10, pair_id="p1"))
+        buffer.add(self.make_paired_transition(branch="intervention", success=True, length=12, pair_id="p1"))
+        self.assertEqual(buffer.verified_pair_count(min_length_gap=5), 1)
+
 
 if __name__ == "__main__":
     unittest.main()

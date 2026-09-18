@@ -24,10 +24,11 @@ configuration, test, server, or experiment change.
 
 Important disk distinction:
 
-- `/root/autodl-tmp` is a 50 GB XFS volume and was at about 91% used on
-  2026-09-18. The project `outputs` directory occupied about 24 GB.
-- `/autodl-fs/data` is a 200 GB AutoFS volume and was at about 56% used on
-  2026-09-18. The large directories are `hf_libero_full` (about 33 GB),
+- `/root/autodl-tmp` is a 50 GB XFS volume and was at about 62% used on
+  2026-09-18 after cleanup. The project `outputs` directory occupies about
+  8.9 GB.
+- `/autodl-fs/data` is a 200 GB AutoFS volume and was at about 51% used on
+  2026-09-18 after cleanup. The large directories are `hf_libero_full` (about 33 GB),
   `hf_datasets_cache` (about 33 GB), `sac-flow-experiments` (about 27 GB),
   and `sac-flow-archive` (about 18 GB).
 - Do not confuse the temporary disk warning with the AutoFS data disk. Always
@@ -120,22 +121,24 @@ bash scripts/rlinf_smolvla_libero/intervention_recheck.sh
 
 This entry point is the current diagnostic path. Its important defaults are:
 
-- `task_ids=[9]`
+- `task_ids=[3,9]`
 - `paired_init_states=true`
-- `max_train_steps=280`
-- `num_envs=10`
+- `max_train_steps=400`
+- `num_envs=6`
 - `num_updates_per_step=4`
 - `batch_size=8`
 - `replay_capacity=8192`
 - `actor_updates_enabled=false`
 - `save_checkpoint=true`
-- `heldout_num_steps=256`, `heldout_seed=2000`
+- `heldout_num_steps=400`, `heldout_seed=2000`
 - `critic_intervention_fraction=0.5`
 - `critic_intervention_noise_std=0.3`
+- `critic_intervention_noise_stds=0.15,0.3,0.45`
 - `critic_intervention_pairing=true`
 - `critic_pairwise_coef=1.0`
 - `critic_pairwise_margin=0.05`
 - `critic_pairwise_min_length_gap=5`
+- `target_valid_pairs=4` (collection stops early only after four verified pairs)
 - `entropy_regularization=false`
 - `backup_entropy=false`
 
@@ -285,6 +288,46 @@ Validated seed-aware collection on 2026-09-18:
   conflict, but do not establish reliable action ranking.
 - Checkpoint ZIP validation passed. Actor updates remain disabled.
 
+Validated layered-noise calibration on 2026-09-18:
+
+- Command: `SAC_FLOW_SEED=23 SAC_FLOW_TARGET_PAIRS=4 SAC_FLOW_MAX_TRAIN_STEPS=400 SAC_FLOW_HELDOUT_NUM_STEPS=400 SAC_FLOW_OUTPUT_DIR=/autodl-fs/data/sac-flow-experiments/2026-09-18/task3-task9-seed23-calibration bash scripts/rlinf_smolvla_libero/intervention_recheck.sh`
+- Source changes: per-pair intervention noise (`0.15, 0.30, 0.45`), noise-aware
+  pair IDs, verified-pair counting and bounded early stop, noise-bucket
+  coverage metrics, CLI overrides, and focused tests.
+- Corrected checkpoint: `/autodl-fs/data/sac-flow-experiments/2026-09-18/task3-task9-seed23-calibration/checkpoint_000400`
+  (`sac_flow_state.pt` about 7.6 GB). The first launch used an incorrect
+  `/root/autodl-fs/data` symlink-expanded path and old script; it was terminated
+  before analysis and its output was removed. The approved configuration was
+  then synchronized to the real checkout and verified from `/proc/<pid>/cmdline`.
+- Configuration: `task_ids=[3,9]`, `num_envs=6`, collection seed `23`,
+  `max_train_steps=400`, held-out steps `400`, `actor_updates_enabled=false`,
+  `critic_pairwise_min_length_gap=5`, target valid pairs `4`.
+- Training collection: 4,800 transitions, 14 completed episodes, 5 successes,
+  9 truncated episodes, and 5 positive-reward transitions. Clean branches had
+  8 completed/4 successful episodes; intervention branches had 6 completed/1
+  successful episode. Noise buckets recorded 0.15: 4 completed/0 successful,
+  0.30: 5/2, and 0.45: 5/3.
+- Pair accounting: 8 pair groups, 2 missing branches, 4 same-outcome groups,
+  1 insufficient-length-gap group, and 1 verified pair. The target of 4 was
+  not reached, so the run used the 400-step ceiling.
+- Critic gate: verified pairwise ranking `1.0` on one pair; replay-vs-perturbed
+  ranking `0.5625`; replay-minus-perturbed Q gap `0.000275`; Q-head span mean
+  `0.0366`, max `0.0597`; held-out Bellman MSE `0.002257`, absolute error
+  `0.03325`, and held-out Q-head span `0.03799`. Cross-task actor-gradient
+  cosine was `0.7375` with no negative task pair. The root-cause probe showed
+  action-to-observation effect ratio `8.50`, but this did not translate into
+  reliable replay-action ranking.
+- Decision: `INCONCLUSIVE/FAIL for actor readiness`, not `PASS`. Numerical
+  stability, held-out Bellman behavior, and gradient compatibility are useful
+  evidence, but one valid pair and near-chance action ranking are insufficient.
+  Keep actor updates disabled. The next intervention should improve verified
+  pair yield and action-sensitive ranking; do not increase training length or
+  enable actor updates from this checkpoint.
+- Focused AutoDL tests passed after the correct sync: 8 intervention, 16 replay,
+  7 diagnostics, 10 training-loop, and 21 entry tests. Local compile, shell
+  syntax, and `git diff --check` passed; local Torch tests were unavailable
+  because the host Python has no Torch.
+
 ## 7. Cleanup Protocol After Every Experiment
 
 First inspect:
@@ -335,3 +378,10 @@ Cleanup rules:
   approved task-3/task-9 bounded collection; validated the checkpoint; removed
   two pre-fix no-seed checkpoints totaling about 10.8 GB. AutoFS fell from 64%
   to 59% used and `/root/autodl-tmp` remained at 62%.
+- 2026-09-18: implemented layered intervention noise, noise-aware pair IDs,
+  verified-pair early stopping, and noise-bucket diagnostics. The approved
+  calibration produced one verified pair and did not pass the action gate.
+  Preserved its checkpoint, moved it out of the accidental nested
+  `/autodl-fs/data/data` path, removed three confirmed non-milestone diagnostic
+  checkpoints totaling about 19 GB plus stale notebook checkpoints/logs, and
+  rechecked usage at `/root/autodl-tmp` 62% and `/autodl-fs/data` 51%.

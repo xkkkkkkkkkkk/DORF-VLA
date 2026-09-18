@@ -24,6 +24,7 @@ class SACFlowConfig:
     critic_task_balanced_sampling: bool = True
     critic_intervention_fraction: float = 0.0
     critic_intervention_noise_std: float = 0.3
+    critic_intervention_noise_stds: tuple[float, ...] = ()
     critic_intervention_balanced_sampling: bool = True
     critic_intervention_pairing: bool = False
     critic_pairwise_coef: float = 0.0
@@ -88,6 +89,10 @@ class SACFlowConfig:
             "critic_intervention_noise_std",
             self.critic_intervention_noise_std,
         )
+        if not isinstance(self.critic_intervention_noise_stds, tuple):
+            raise ValueError("critic_intervention_noise_stds must be a tuple of numbers")
+        for value in self.critic_intervention_noise_stds:
+            _require_nonnegative_number("critic_intervention_noise_stds item", value)
         _require_nonnegative_number("critic_pairwise_coef", self.critic_pairwise_coef)
         _require_nonnegative_number("critic_pairwise_margin", self.critic_pairwise_margin)
         _require_nonnegative_number("critic_step_penalty", self.critic_step_penalty)

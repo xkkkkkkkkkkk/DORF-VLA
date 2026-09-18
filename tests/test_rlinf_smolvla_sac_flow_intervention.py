@@ -89,6 +89,23 @@ class FixedSlotInterventionCollectorTest(unittest.TestCase):
         torch.testing.assert_close(batch.raw_chunk[1, 1], raw_chunk[0, 1])
         self.assertFalse(torch.equal(batch.raw_chunk[1, 0], raw_chunk[0, 0]))
 
+    def test_pairing_assigns_noise_std_per_pair(self):
+        collector = FixedSlotInterventionCollector(
+            num_tasks=1,
+            slots_per_task=6,
+            intervention_fraction=0.5,
+            noise_std=0.3,
+            noise_stds=(0.15, 0.3, 0.45),
+            seed=11,
+            pair_actions=True,
+        )
+        self.assertEqual(
+            collector.pair_noise_stds,
+            (0.15, 0.15, 0.3, 0.3, 0.45, 0.45),
+        )
+        batch = collector.apply(torch.zeros(6, 1, 2))
+        self.assertEqual(batch.pair_noise_stds, collector.pair_noise_stds)
+
     def test_pairing_uses_each_even_slot_as_its_own_clean_anchor(self):
         collector = FixedSlotInterventionCollector(
             num_tasks=1,

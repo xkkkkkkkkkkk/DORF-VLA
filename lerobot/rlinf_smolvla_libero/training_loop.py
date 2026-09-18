@@ -417,6 +417,7 @@ class SACFlowOnlineLoop:
         num_steps: int,
         store_in_replay: bool = True,
         update: bool = True,
+        stop_fn: Callable[["SACFlowTrainStepResult", int], bool] | None = None,
     ) -> list[SACFlowTrainStepResult]:
         """从 initial_obs 开始运行固定步数。
 
@@ -440,6 +441,8 @@ class SACFlowOnlineLoop:
             if self.step_callback is not None:
                 self.step_callback(result, collection_step)
             obs = result.next_obs
+            if stop_fn is not None and stop_fn(result, collection_step):
+                break
         return results
 
     def reset_episode_tracking(self) -> None:
@@ -506,12 +509,17 @@ class SACFlowOnlineLoop:
     ) -> None:
         transition.intervention_applied = bool(intervention_batch.applied[env_index])
         transition.intervention_noise_l2 = float(intervention_batch.noise_l2[env_index])
+        pair_noise_stds = getattr(intervention_batch, "pair_noise_stds", ())
+        transition.intervention_noise_std = (
+            float(pair_noise_stds[env_index]) if pair_noise_stds else None
+        )
         transition.intervention_task_index = int(intervention_batch.task_indices[env_index])
         transition.intervention_slot_index = int(intervention_batch.slot_indices[env_index])
         episode_number = self._episode_numbers.get(env_index, 0)
         transition.pair_id = (
             f"task={transition.intervention_task_index}:"
             f"seed={self.collection_seed}:"
+            f"noise={_noise_bucket(transition.intervention_noise_std)}:"
             f"pair={transition.intervention_slot_index // 2}:"
             f"episode={episode_number}"
         )
@@ -525,3 +533,9 @@ def _transition_intervention_group(transition: Any) -> str | None:
     if applied is None:
         return None
     return "intervention" if bool(applied) else "clean"
+
+
+def _noise_bucket(value: float | None) -> str:
+    if value is None:
+        return "default"
+    return f"{float(value):.6g}".replace(".", "p").replace("-", "m")

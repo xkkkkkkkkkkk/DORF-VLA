@@ -11,6 +11,7 @@ class InterventionBatch:
     raw_chunk: Any
     applied: tuple[bool, ...]
     noise_l2: tuple[float, ...]
+    pair_noise_stds: tuple[float, ...]
     task_indices: tuple[int, ...]
     slot_indices: tuple[int, ...]
 
@@ -28,6 +29,7 @@ class FixedSlotInterventionCollector:
         seed: int,
         task_indices: tuple[int, ...] | None = None,
         pair_actions: bool = False,
+        noise_stds: tuple[float, ...] | None = None,
     ) -> None:
         if isinstance(num_tasks, bool) or not isinstance(num_tasks, int) or num_tasks <= 0:
             raise ValueError(f"num_tasks must be a positive integer, got {num_tasks!r}.")
@@ -56,6 +58,17 @@ class FixedSlotInterventionCollector:
             raise ValueError(f"noise_std must be non-negative, got {noise_std!r}.")
         if not isinstance(pair_actions, bool):
             raise ValueError(f"pair_actions must be a bool, got {pair_actions!r}.")
+        if noise_stds is not None:
+            if not pair_actions:
+                raise ValueError("noise_stds requires pair_actions=True.")
+            if len(noise_stds) != slots_per_task // 2:
+                raise ValueError(
+                    "noise_stds must contain one value per paired intervention slot, "
+                    f"got {len(noise_stds)} for slots_per_task={slots_per_task}."
+                )
+            if any(isinstance(value, bool) or float(value) < 0.0 for value in noise_stds):
+                raise ValueError(f"noise_stds must be non-negative, got {noise_stds!r}.")
+            noise_stds = tuple(float(value) for value in noise_stds)
 
         fraction = float(intervention_fraction)
         if pair_actions and (
@@ -91,6 +104,7 @@ class FixedSlotInterventionCollector:
         applied: list[bool] = []
         batch_task_indices: list[int] = []
         slot_indices: list[int] = []
+        pair_noise_stds: list[float] = []
         for task_index in task_indices:
             if pair_actions:
                 intervention_slots = set(range(1, slots_per_task, 2))
@@ -101,16 +115,23 @@ class FixedSlotInterventionCollector:
                 batch_task_indices.append(task_index)
                 slot_indices.append(slot_index)
                 applied.append(slot_index in intervention_slots)
+                pair_noise_stds.append(
+                    float(noise_stds[slot_index // 2])
+                    if noise_stds is not None
+                    else float(noise_std)
+                )
 
         self.num_tasks = num_tasks
         self.slots_per_task = slots_per_task
         self.intervention_fraction = fraction
         self.noise_std = float(noise_std)
         self.pair_actions = pair_actions
+        self.noise_stds = noise_stds
         self.seed = int(seed)
         self.applied = tuple(applied)
         self.task_indices = tuple(batch_task_indices)
         self.slot_indices = tuple(slot_indices)
+        self.pair_noise_stds = tuple(pair_noise_stds)
         self._generator = None
         self._generator_device = None
 
@@ -145,7 +166,10 @@ class FixedSlotInterventionCollector:
         intervention_indices = [
             index for index, applied in enumerate(self.applied) if applied
         ]
-        if intervention_indices and self.noise_std > 0.0:
+        intervention_noise_stds = [
+            self.pair_noise_stds[index] for index in intervention_indices
+        ]
+        if intervention_indices and any(value > 0.0 for value in intervention_noise_stds):
             generator = self._noise_generator(output.device)
             index_tensor = torch.tensor(
                 intervention_indices,
@@ -157,7 +181,12 @@ class FixedSlotInterventionCollector:
                 device=output.device,
                 dtype=output.dtype,
                 generator=generator,
-            ).mul(self.noise_std)
+            )
+            noise = noise * torch.tensor(
+                intervention_noise_stds,
+                device=output.device,
+                dtype=output.dtype,
+            ).unsqueeze(-1)
             output[index_tensor, 0, :] = output[index_tensor, 0, :] + noise
             noise_l2[index_tensor] = noise.norm(dim=-1)
 
@@ -165,6 +194,7 @@ class FixedSlotInterventionCollector:
             raw_chunk=output,
             applied=self.applied,
             noise_l2=tuple(float(value) for value in noise_l2.detach().cpu()),
+            pair_noise_stds=self.pair_noise_stds,
             task_indices=self.task_indices,
             slot_indices=self.slot_indices,
         )

@@ -72,6 +72,36 @@ def evaluate_intervention_coverage(
     else:
         metrics["intervention_minus_clean_success_rate"] = 0.0
 
+    noise_buckets = sorted(
+        {
+            float(getattr(transition, "intervention_noise_std"))
+            for transition in labeled
+            if getattr(transition, "intervention_noise_std", None) is not None
+        }
+    )
+    for noise_std in noise_buckets:
+        bucket = [
+            transition
+            for transition in labeled
+            if getattr(transition, "intervention_noise_std", None) is not None
+            and abs(float(transition.intervention_noise_std) - noise_std) < 1e-12
+        ]
+        completed_bucket = [
+            transition
+            for transition in bucket
+            if bool(getattr(transition, "episode_completed", False))
+        ]
+        successful_bucket = [
+            transition for transition in completed_bucket if _transition_success(transition)
+        ]
+        prefix = f"noise_{_format_noise_bucket(noise_std)}"
+        metrics[f"{prefix}_transition_count"] = float(len(bucket))
+        metrics[f"{prefix}_completed_episode_count"] = float(len(completed_bucket))
+        metrics[f"{prefix}_successful_episode_count"] = float(len(successful_bucket))
+        metrics[f"{prefix}_episode_success_rate"] = (
+            len(successful_bucket) / len(completed_bucket) if completed_bucket else 0.0
+        )
+
     task_indices = sorted(
         {
             int(transition.intervention_task_index)
@@ -107,6 +137,10 @@ def evaluate_intervention_coverage(
                 len(successful) / len(completed) if completed else 0.0
             )
     return metrics
+
+
+def _format_noise_bucket(value: float) -> str:
+    return f"{float(value):.6g}".replace(".", "p").replace("-", "m")
 
 
 def evaluate_pairwise_action_ranking(

@@ -71,12 +71,14 @@ class CriticDiagnosticsTest(unittest.TestCase):
     def test_intervention_coverage_uses_only_completed_episode_outcomes(self):
         clean = make_transition(state=0.0, action=[0.0, 0.0], task="task-a")
         clean.intervention_applied = False
+        clean.intervention_noise_std = 0.15
         clean.intervention_task_index = 2
         clean.episode_completed = True
         clean.episode_success = True
         intervention = make_transition(state=1.0, action=[0.1, 0.1], task="task-a")
         intervention.intervention_applied = True
         intervention.intervention_noise_l2 = 0.4
+        intervention.intervention_noise_std = 0.15
         intervention.intervention_task_index = 2
         intervention.episode_completed = True
         intervention.episode_success = False
@@ -94,6 +96,8 @@ class CriticDiagnosticsTest(unittest.TestCase):
         self.assertEqual(metrics["intervention_completed_episode_count"], 1.0)
         self.assertEqual(metrics["intervention_minus_clean_success_rate"], -1.0)
         self.assertEqual(metrics["task_2_clean_completed_episode_count"], 1.0)
+        self.assertEqual(metrics["noise_0p15_completed_episode_count"], 2.0)
+        self.assertEqual(metrics["noise_0p15_successful_episode_count"], 1.0)
 
     def test_pairwise_action_ranking_prefers_verified_success(self):
         clean = make_transition(state=0.0, action=[1.0, 0.0], task="task-a")

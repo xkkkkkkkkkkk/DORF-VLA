@@ -402,8 +402,8 @@ class SACFlowOnlineLoopTest(unittest.TestCase):
         self.assertEqual(
             [(item.pair_id, item.pair_branch, item.pair_anchor) for item in replay.items],
             [
-                ("task=2:seed=0:pair=0:episode=0", "clean", True),
-                ("task=2:seed=0:pair=0:episode=0", "intervention", True),
+                ("task=2:seed=0:noise=default:pair=0:episode=0", "clean", True),
+                ("task=2:seed=0:noise=default:pair=0:episode=0", "intervention", True),
             ],
         )
 

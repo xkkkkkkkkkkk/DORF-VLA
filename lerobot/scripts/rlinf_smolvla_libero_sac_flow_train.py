@@ -246,6 +246,16 @@ def _extract_int_tuple_override(cli_overrides: list[str], key: str) -> tuple[int
         raise RuntimeError(f"--{key} must be comma-separated integers, got {value!r}.") from exc
 
 
+def _extract_float_tuple_override(cli_overrides: list[str], key: str) -> tuple[float, ...]:
+    value = _extract_str_override(cli_overrides, key)
+    if value is None or not value.strip():
+        return ()
+    try:
+        return tuple(float(item.strip()) for item in value.split(",") if item.strip())
+    except ValueError as exc:
+        raise RuntimeError(f"--{key} must be comma-separated numbers, got {value!r}.") from exc
+
+
 def _apply_sac_flow_resume_policy_path(cli_overrides: list[str], resume_checkpoint: str | None) -> list[str]:
     """Point LeRobot's policy loader at the self-contained SAC checkpoint policy."""
     if resume_checkpoint is None:
@@ -381,6 +391,11 @@ def run_train_run(
             "sac-flow.heldout-seed",
             2000,
         ),
+        target_valid_pairs=_extract_int_override(
+            effective_cli_overrides,
+            "sac-flow.target-valid-pairs",
+            0,
+        ),
         root_cause_diagnostics=_extract_bool_override(
             effective_cli_overrides,
             "sac-flow.root-cause-diagnostics",
@@ -424,6 +439,10 @@ def run_train_run(
             effective_cli_overrides,
             "sac-flow.critic-intervention-noise-std",
             0.3,
+        ),
+        critic_intervention_noise_stds=_extract_float_tuple_override(
+            effective_cli_overrides,
+            "sac-flow.critic-intervention-noise-stds",
         ),
         critic_intervention_balanced_sampling=_extract_bool_override(
             effective_cli_overrides,

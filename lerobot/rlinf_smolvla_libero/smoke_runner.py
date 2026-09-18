@@ -71,6 +71,7 @@ class SACFlowRunConfig:
     # after training.  These transitions never enter the training replay.
     heldout_num_steps: int = 0
     heldout_seed: int = 2000
+    target_valid_pairs: int = 0
     # Root-cause diagnostics are opt-in because they perform additional actor
     # forwards/backwards over a bounded replay snapshot, but never update
     # actor/critic parameters.
@@ -97,6 +98,8 @@ class SACFlowRunConfig:
             raise ValueError("heldout_num_steps must be a non-negative integer")
         if isinstance(self.heldout_seed, bool) or not isinstance(self.heldout_seed, int):
             raise ValueError("heldout_seed must be an integer")
+        if isinstance(self.target_valid_pairs, bool) or not isinstance(self.target_valid_pairs, int) or self.target_valid_pairs < 0:
+            raise ValueError("target_valid_pairs must be a non-negative integer")
         if not isinstance(self.root_cause_diagnostics, bool):
             raise ValueError("root_cause_diagnostics must be a bool")
         _require_positive_integer(
@@ -497,6 +500,7 @@ def run_sac_flow_training_run(
                 slots_per_task=run_cfg.num_envs,
                 intervention_fraction=effective_config.critic_intervention_fraction,
                 noise_std=effective_config.critic_intervention_noise_std,
+                noise_stds=effective_config.critic_intervention_noise_stds or None,
                 seed=run_cfg.seed,
                 task_indices=_vector_env_task_indices(vector_env_leaves),
                 pair_actions=effective_config.critic_intervention_pairing,
@@ -574,7 +578,18 @@ def run_sac_flow_training_run(
             intervention_collector=intervention_collector,
             collection_seed=run_cfg.seed,
         )
-        step_results = loop.run(initial_obs, num_steps=run_cfg.max_train_steps)
+        stop_fn = None
+        if run_cfg.target_valid_pairs > 0:
+            verified_pair_count = getattr(components["replay_buffer"], "verified_pair_count", None)
+            if callable(verified_pair_count):
+                stop_fn = lambda _result, _step: verified_pair_count(
+                    min_length_gap=effective_config.critic_pairwise_min_length_gap
+                ) >= run_cfg.target_valid_pairs
+        step_results = loop.run(
+            initial_obs,
+            num_steps=run_cfg.max_train_steps,
+            stop_fn=stop_fn,
+        )
         if logger is not None and len(logged_collection_steps) != len(step_results):
             for offset, result in enumerate(step_results):
                 if offset in logged_collection_steps:
