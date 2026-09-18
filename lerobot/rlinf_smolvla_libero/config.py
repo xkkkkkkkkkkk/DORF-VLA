@@ -20,6 +20,28 @@ class SACFlowConfig:
     batch_size: int = 8
     num_q_heads: int = 10
     hidden_dim: int = 256
+    critic_positive_sample_fraction: float = 0.5
+    critic_task_balanced_sampling: bool = True
+    critic_intervention_fraction: float = 0.0
+    critic_intervention_noise_std: float = 0.3
+    critic_intervention_balanced_sampling: bool = True
+    critic_intervention_pairing: bool = False
+    critic_pairwise_coef: float = 0.0
+    critic_pairwise_margin: float = 0.05
+    critic_pairwise_min_length_gap: int = 5
+    critic_step_penalty: float = 0.0
+    # Unlabeled action perturbations are diagnostic controls, not verified
+    # worse actions. Keep their ranking loss disabled unless explicitly
+    # requested by an experiment.
+    critic_conservative_coef: float = 0.0
+    critic_monte_carlo_coef: float = 0.1
+    critic_random_action_samples: int = 4
+    critic_action_margin: float = 0.1
+    # The replay action is mean/std-normalized by SmolVLA, not guaranteed to
+    # lie in [-1, 1].  Use local comparisons in that same coordinate system by
+    # default; unit-uniform remains an explicit control condition.
+    critic_random_action_strategy: str = "replay_local_gaussian"
+    critic_random_action_std: float = 0.05
     noise_std_train: float = 0.3
     noise_std_rollout: float = 0.02
     # Flow trajectory likelihood is not an environment-action log probability.
@@ -52,6 +74,7 @@ class SACFlowConfig:
             "initial_alpha",
             "noise_std_train",
             "noise_std_rollout",
+            "critic_random_action_std",
             "actor_lr",
             "critic_lr",
             "alpha_lr",
@@ -59,6 +82,18 @@ class SACFlowConfig:
         ):
             _require_positive_number(name, getattr(self, name))
         _require_nonnegative_number("kl_penalty_coef", self.kl_penalty_coef)
+        _require_fraction("critic_positive_sample_fraction", self.critic_positive_sample_fraction)
+        _require_fraction("critic_intervention_fraction", self.critic_intervention_fraction)
+        _require_nonnegative_number(
+            "critic_intervention_noise_std",
+            self.critic_intervention_noise_std,
+        )
+        _require_nonnegative_number("critic_pairwise_coef", self.critic_pairwise_coef)
+        _require_nonnegative_number("critic_pairwise_margin", self.critic_pairwise_margin)
+        _require_nonnegative_number("critic_step_penalty", self.critic_step_penalty)
+        _require_nonnegative_number("critic_conservative_coef", self.critic_conservative_coef)
+        _require_nonnegative_number("critic_monte_carlo_coef", self.critic_monte_carlo_coef)
+        _require_nonnegative_number("critic_action_margin", self.critic_action_margin)
 
         if not isinstance(self.tau, (int, float)) or isinstance(self.tau, bool) or not 0.0 <= float(self.tau) <= 1.0:
             raise ValueError(f"tau must be a number in [0, 1], got {self.tau}.")
@@ -66,7 +101,14 @@ class SACFlowConfig:
         for name in ("critic_actor_ratio", "actor_warmup_updates", "num_updates_per_step", "batch_size"):
             _require_minimum_integer(name, getattr(self, name), minimum=1)
 
-        for name in ("replay_capacity", "min_buffer_size", "num_q_heads", "hidden_dim"):
+        for name in (
+            "replay_capacity",
+            "min_buffer_size",
+            "num_q_heads",
+            "hidden_dim",
+            "critic_random_action_samples",
+            "critic_pairwise_min_length_gap",
+        ):
             _require_minimum_integer(name, getattr(self, name), minimum=1)
 
         if self.agg_q not in {"min", "mean"}:
@@ -84,6 +126,35 @@ class SACFlowConfig:
             raise ValueError(f"backup_entropy must be a bool, got {self.backup_entropy!r}.")
         if not isinstance(self.actor_updates_enabled, bool):
             raise ValueError(f"actor_updates_enabled must be a bool, got {self.actor_updates_enabled!r}.")
+        if not isinstance(self.critic_task_balanced_sampling, bool):
+            raise ValueError(
+                "critic_task_balanced_sampling must be a bool, "
+                f"got {self.critic_task_balanced_sampling!r}."
+            )
+        if not isinstance(self.critic_intervention_balanced_sampling, bool):
+            raise ValueError(
+                "critic_intervention_balanced_sampling must be a bool, "
+                f"got {self.critic_intervention_balanced_sampling!r}."
+            )
+        if not isinstance(self.critic_intervention_pairing, bool):
+            raise ValueError(
+                "critic_intervention_pairing must be a bool, "
+                f"got {self.critic_intervention_pairing!r}."
+            )
+        if self.critic_intervention_pairing and self.critic_intervention_fraction <= 0.0:
+            raise ValueError(
+                "critic_intervention_pairing requires critic_intervention_fraction > 0."
+            )
+        if (
+            not isinstance(self.critic_random_action_strategy, str)
+            or self.critic_random_action_strategy
+            not in {"replay_local_gaussian", "unit_uniform"}
+        ):
+            raise ValueError(
+                "critic_random_action_strategy must be one of "
+                "{'replay_local_gaussian', 'unit_uniform'}, "
+                f"got {self.critic_random_action_strategy!r}."
+            )
         if self.backup_entropy and not self.entropy_regularization:
             raise ValueError("backup_entropy requires entropy_regularization=True.")
         if not isinstance(self.device, str) or not self.device:
@@ -119,6 +190,12 @@ def _require_nonnegative_number(name: str, value: float) -> None:
     _require_number(name, value)
     if float(value) < 0.0:
         raise ValueError(f"{name} must be nonnegative, got {value}.")
+
+
+def _require_fraction(name: str, value: float) -> None:
+    _require_number(name, value)
+    if not 0.0 <= float(value) <= 1.0:
+        raise ValueError(f"{name} must be in [0, 1], got {value}.")
 
 
 def _require_minimum_integer(name: str, value: int, minimum: int) -> None:

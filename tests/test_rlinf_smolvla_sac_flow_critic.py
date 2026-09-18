@@ -8,8 +8,11 @@ from lerobot.rlinf_smolvla_libero.critic import (
     actor_loss,
     aggregate_q,
     alpha_loss,
+    conservative_q_penalty,
     critic_loss,
     critic_target,
+    pairwise_q_ranking_loss,
+    sample_critic_actions,
     soft_update,
 )
 
@@ -111,6 +114,101 @@ class SACFlowCriticTest(unittest.TestCase):
     def test_critic_loss_rejects_bad_target_shape(self):
         with self.assertRaisesRegex(ValueError, r"target must have shape \[batch, 1\]"):
             critic_loss(torch.ones(2, 2), torch.ones(2))
+
+    def test_conservative_q_penalty_compares_random_actions_to_replay_actions(self):
+        q_data = torch.tensor([[1.0, 1.1], [0.5, 0.6]])
+        q_random = torch.tensor(
+            [
+                [[1.4, 1.5], [1.2, 1.3]],
+                [[0.9, 1.0], [0.8, 0.9]],
+            ]
+        )
+
+        penalty = conservative_q_penalty(q_data, q_random, agg="min")
+
+        self.assertGreater(float(penalty), 0.0)
+
+    def test_conservative_q_penalty_has_a_finite_lower_bound(self):
+        q_data = torch.tensor([[1.0, 1.1]])
+        q_random = torch.tensor([[[1.4, 1.5], [1.2, 1.3]]])
+
+        penalty = conservative_q_penalty(q_data, q_random, agg="min", margin=0.1)
+        larger_data_q_penalty = conservative_q_penalty(
+            q_data + 1000.0,
+            q_random,
+            agg="min",
+            margin=0.1,
+        )
+
+        self.assertGreaterEqual(float(penalty), 0.0)
+        self.assertEqual(float(larger_data_q_penalty), 0.0)
+
+    def test_conservative_q_penalty_is_invariant_to_common_q_shift(self):
+        q_data = torch.tensor([[1.0, 1.1], [0.5, 0.6]])
+        q_random = torch.tensor(
+            [
+                [[1.4, 1.5], [1.2, 1.3]],
+                [[0.9, 1.0], [0.8, 0.9]],
+            ]
+        )
+
+        original = conservative_q_penalty(q_data, q_random, agg="min", margin=0.1)
+        shifted = conservative_q_penalty(q_data + 37.0, q_random + 37.0, agg="min", margin=0.1)
+
+        torch.testing.assert_close(original, shifted)
+
+    def test_conservative_q_penalty_rejects_negative_margin(self):
+        with self.assertRaisesRegex(ValueError, "margin must be a non-negative number"):
+            conservative_q_penalty(
+                torch.ones(1, 2),
+                torch.ones(1, 2, 2),
+                agg="min",
+                margin=-0.1,
+            )
+
+    def test_pairwise_q_ranking_loss_requires_preferred_action_margin(self):
+        preferred_q = torch.tensor([[1.0, 1.2], [0.5, 0.6]])
+        rejected_q = torch.tensor([[0.8, 0.9], [0.7, 0.8]])
+
+        loss = pairwise_q_ranking_loss(preferred_q, rejected_q, margin=0.1)
+
+        self.assertAlmostEqual(float(loss), 0.15)
+
+    def test_pairwise_q_ranking_loss_is_zero_when_order_is_already_correct(self):
+        loss = pairwise_q_ranking_loss(
+            torch.tensor([[2.0, 2.0]]),
+            torch.tensor([[1.0, 1.0]]),
+            margin=0.05,
+        )
+
+        self.assertEqual(float(loss), 0.0)
+
+    def test_sample_critic_actions_stays_in_replay_coordinate_system(self):
+        actions = torch.tensor([[2.0, -1.5], [1.0, 0.5]])
+        torch.manual_seed(0)
+        sampled = sample_critic_actions(
+            actions,
+            4,
+            strategy="replay_local_gaussian",
+            noise_std=0.05,
+        )
+
+        self.assertEqual(sampled.shape, (2, 4, 2))
+        self.assertTrue(torch.allclose(sampled.mean(dim=1), actions, atol=0.1))
+        self.assertTrue(torch.all(sampled[0, :, 0] > 1.0))
+
+    def test_sample_critic_actions_keeps_unit_uniform_as_explicit_control(self):
+        torch.manual_seed(0)
+        sampled = sample_critic_actions(
+            torch.tensor([[2.0, -1.5]]),
+            32,
+            strategy="unit_uniform",
+            noise_std=0.05,
+        )
+
+        self.assertEqual(sampled.shape, (1, 32, 2))
+        self.assertLessEqual(float(sampled.max()), 1.0)
+        self.assertGreaterEqual(float(sampled.min()), -1.0)
 
     def test_aggregate_q_rejects_non_2d_values(self):
         with self.assertRaises(ValueError):

@@ -111,6 +111,7 @@ class LiberoEnv(gym.Env):
         visualization_width: int = 640,
         visualization_height: int = 480,
         init_states: bool = True,
+        paired_init_states: bool = False,
         episode_index: int = 0,
         camera_name_mapping: dict[str, str] | None = None,
         num_steps_wait: int = 10,
@@ -125,6 +126,7 @@ class LiberoEnv(gym.Env):
         self.visualization_width = visualization_width
         self.visualization_height = visualization_height
         self.init_states = init_states
+        self.paired_init_states = paired_init_states
         self.camera_name = _parse_camera_names(
             camera_name
         )  # agentview_image (main) or robot0_eye_in_hand_image (wrist)
@@ -146,6 +148,7 @@ class LiberoEnv(gym.Env):
         # Load once and keep
         self._init_states = get_task_init_states(task_suite, self.task_id) if self.init_states else None
         self._init_state_id = self.episode_index  # tie each sub-env to a fixed init state
+        self._episode_step = 0
 
         self._env = self._make_envs_task(task_suite, self.task_id)
         default_steps = 500
@@ -311,6 +314,7 @@ class LiberoEnv(gym.Env):
                 robot.controller.use_delta = True
         else:
             raise ValueError(f"Invalid control mode: {self.control_mode}")
+        self._episode_step = 0
         observation = self._format_raw_obs(raw_obs)
         info = {"is_success": False}
         return observation, info
@@ -322,6 +326,7 @@ class LiberoEnv(gym.Env):
                 f"but got shape {action.shape} with ndim={action.ndim}"
             )
         raw_obs, reward, done, info = self._env.step(action)
+        self._episode_step += 1
 
         is_success = self._env.check_success()
         terminated = done or is_success
@@ -334,15 +339,16 @@ class LiberoEnv(gym.Env):
             }
         )
         observation = self._format_raw_obs(raw_obs)
-        if terminated:
+        truncated = not terminated and self._episode_step >= self._max_episode_steps
+        if terminated or truncated:
             info["final_info"] = {
                 "task": self.task,
                 "task_id": self.task_id,
                 "done": bool(done),
                 "is_success": bool(is_success),
+                "truncated": bool(truncated),
             }
             self.reset()
-        truncated = False
         return observation, reward, terminated, truncated, info
 
     def close(self):
@@ -358,6 +364,7 @@ def _make_env_fns(
     camera_names: list[str],
     episode_length: int | None,
     init_states: bool,
+    paired_init_states: bool,
     gym_kwargs: Mapping[str, Any],
     control_mode: str,
 ) -> list[Callable[[], LiberoEnv]]:
@@ -371,6 +378,7 @@ def _make_env_fns(
             task_suite_name=suite_name,
             camera_name=camera_names,
             init_states=init_states,
+            paired_init_states=paired_init_states,
             episode_length=episode_length,
             episode_index=episode_index,
             control_mode=control_mode,
@@ -378,7 +386,8 @@ def _make_env_fns(
         )
 
     fns: list[Callable[[], LiberoEnv]] = []
-    for episode_index in range(n_envs):
+    for env_index in range(n_envs):
+        episode_index = env_index // 2 if paired_init_states else env_index
         fns.append(partial(_make_env, episode_index, **gym_kwargs))
     return fns
 
@@ -392,6 +401,7 @@ def create_libero_envs(
     gym_kwargs: dict[str, Any] | None = None,
     camera_name: str | Sequence[str] = "agentview_image,robot0_eye_in_hand_image",
     init_states: bool = True,
+    paired_init_states: bool = False,
     env_cls: Callable[[Sequence[Callable[[], Any]]], Any] | None = None,
     control_mode: str = "relative",
     episode_length: int | None = None,
@@ -442,6 +452,7 @@ def create_libero_envs(
                 n_envs=n_envs,
                 camera_names=camera_names,
                 init_states=init_states,
+                paired_init_states=paired_init_states,
                 gym_kwargs=gym_kwargs,
                 control_mode=control_mode,
             )

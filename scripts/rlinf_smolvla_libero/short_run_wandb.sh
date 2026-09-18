@@ -46,6 +46,11 @@ python lerobot/scripts/rlinf_smolvla_libero_sac_flow_train.py \
   --sac-flow.actor-warmup-updates=2000 \
   --sac-flow.actor-updates-enabled="${SAC_FLOW_ACTOR_UPDATES_ENABLED:-false}" \
   --sac-flow.save-checkpoint="${SAC_FLOW_SAVE_CHECKPOINT:-false}" \
+  --sac-flow.heldout-num-steps="${SAC_FLOW_HELDOUT_NUM_STEPS:-256}" \
+  --sac-flow.heldout-seed="${SAC_FLOW_HELDOUT_SEED:-2000}" \
+  --sac-flow.root-cause-diagnostics="${SAC_FLOW_ROOT_CAUSE_DIAGNOSTICS:-false}" \
+  --sac-flow.root-cause-max-transitions-per-task="${SAC_FLOW_ROOT_CAUSE_MAX_TRANSITIONS_PER_TASK:-32}" \
+  --sac-flow.root-cause-gradient-repeats="${SAC_FLOW_ROOT_CAUSE_GRADIENT_REPEATS:-3}" \
   --sac-flow.noise-std-train=0.02 \
   --sac-flow.noise-std-rollout=0.02 \
   --sac-flow.actor-lr=3e-6 \
@@ -54,6 +59,10 @@ python lerobot/scripts/rlinf_smolvla_libero_sac_flow_train.py \
   --sac-flow.backup-entropy=false \
   --sac-flow.critic-lr=3e-4 \
   --sac-flow.alpha-lr=3e-4 \
+  --sac-flow.critic-conservative-coef="${SAC_FLOW_CRITIC_CONSERVATIVE_COEF:-0}" \
+  --sac-flow.critic-monte-carlo-coef="${SAC_FLOW_CRITIC_MONTE_CARLO_COEF:-0.1}" \
+  --sac-flow.critic-random-action-strategy="${SAC_FLOW_CRITIC_RANDOM_ACTION_STRATEGY:-replay_local_gaussian}" \
+  --sac-flow.critic-random-action-std="${SAC_FLOW_CRITIC_RANDOM_ACTION_STD:-0.05}" \
   --sac-flow.wandb-enable=true \
   --sac-flow.wandb-project="${WANDB_PROJECT}" \
   --sac-flow.wandb-run-name="${WANDB_RUN_NAME}" \

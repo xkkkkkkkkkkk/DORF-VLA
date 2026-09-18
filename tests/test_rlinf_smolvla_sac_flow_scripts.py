@@ -38,8 +38,27 @@ class SACFlowScriptTest(unittest.TestCase):
         self.assertIn("--sac-flow.replay-capacity=2048", script)
         self.assertIn("--sac-flow.actor-warmup-updates=2000", script)
         self.assertIn('--sac-flow.save-checkpoint="${SAC_FLOW_SAVE_CHECKPOINT:-false}"', script)
+        self.assertIn('--sac-flow.heldout-num-steps="${SAC_FLOW_HELDOUT_NUM_STEPS:-256}"', script)
+        self.assertIn('--sac-flow.heldout-seed="${SAC_FLOW_HELDOUT_SEED:-2000}"', script)
+        self.assertIn('--sac-flow.root-cause-diagnostics="${SAC_FLOW_ROOT_CAUSE_DIAGNOSTICS:-false}"', script)
+        self.assertIn(
+            '--sac-flow.root-cause-max-transitions-per-task="${SAC_FLOW_ROOT_CAUSE_MAX_TRANSITIONS_PER_TASK:-32}"',
+            script,
+        )
+        self.assertIn(
+            '--sac-flow.root-cause-gradient-repeats="${SAC_FLOW_ROOT_CAUSE_GRADIENT_REPEATS:-3}"',
+            script,
+        )
         self.assertIn("--sac-flow.noise-std-train=0.02", script)
         self.assertIn("--sac-flow.actor-lr=3e-6", script)
+        self.assertIn(
+            '--sac-flow.critic-random-action-strategy="${SAC_FLOW_CRITIC_RANDOM_ACTION_STRATEGY:-replay_local_gaussian}"',
+            script,
+        )
+        self.assertIn(
+            '--sac-flow.critic-random-action-std="${SAC_FLOW_CRITIC_RANDOM_ACTION_STD:-0.05}"',
+            script,
+        )
         self.assertIn("--sac-flow.actor-agg-q=min", script)
         self.assertIn("--sac-flow.entropy-regularization=false", script)
         self.assertIn("--sac-flow.backup-entropy=false", script)
@@ -60,12 +79,57 @@ class SACFlowScriptTest(unittest.TestCase):
         self.assertIn("--sac-flow.min-buffer-size=256", script)
         self.assertIn("--sac-flow.replay-capacity=2048", script)
         self.assertIn('--sac-flow.save-checkpoint="${SAC_FLOW_SAVE_CHECKPOINT:-false}"', script)
+        self.assertIn('--sac-flow.heldout-num-steps="${SAC_FLOW_HELDOUT_NUM_STEPS:-256}"', script)
+        self.assertIn('--sac-flow.heldout-seed="${SAC_FLOW_HELDOUT_SEED:-2000}"', script)
+        self.assertIn('--sac-flow.root-cause-diagnostics="${SAC_FLOW_ROOT_CAUSE_DIAGNOSTICS:-false}"', script)
+        self.assertIn(
+            '--sac-flow.root-cause-max-transitions-per-task="${SAC_FLOW_ROOT_CAUSE_MAX_TRANSITIONS_PER_TASK:-32}"',
+            script,
+        )
+        self.assertIn(
+            '--sac-flow.root-cause-gradient-repeats="${SAC_FLOW_ROOT_CAUSE_GRADIENT_REPEATS:-3}"',
+            script,
+        )
         self.assertIn("--sac-flow.actor-lr=3e-6", script)
         self.assertIn("--sac-flow.actor-agg-q=min", script)
+        self.assertIn(
+            '--sac-flow.critic-random-action-strategy="${SAC_FLOW_CRITIC_RANDOM_ACTION_STRATEGY:-replay_local_gaussian}"',
+            script,
+        )
+        self.assertIn(
+            '--sac-flow.critic-random-action-std="${SAC_FLOW_CRITIC_RANDOM_ACTION_STD:-0.05}"',
+            script,
+        )
         self.assertIn("--sac-flow.entropy-regularization=false", script)
         self.assertIn("--sac-flow.backup-entropy=false", script)
         self.assertIn("--env.observation_height=256", script)
         self.assertIn("--env.observation_width=256", script)
+
+    def test_intervention_recheck_is_bounded_paired_critic_only_run(self):
+        script = (SCRIPT_DIR / "intervention_recheck.sh").read_text(encoding="utf-8")
+
+        self.assertIn('TASK_IDS="${SAC_FLOW_TASK_IDS:-[9]}"', script)
+        self.assertIn('NUM_ENVS="${SAC_FLOW_NUM_ENVS:-10}"', script)
+        self.assertIn('--env.task_ids="${TASK_IDS}"', script)
+        self.assertIn("--env.paired_init_states=true", script)
+        self.assertIn('--sac-flow.seed="${SAC_FLOW_SEED:-0}"', script)
+        self.assertIn('--output_dir="${OUTPUT_DIR}"', script)
+        self.assertIn("--sac-flow.max-train-steps=280", script)
+        self.assertIn('--sac-flow.num-envs="${NUM_ENVS}"', script)
+        self.assertIn("--sac-flow.replay-capacity=8192", script)
+        self.assertIn("--sac-flow.actor-updates-enabled=false", script)
+        self.assertIn("--sac-flow.save-checkpoint=true", script)
+        self.assertIn("--sac-flow.root-cause-diagnostics=true", script)
+        self.assertIn("--sac-flow.critic-intervention-fraction=0.5", script)
+        self.assertIn("--sac-flow.critic-intervention-noise-std=0.3", script)
+        self.assertIn("--sac-flow.critic-intervention-balanced-sampling=true", script)
+        self.assertIn("--sac-flow.critic-intervention-pairing=true", script)
+        self.assertIn("--sac-flow.critic-pairwise-coef=1.0", script)
+        self.assertIn("--sac-flow.critic-pairwise-margin=0.05", script)
+        self.assertIn("--sac-flow.critic-step-penalty=0.001", script)
+        self.assertIn("--sac-flow.critic-conservative-coef=0", script)
+        self.assertIn("--sac-flow.critic-monte-carlo-coef=0.1", script)
+        self.assertIn("--sac-flow.wandb-enable=false", script)
 
 
 if __name__ == "__main__":

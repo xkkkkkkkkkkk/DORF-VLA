@@ -106,6 +106,99 @@ def critic_loss(q_data: torch.Tensor, target: torch.Tensor) -> torch.Tensor:
     return F.mse_loss(q_data, target.expand_as(q_data))
 
 
+def pairwise_q_ranking_loss(
+    preferred_q: torch.Tensor,
+    rejected_q: torch.Tensor,
+    *,
+    margin: float = 0.05,
+) -> torch.Tensor:
+    """Require a genuinely better action to outrank a worse paired action."""
+    _require_2d("preferred_q", preferred_q)
+    _require_2d("rejected_q", rejected_q)
+    _require_same_batch("preferred_q", preferred_q, "rejected_q", rejected_q)
+    if isinstance(margin, bool) or not isinstance(margin, (int, float)) or margin < 0.0:
+        raise ValueError(f"margin must be a non-negative number, got {margin!r}.")
+    preferred = preferred_q.mean(dim=-1)
+    rejected = rejected_q.mean(dim=-1)
+    return torch.relu(float(margin) - preferred + rejected).mean()
+
+
+def conservative_q_penalty(
+    q_data: torch.Tensor,
+    q_random: torch.Tensor,
+    *,
+    agg: str,
+    margin: float = 0.1,
+) -> torch.Tensor:
+    """Penalize random actions that outrank replay actions.
+
+    This is a bounded, one-sided ranking loss. Unlike a log-sum-exp term with
+    ``-q_data``, it cannot keep decreasing by pushing replay-action Q values
+    upward without limit.
+    """
+    _require_2d("q_data", q_data)
+    if q_random.ndim != 3:
+        raise ValueError(
+            "q_random must have shape [batch, num_random_actions, num_q_heads], "
+            f"got {tuple(q_random.shape)}."
+        )
+    if q_random.shape[0] != q_data.shape[0] or q_random.shape[2] != q_data.shape[1]:
+        raise ValueError("q_random batch/head dimensions must match q_data.")
+    if isinstance(margin, bool) or not isinstance(margin, (int, float)) or margin < 0.0:
+        raise ValueError(f"margin must be a non-negative number, got {margin!r}.")
+
+    random_q = aggregate_q(q_random.reshape(-1, q_random.shape[-1]), agg=agg)
+    random_q = random_q.reshape(q_random.shape[0], q_random.shape[1])
+    data_q = aggregate_q(q_data, agg=agg).squeeze(-1)
+    violations = random_q - data_q.unsqueeze(1) + float(margin)
+    return torch.relu(violations).mean()
+
+
+def sample_critic_actions(
+    actions: torch.Tensor,
+    num_samples: int,
+    *,
+    strategy: str,
+    noise_std: float,
+) -> torch.Tensor:
+    """Sample comparison actions in the replay action coordinate system.
+
+    SmolVLA's action processor uses mean/std normalization, so a hard-coded
+    ``[-1, 1]`` proposal distribution is not generally the policy's support.
+    The default local Gaussian keeps comparisons around the executed action
+    without imposing an artificial bound.  ``unit_uniform`` remains available
+    only as an explicit compatibility/control condition.
+    """
+    _require_2d("actions", actions)
+    if isinstance(num_samples, bool) or not isinstance(num_samples, int) or num_samples <= 0:
+        raise ValueError(f"num_samples must be a positive integer, got {num_samples}.")
+    if not isinstance(strategy, str) or strategy not in {"replay_local_gaussian", "unit_uniform"}:
+        raise ValueError(
+            "strategy must be one of {'replay_local_gaussian', 'unit_uniform'}, "
+            f"got {strategy!r}."
+        )
+    if isinstance(noise_std, bool) or not isinstance(noise_std, (int, float)) or noise_std < 0.0:
+        raise ValueError(f"noise_std must be a non-negative number, got {noise_std!r}.")
+
+    if strategy == "unit_uniform":
+        return torch.empty(
+            actions.shape[0],
+            num_samples,
+            actions.shape[1],
+            device=actions.device,
+            dtype=actions.dtype,
+        ).uniform_(-1.0, 1.0)
+
+    noise = torch.randn(
+        actions.shape[0],
+        num_samples,
+        actions.shape[1],
+        device=actions.device,
+        dtype=actions.dtype,
+    ).mul(float(noise_std))
+    return actions.detach().unsqueeze(1) + noise
+
+
 def actor_loss(
     q_pi: torch.Tensor,
     log_pi: torch.Tensor,

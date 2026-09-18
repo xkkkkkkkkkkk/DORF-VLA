@@ -7,7 +7,17 @@ import torch
 import torch.nn as nn
 
 from .config import SACFlowConfig
-from .critic import EntropyTemperature, actor_loss, alpha_loss, critic_loss, critic_target, soft_update
+from .critic import (
+    EntropyTemperature,
+    actor_loss,
+    alpha_loss,
+    conservative_q_penalty,
+    critic_loss,
+    critic_target,
+    pairwise_q_ranking_loss,
+    sample_critic_actions,
+    soft_update,
+)
 from .trainable_scope import iter_trainable_parameters
 
 
@@ -83,6 +93,56 @@ class SACFlowTrainer:
         self.actor_update_count = int(state.get("actor_update_count", 0))
         self.alpha_update_count = int(state.get("alpha_update_count", 0))
 
+    def evaluate_bellman_error(
+        self,
+        batch: Mapping[str, Any],
+        *,
+        train: bool = True,
+    ) -> dict[str, float]:
+        """Measure Bellman consistency without changing any optimizer state.
+
+        The default uses the same stochastic target-policy path as critic
+        training.  The caller supplies an explicit batch so a held-out
+        collection can never be sampled accidentally from the training replay.
+        """
+        missing_keys = [key for key in self._REQUIRED_BATCH_KEYS if key not in batch]
+        if missing_keys:
+            raise KeyError(f"SAC batch is missing required keys: {missing_keys}.")
+
+        with torch.no_grad():
+            next_actions, next_log_pi, next_features, _ = self.actor.sample_chunk(
+                batch["next_obs"],
+                train=train,
+            )
+            target_q = self.target_q_network(next_features, next_actions)
+            target = critic_target(
+                batch["rewards"],
+                batch["terminations"],
+                batch["discounts"],
+                target_q,
+                next_log_pi,
+                self.temperature.alpha.detach(),
+                self.config.agg_q,
+                self.config.backup_entropy,
+            )
+            curr_features = self.actor.encode_obs(batch["curr_obs"]).detach()
+            q_data = self.q_network(curr_features, batch["actions"])
+            td_error = q_data - target.expand_as(q_data)
+
+        return {
+            "bellman_mse": float(td_error.square().mean().cpu()),
+            "bellman_abs_error": float(td_error.abs().mean().cpu()),
+            "q_mean": float(q_data.mean().cpu()),
+            "target_q_mean": float(target.mean().cpu()),
+            "q_head_span": float(
+                (q_data.max(dim=-1).values - q_data.min(dim=-1).values).mean().cpu()
+            ),
+            "q_head_span_max": float(
+                (q_data.max(dim=-1).values - q_data.min(dim=-1).values).max().cpu()
+            ),
+            "sample_count": float(q_data.shape[0]),
+        }
+
     def update_sac(self, batch: Mapping[str, Any]) -> dict[str, float]:
         missing_keys = [key for key in self._REQUIRED_BATCH_KEYS if key not in batch]
         if missing_keys:
@@ -105,15 +165,102 @@ class SACFlowTrainer:
 
         curr_features = self.actor.encode_obs(batch["curr_obs"]).detach()
         q_data = self.q_network(curr_features, batch["actions"])
-        critic_objective = critic_loss(q_data, target)
+        critic_td_objective = critic_loss(q_data, target)
+        pairwise_objective = torch.zeros((), device=q_data.device)
+        pair_count = 0.0
+        if (
+            self.config.critic_pairwise_coef > 0.0
+            and "pair_preferred_actions" in batch
+            and "pair_rejected_actions" in batch
+        ):
+            pair_preferred_features = self.actor.encode_obs(
+                batch["pair_preferred_curr_obs"]
+            ).detach()
+            pair_rejected_features = self.actor.encode_obs(
+                batch["pair_rejected_curr_obs"]
+            ).detach()
+            preferred_q = self.q_network(
+                pair_preferred_features,
+                batch["pair_preferred_actions"],
+            )
+            rejected_q = self.q_network(
+                pair_rejected_features,
+                batch["pair_rejected_actions"],
+            )
+            pairwise_objective = pairwise_q_ranking_loss(
+                preferred_q,
+                rejected_q,
+                margin=self.config.critic_pairwise_margin,
+            )
+            pair_count = float(batch.get("pair_count", 0.0))
+        monte_carlo_objective = torch.zeros((), device=q_data.device)
+        episode_return_mask = batch.get("episode_return_mask")
+        episode_returns = batch.get("episode_returns")
+        if (
+            self.config.critic_monte_carlo_coef > 0.0
+            and episode_return_mask is not None
+            and episode_returns is not None
+        ):
+            selected_rows = episode_return_mask.squeeze(-1).to(dtype=torch.bool)
+            if bool(selected_rows.any()):
+                monte_carlo_objective = critic_loss(
+                    q_data[selected_rows],
+                    episode_returns[selected_rows],
+                )
+        conservative_objective = torch.zeros((), device=q_data.device)
+        if self.config.critic_conservative_coef > 0.0:
+            action_dim = self._infer_action_dim(self.q_network)
+            if action_dim != batch["actions"].shape[1]:
+                raise ValueError(
+                    "q_network action_dim does not match batch actions: "
+                    f"{action_dim} vs {batch['actions'].shape[1]}."
+                )
+            random_actions = sample_critic_actions(
+                batch["actions"],
+                self.config.critic_random_action_samples,
+                strategy=self.config.critic_random_action_strategy,
+                noise_std=self.config.critic_random_action_std,
+            )
+            random_features = curr_features.unsqueeze(1).expand(
+                -1,
+                self.config.critic_random_action_samples,
+                -1,
+            )
+            q_random = self.q_network(
+                random_features.reshape(-1, random_features.shape[-1]),
+                random_actions.reshape(-1, action_dim),
+            ).reshape(q_data.shape[0], self.config.critic_random_action_samples, -1)
+            conservative_objective = conservative_q_penalty(
+                q_data,
+                q_random,
+                agg=self.config.agg_q,
+                margin=self.config.critic_action_margin,
+            )
+        critic_objective = (
+            critic_td_objective
+            + self.config.critic_pairwise_coef * pairwise_objective
+            + self.config.critic_monte_carlo_coef * monte_carlo_objective
+            + self.config.critic_conservative_coef * conservative_objective
+        )
 
         self.critic_optimizer.zero_grad(set_to_none=True)
         critic_objective.backward()
         critic_grad_norm = self._clip_grad_norm(self.q_network.parameters())
         self.critic_optimizer.step()
 
+        replay_positive_reward_fraction = float(
+            batch.get(
+                "replay_positive_reward_fraction",
+                (batch["rewards"] > 0).float().mean().detach().cpu(),
+            )
+        )
         metrics: dict[str, float] = {
             "critic_loss": float(critic_objective.detach().cpu()),
+            "critic_td_loss": float(critic_td_objective.detach().cpu()),
+            "critic_pairwise_loss": float(pairwise_objective.detach().cpu()),
+            "critic_pair_count": pair_count,
+            "critic_monte_carlo_loss": float(monte_carlo_objective.detach().cpu()),
+            "critic_conservative_loss": float(conservative_objective.detach().cpu()),
             "q_mean": float(q_data.detach().mean().cpu()),
             "q_min": float(q_data.detach().min().cpu()),
             "q_max": float(q_data.detach().max().cpu()),
@@ -122,6 +269,30 @@ class SACFlowTrainer:
             "target_q_mean": float(target.detach().mean().cpu()),
             "target_q_std": float(target.detach().std(unbiased=False).cpu()),
             "batch_positive_reward_fraction": float((batch["rewards"] > 0).float().mean().detach().cpu()),
+            "replay_positive_reward_fraction": replay_positive_reward_fraction,
+            "batch_positive_outcome_fraction": float(
+                batch.get("batch_positive_outcome_fraction", 0.0)
+            ),
+            "replay_positive_outcome_fraction": float(
+                batch.get("replay_positive_outcome_fraction", 0.0)
+            ),
+            "batch_intervention_fraction": float(
+                batch.get("batch_intervention_fraction", 0.0)
+            ),
+            "replay_intervention_fraction": float(
+                batch.get("replay_intervention_fraction", 0.0)
+            ),
+            "batch_intervention_labeled_fraction": float(
+                batch.get("batch_intervention_labeled_fraction", 0.0)
+            ),
+            "replay_intervention_labeled_fraction": float(
+                batch.get("replay_intervention_labeled_fraction", 0.0)
+            ),
+            "batch_episode_return_fraction": float(
+                episode_return_mask.float().mean().detach().cpu()
+                if episode_return_mask is not None
+                else 0.0
+            ),
             "critic_grad_norm": critic_grad_norm,
             "critic_update_count": float(self.update_step + 1),
             "actor_update_count": float(self.actor_update_count),

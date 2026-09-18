@@ -16,6 +16,7 @@ class ChunkRolloutResult:
     raw_rewards: list[float]
     success: bool
     truncated: bool
+    env_index: int = 0
 
 
 @dataclass
@@ -35,9 +36,15 @@ def execute_action_chunk(
     action_postprocessor: Callable[[Any], Any] | None = None,
     stop_on_success: bool = False,
     observation_preparer: Callable[..., Any] | None = None,
+    intervention_applied: bool | None = None,
+    intervention_noise_l2: float | None = None,
+    intervention_task_index: int | None = None,
+    intervention_slot_index: int | None = None,
+    step_penalty: float = 0.0,
 ) -> ChunkRolloutResult:
     """Execute a policy chunk prefix and store only the actions actually executed."""
     _validate_raw_chunk(raw_chunk)
+    _validate_step_penalty(step_penalty)
     vector_num_envs = _vector_num_envs(env)
 
     chunk_size = int(raw_chunk.shape[1])
@@ -90,17 +97,30 @@ def execute_action_chunk(
         curr_obs=curr_obs,
         actions=flatten_chunk(raw_chunk[:, :horizon]),
         next_obs=next_obs,
-        rewards=raw_rewards,
+        rewards=[reward - float(step_penalty) for reward in raw_rewards],
         done=done_result,
         horizon=horizon,
         discount=chunk_discount(horizon=horizon, gamma=gamma),
-        chunk_reward=discounted_chunk_reward(raw_rewards, gamma=gamma),
+        chunk_reward=discounted_chunk_reward(
+            [reward - float(step_penalty) for reward in raw_rewards],
+            gamma=gamma,
+        ),
+        episode_success=success_result,
+        episode_completed=done_result or truncated_result,
+        truncated=truncated_result,
+        intervention_applied=intervention_applied,
+        intervention_noise_l2=intervention_noise_l2,
+        intervention_task_index=intervention_task_index,
+        intervention_slot_index=intervention_slot_index,
+        raw_rewards=list(raw_rewards),
+        raw_chunk_reward=discounted_chunk_reward(raw_rewards, gamma=gamma),
     )
     return ChunkRolloutResult(
         transition=transition,
         raw_rewards=raw_rewards,
         success=success_result,
         truncated=truncated_result,
+        env_index=0,
     )
 
 
@@ -113,6 +133,11 @@ def execute_batched_action_chunk(
     action_postprocessor: Callable[[Any], Any] | None = None,
     stop_on_success: bool = False,
     observation_preparer: Callable[..., Any] | None = None,
+    intervention_applied: list[bool] | tuple[bool, ...] | None = None,
+    intervention_noise_l2: list[float] | tuple[float, ...] | None = None,
+    intervention_task_indices: list[int] | tuple[int, ...] | None = None,
+    intervention_slot_indices: list[int] | tuple[int, ...] | None = None,
+    step_penalty: float = 0.0,
 ) -> BatchedChunkRolloutResult:
     """Execute a policy batch in a vector env and split it into independent replay items.
 
@@ -121,9 +146,17 @@ def execute_batched_action_chunk(
     transition whose reward or terminal state has been accidentally aggregated.
     """
     batch_size, chunk_size, action_dim = _validate_batched_raw_chunk(raw_chunk)
+    _validate_step_penalty(step_penalty)
     vector_num_envs = _vector_num_envs(env, expected_num_envs=batch_size)
     if vector_num_envs is None and batch_size != 1:
         raise ValueError("A non-vector env only supports raw_chunk batch size 1")
+    _validate_intervention_metadata(
+        batch_size=batch_size,
+        intervention_applied=intervention_applied,
+        intervention_noise_l2=intervention_noise_l2,
+        intervention_task_indices=intervention_task_indices,
+        intervention_slot_indices=intervention_slot_indices,
+    )
 
     if max_chunk_steps is None:
         steps_to_run = chunk_size
@@ -182,11 +215,31 @@ def execute_batched_action_chunk(
             curr_obs=_slice_batch(curr_obs, env_idx, batch_size),
             actions=flatten_chunk(raw_chunk[env_idx : env_idx + 1, :horizon]),
             next_obs=_slice_batch(next_obs, env_idx, batch_size),
-            rewards=raw_rewards,
+            rewards=[reward - float(step_penalty) for reward in raw_rewards],
             done=done_by_env[env_idx],
             horizon=horizon,
             discount=chunk_discount(horizon=horizon, gamma=gamma),
-            chunk_reward=discounted_chunk_reward(raw_rewards, gamma=gamma),
+            chunk_reward=discounted_chunk_reward(
+                [reward - float(step_penalty) for reward in raw_rewards],
+                gamma=gamma,
+            ),
+            episode_success=success_by_env[env_idx],
+            episode_completed=done_by_env[env_idx] or truncated_by_env[env_idx],
+            truncated=truncated_by_env[env_idx],
+            intervention_applied=(
+                None if intervention_applied is None else bool(intervention_applied[env_idx])
+            ),
+            intervention_noise_l2=(
+                None if intervention_noise_l2 is None else float(intervention_noise_l2[env_idx])
+            ),
+            intervention_task_index=(
+                None if intervention_task_indices is None else int(intervention_task_indices[env_idx])
+            ),
+            intervention_slot_index=(
+                None if intervention_slot_indices is None else int(intervention_slot_indices[env_idx])
+            ),
+            raw_rewards=list(raw_rewards),
+            raw_chunk_reward=discounted_chunk_reward(raw_rewards, gamma=gamma),
         )
         rollouts.append(
             ChunkRolloutResult(
@@ -194,6 +247,7 @@ def execute_batched_action_chunk(
                 raw_rewards=raw_rewards,
                 success=success_by_env[env_idx],
                 truncated=truncated_by_env[env_idx],
+                env_index=env_idx,
             )
         )
     return BatchedChunkRolloutResult(rollouts=rollouts, next_obs=next_obs)
@@ -221,6 +275,44 @@ def _validate_batched_raw_chunk(raw_chunk: Any) -> tuple[int, int, int]:
     if batch_size <= 0 or chunk_size <= 0 or action_dim <= 0:
         raise ValueError("raw_chunk must have non-empty shape [batch, chunk, action_dim]")
     return batch_size, chunk_size, action_dim
+
+
+def _validate_intervention_metadata(
+    *,
+    batch_size: int,
+    intervention_applied: list[bool] | tuple[bool, ...] | None,
+    intervention_noise_l2: list[float] | tuple[float, ...] | None,
+    intervention_task_indices: list[int] | tuple[int, ...] | None,
+    intervention_slot_indices: list[int] | tuple[int, ...] | None,
+) -> None:
+    fields = {
+        "intervention_applied": intervention_applied,
+        "intervention_noise_l2": intervention_noise_l2,
+        "intervention_task_indices": intervention_task_indices,
+        "intervention_slot_indices": intervention_slot_indices,
+    }
+    present = [name for name, value in fields.items() if value is not None]
+    if not present:
+        return
+    if len(present) != len(fields):
+        raise ValueError(
+            "intervention metadata must provide all per-slot fields together, "
+            f"got {present!r}."
+        )
+    for name, value in fields.items():
+        if len(value) != batch_size:
+            raise ValueError(
+                f"{name} must contain {batch_size} values, got {len(value)}."
+            )
+
+
+def _validate_step_penalty(step_penalty: float) -> None:
+    if (
+        isinstance(step_penalty, bool)
+        or not isinstance(step_penalty, (int, float))
+        or float(step_penalty) < 0.0
+    ):
+        raise ValueError(f"step_penalty must be non-negative, got {step_penalty!r}.")
 
 
 def _vector_num_envs(env: Any, *, expected_num_envs: int = 1) -> int | None:

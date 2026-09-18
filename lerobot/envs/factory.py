@@ -176,6 +176,7 @@ def make_env(
             n_envs=n_envs,
             camera_name=cfg.camera_name,
             init_states=cfg.init_states,
+            paired_init_states=cfg.paired_init_states,
             gym_kwargs=cfg.gym_kwargs,
             env_cls=env_cls,
             control_mode=cfg.control_mode,

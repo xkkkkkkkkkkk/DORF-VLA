@@ -286,6 +286,7 @@ class SACFlowEntryTest(unittest.TestCase):
             events.append(
                 (
                     "run",
+                    kwargs["run_cfg"].seed,
                     kwargs["run_cfg"].max_train_steps,
                     kwargs["run_cfg"].num_updates_per_step,
                     kwargs["run_cfg"].save_checkpoint,
@@ -304,6 +305,7 @@ class SACFlowEntryTest(unittest.TestCase):
                     [
                         f"--policy.path={policy_path}",
                         "--dataset.repo_id=local/test",
+                        "--sac-flow.seed=123",
                         "--sac-flow.max-train-steps=100",
                         "--sac-flow.num-updates-per-step=4",
                         "--sac-flow.kl-penalty-coef=0.07",
@@ -321,8 +323,61 @@ class SACFlowEntryTest(unittest.TestCase):
 
         self.assertEqual(events[0], ("logger", True, "manual-project", "action_path"))
         self.assertEqual(events[1], ("start", "action_path"))
-        self.assertEqual(events[2], ("run", 100, 4, False, True, "action_path", 0.07))
+        self.assertEqual(events[2], ("run", 123, 100, 4, False, True, "action_path", 0.07))
         self.assertEqual(events[3], ("finish",))
+
+    def test_train_run_parses_intervention_collector_config(self):
+        import importlib.util
+        import tempfile
+        from types import SimpleNamespace
+
+        spec = importlib.util.spec_from_file_location("sac_flow_entry", SCRIPT)
+        module = importlib.util.module_from_spec(spec)
+        assert spec.loader is not None
+        spec.loader.exec_module(module)
+        captured = {}
+
+        def fake_run(**kwargs):
+            captured["config"] = kwargs["sac_config"]
+            return SimpleNamespace(steps=1, checkpoint_dir=None)
+
+        class FakeLogger:
+            def __init__(self, config):
+                pass
+
+            def start(self, run_config):
+                pass
+
+            def finish(self):
+                pass
+
+        with tempfile.TemporaryDirectory() as libero_root, tempfile.TemporaryDirectory() as policy_path:
+            old_libero_root = os.environ.get("LEROBOT_LIBERO_ROOT")
+            os.environ["LEROBOT_LIBERO_ROOT"] = libero_root
+            try:
+                module.run_train_run(
+                    [
+                        f"--policy.path={policy_path}",
+                        "--dataset.repo_id=local/test",
+                        "--sac-flow.critic-intervention-fraction=0.5",
+                        "--sac-flow.critic-intervention-noise-std=0.3",
+                        "--sac-flow.critic-intervention-balanced-sampling=true",
+                        "--sac-flow.wandb-enable=false",
+                    ],
+                    run_fn=fake_run,
+                    logger_cls=FakeLogger,
+                    parse_train_config_fn=lambda overrides: SimpleNamespace(),
+                )
+            finally:
+                if old_libero_root is None:
+                    os.environ.pop("LEROBOT_LIBERO_ROOT", None)
+                else:
+                    os.environ["LEROBOT_LIBERO_ROOT"] = old_libero_root
+
+        config = captured["config"]
+        self.assertEqual(config.critic_intervention_fraction, 0.5)
+        self.assertEqual(config.critic_intervention_noise_std, 0.3)
+        self.assertTrue(config.critic_intervention_balanced_sampling)
 
     def test_preflight_device_accepts_cpu_without_model_or_env_creation(self):
         result = self.run_script("--preflight-device", "--sac-flow.device=cpu")

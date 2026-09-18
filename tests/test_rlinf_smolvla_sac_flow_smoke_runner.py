@@ -1,6 +1,7 @@
 import unittest
 from pathlib import Path
 from types import SimpleNamespace
+from unittest.mock import patch
 
 from lerobot.rlinf_smolvla_libero.config import SACFlowConfig
 from lerobot.rlinf_smolvla_libero.libero_adapter import execute_action_chunk
@@ -10,10 +11,13 @@ from lerobot.rlinf_smolvla_libero.smoke_runner import (
     configure_actor_trainable_scope,
     log_sac_flow_step_results,
     move_policy_to_device,
+    MultiTaskVectorEnv,
     postprocess_env_action,
     prepare_policy_observation,
+    _run_independent_heldout_check,
     run_sac_flow_training_run,
     run_sac_flow_gpu_smoke,
+    select_libero_vector_env,
     select_single_libero_vector_env,
 )
 
@@ -88,6 +92,86 @@ class FakeWandBLogger:
 
 
 class SmokeRunnerTest(unittest.TestCase):
+    def test_heldout_check_seeds_all_rngs_and_never_updates_training_state(self):
+        transition = SimpleNamespace(
+            curr_obs={"states": "curr"},
+            next_obs={"states": "next"},
+            actions="actions",
+            rewards=[0.0],
+            done=False,
+            horizon=1,
+            discount=0.96,
+            chunk_reward=0.0,
+            episode_completed=False,
+        )
+
+        class HeldoutLoop:
+            def __init__(self):
+                self.step_callback = "step"
+                self.update_callback = "update"
+                self.reset_calls = 0
+                self.run_calls = []
+
+            def reset_episode_tracking(self):
+                self.reset_calls += 1
+
+            def run(self, initial_obs, *, num_steps, store_in_replay, update):
+                self.run_calls.append((initial_obs, num_steps, store_in_replay, update))
+                return [
+                    SimpleNamespace(
+                        rollout=SimpleNamespace(
+                            transition=transition,
+                            raw_rewards=[0.0],
+                            success=False,
+                            truncated=False,
+                            env_index=0,
+                        ),
+                        rollouts=(),
+                        update_metrics=[],
+                    )
+                ]
+
+        class HeldoutTrainer:
+            def evaluate_bellman_error(self, batch, *, train):
+                return {
+                    "bellman_mse": 0.1,
+                    "bellman_abs_error": 0.2,
+                    "q_mean": 0.3,
+                    "target_q_mean": 0.4,
+                    "q_head_span": 0.5,
+                    "q_head_span_max": 0.6,
+                    "sample_count": 1.0,
+                }
+
+        loop = HeldoutLoop()
+        env = FakeVectorEnv()
+        with (
+            patch(
+                "lerobot.rlinf_smolvla_libero.smoke_runner._seed_sac_flow_rng"
+            ) as seed_rng,
+            patch(
+                "lerobot.rlinf_smolvla_libero.smoke_runner.collate_transitions",
+                return_value={"batch": True},
+            ),
+        ):
+            metrics = _run_independent_heldout_check(
+                loop=loop,
+                env=env,
+                seed=2000,
+                num_steps=1,
+                prepare_initial_obs=lambda raw: {"prepared": raw},
+                trainer=HeldoutTrainer(),
+                device="cpu",
+            )
+
+        seed_rng.assert_called_once_with(2000)
+        self.assertEqual(env.reset_calls, [2000])
+        self.assertEqual(loop.reset_calls, 1)
+        self.assertEqual(loop.run_calls, [({"prepared": {"raw": "obs"}}, 1, False, False)])
+        self.assertEqual(loop.step_callback, "step")
+        self.assertEqual(loop.update_callback, "update")
+        self.assertEqual(metrics["heldout/bellman_abs_error"], 0.2)
+
     def test_requires_explicit_confirmation_for_gpu_smoke(self):
         with self.assertRaisesRegex(RuntimeError, "confirm"):
             SACFlowSmokeConfig(device="cuda:0", confirm_gpu_smoke=False)
@@ -111,6 +195,7 @@ class SmokeRunnerTest(unittest.TestCase):
 
         self.assertEqual(config.max_train_steps, 100)
         self.assertEqual(config.num_updates_per_step, 4)
+        self.assertEqual(config.heldout_num_steps, 0)
         self.assertFalse(config.save_checkpoint)
 
     def test_configures_actor_trainable_scope_from_sac_config(self):
@@ -159,6 +244,16 @@ class SmokeRunnerTest(unittest.TestCase):
                         "env/success": 1.0,
                         "env/chunk_steps": 2,
                         "train/replay_buffer/size": 3,
+                        "env/transitions_collected": 1.0,
+                        "env/episodes_completed": 0.0,
+                        "env/episodes_successful": 0.0,
+                        "env/episodes_truncated": 0.0,
+                        "env/terminal_transitions": 0.0,
+                        "env/positive_reward_transitions": 1.0,
+                        "env/positive_reward_transition_fraction": 1.0,
+                        "env/episode_success_rate": 0.0,
+                        "env/mean_completed_episode_length": 0.0,
+                        "env/raw_reward_sum": 3.0,
                         "train/sac/critic_loss": 1.0,
                         "train/sac/alpha": 0.5,
                     },
@@ -327,16 +422,58 @@ class SmokeRunnerTest(unittest.TestCase):
 
         self.assertEqual(result.steps, 560)
         self.assertIn(("load", "/tmp/out/checkpoint_000280", True), events)
-        self.assertIn(
-            ("save", 560, {"train_steps": 280, "global_step": 560, "resumed_from": "/tmp/out/checkpoint_000280"}),
-            events,
-        )
+        save_events = [event for event in events if event[0] == "save"]
+        self.assertEqual(len(save_events), 1)
+        _, saved_step, extra_state = save_events[0]
+        self.assertEqual(saved_step, 560)
+        self.assertEqual(extra_state["train_steps"], 280)
+        self.assertEqual(extra_state["global_step"], 560)
+        self.assertEqual(extra_state["resumed_from"], "/tmp/out/checkpoint_000280")
+        self.assertIsInstance(extra_state["collection_stats"], dict)
+        self.assertEqual(extra_state["heldout_metrics"], {})
+        self.assertEqual(extra_state["critic_metrics"], {})
         self.assertEqual(logger.logged[0][0]["train/global_step"], 280)
 
     def test_selects_single_vector_env_from_nested_libero_factory_result(self):
         vec = FakeVectorEnv()
         selected = select_single_libero_vector_env({"libero_10": {3: vec}})
         self.assertIs(selected, vec)
+
+    def test_combines_one_vector_env_per_task_for_training(self):
+        first = SimpleNamespace(num_envs=2, reset=lambda **kwargs: None)
+        second = SimpleNamespace(num_envs=2, reset=lambda **kwargs: None)
+
+        selected = select_libero_vector_env(
+            {"libero_10": {0: first, 1: second}},
+            expected_num_envs_per_task=2,
+        )
+
+        self.assertEqual(selected.num_envs, 4)
+        self.assertEqual(selected.vector_envs, [first, second])
+
+    def test_multitask_vector_env_normalizes_heterogeneous_info_keys(self):
+        class Child:
+            num_envs = 1
+
+            def __init__(self, info):
+                self.info = info
+
+            def step(self, action):
+                return {"obs": [0]}, [0.0], [False], [False], self.info
+
+            def reset(self, **kwargs):
+                return {"obs": [0]}, {}
+
+        env = MultiTaskVectorEnv(
+            [
+                Child({"is_success": [True], "task_only_a": [1]}),
+                Child({"success": [False], "task_only_b": [2]}),
+            ]
+        )
+
+        result = env.step([[0.0], [0.0]])
+
+        self.assertEqual(result[4]["is_success"].tolist(), [True, False])
 
     def test_prepare_policy_observation_reuses_lerobot_eval_order(self):
         calls = []

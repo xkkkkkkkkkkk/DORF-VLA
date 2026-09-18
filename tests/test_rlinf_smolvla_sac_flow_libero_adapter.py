@@ -97,6 +97,9 @@ class LiberoAdapterTest(unittest.TestCase):
         self.assertEqual(result.transition.actions.shape, (1, 6))
         self.assertEqual(result.raw_rewards, [1.0, 2.0, 3.0])
         self.assertEqual(len(env.actions), 3)
+        self.assertFalse(result.transition.episode_success)
+        self.assertFalse(result.transition.episode_completed)
+        self.assertFalse(result.transition.truncated)
 
     def test_execute_action_chunk_stores_only_action_that_was_executed(self):
         env = DummyEnv(rewards=[1.0, 2.0, 3.0])
@@ -130,6 +133,7 @@ class LiberoAdapterTest(unittest.TestCase):
         self.assertTrue(result.transition.done)
         self.assertEqual(result.raw_rewards, [1.0, 2.0])
         self.assertEqual(len(env.actions), 2)
+        self.assertTrue(result.transition.episode_completed)
 
     def test_execute_action_chunk_stops_on_truncated_without_terminal_done(self):
         env = DummyEnv(rewards=[1.0, 2.0, 3.0], truncateds=[False, True, False])
@@ -145,6 +149,9 @@ class LiberoAdapterTest(unittest.TestCase):
         self.assertTrue(result.truncated)
         self.assertFalse(result.transition.done)
         self.assertEqual(len(env.actions), 2)
+        self.assertFalse(result.transition.episode_success)
+        self.assertTrue(result.transition.episode_completed)
+        self.assertTrue(result.transition.truncated)
 
     def test_execute_action_chunk_stops_on_success_info(self):
         env = DummyEnv(rewards=[0.0, 1.0, 1.0], successes=[False, True, False])
@@ -160,6 +167,8 @@ class LiberoAdapterTest(unittest.TestCase):
         self.assertEqual(result.transition.horizon, 2)
         self.assertTrue(result.success)
         self.assertTrue(result.transition.done)
+        self.assertTrue(result.transition.episode_success)
+        self.assertTrue(result.transition.episode_completed)
 
     def test_rejects_non_positive_max_chunk_steps(self):
         raw_chunk = torch.zeros(1, 3, 2)
@@ -228,6 +237,9 @@ class LiberoAdapterTest(unittest.TestCase):
         self.assertFalse(result.rollouts[0].success)
         self.assertTrue(result.rollouts[1].success)
         self.assertTrue(result.rollouts[1].transition.done)
+        self.assertFalse(result.rollouts[0].transition.episode_completed)
+        self.assertTrue(result.rollouts[1].transition.episode_success)
+        self.assertTrue(result.rollouts[1].transition.episode_completed)
         torch.testing.assert_close(result.rollouts[0].transition.curr_obs["states"], torch.tensor([[1.0, 2.0]]))
         torch.testing.assert_close(result.rollouts[1].transition.curr_obs["states"], torch.tensor([[7.0, 8.0]]))
 

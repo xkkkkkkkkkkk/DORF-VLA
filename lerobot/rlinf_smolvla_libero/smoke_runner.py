@@ -1,14 +1,23 @@
 from __future__ import annotations
 
-from dataclasses import dataclass, replace
+from dataclasses import dataclass, field, replace
 from pathlib import Path
 from typing import Any, Callable, Mapping
 
-from .checkpointing import assert_sac_flow_device_ready, load_sac_flow_checkpoint, save_sac_flow_checkpoint
+from .checkpointing import (
+    assert_sac_flow_device_ready,
+    capture_rng_state,
+    load_sac_flow_checkpoint,
+    restore_rng_state,
+    save_sac_flow_checkpoint,
+)
 from .config import SACFlowConfig
+from .intervention import FixedSlotInterventionCollector
+from .libero_adapter import _info_success_at
 from .runtime_builder import build_smolvla_policy_runtime
+from .replay import collate_transitions
 from .trainable_scope import apply_actor_trainable_scope
-from .training_loop import SACFlowOnlineLoop
+from .training_loop import SACFlowCollectionStats, SACFlowOnlineLoop, summarize_rollouts
 from .wandb_logger import format_sac_update_metrics
 
 
@@ -58,6 +67,16 @@ class SACFlowRunConfig:
     num_envs: int = 1
     actor_snapshot_updates: tuple[int, ...] = ()
     save_checkpoint: bool = False
+    # A positive value enables a collection-only, independent Bellman check
+    # after training.  These transitions never enter the training replay.
+    heldout_num_steps: int = 0
+    heldout_seed: int = 2000
+    # Root-cause diagnostics are opt-in because they perform additional actor
+    # forwards/backwards over a bounded replay snapshot, but never update
+    # actor/critic parameters.
+    root_cause_diagnostics: bool = False
+    root_cause_max_transitions_per_task: int = 32
+    root_cause_gradient_repeats: int = 3
 
     def __post_init__(self) -> None:
         if not isinstance(self.device, str) or not self.device:
@@ -74,6 +93,17 @@ class SACFlowRunConfig:
         _require_budget("max_chunk_steps", self.max_chunk_steps, maximum=1)
         if any(not isinstance(item, int) or item < 1 for item in self.actor_snapshot_updates):
             raise ValueError("actor_snapshot_updates must contain positive integers")
+        if isinstance(self.heldout_num_steps, bool) or not isinstance(self.heldout_num_steps, int) or self.heldout_num_steps < 0:
+            raise ValueError("heldout_num_steps must be a non-negative integer")
+        if isinstance(self.heldout_seed, bool) or not isinstance(self.heldout_seed, int):
+            raise ValueError("heldout_seed must be an integer")
+        if not isinstance(self.root_cause_diagnostics, bool):
+            raise ValueError("root_cause_diagnostics must be a bool")
+        _require_positive_integer(
+            "root_cause_max_transitions_per_task",
+            self.root_cause_max_transitions_per_task,
+        )
+        _require_positive_integer("root_cause_gradient_repeats", self.root_cause_gradient_repeats)
         if not isinstance(self.save_checkpoint, bool):
             raise ValueError(f"save_checkpoint must be a bool, got {self.save_checkpoint!r}.")
 
@@ -83,6 +113,9 @@ class SACFlowSmokeResult:
     steps: int
     checkpoint_dir: Path | None
     update_metrics: list[dict[str, float]]
+    collection_stats: dict[str, float] = field(default_factory=dict)
+    heldout_metrics: dict[str, float] = field(default_factory=dict)
+    critic_metrics: dict[str, float] = field(default_factory=dict)
 
 
 def log_sac_flow_step_results(
@@ -94,13 +127,17 @@ def log_sac_flow_step_results(
     include_update_metrics: bool = True,
 ) -> None:
     """把 rollout 与 SAC 更新指标写入 logger。"""
+    collection_stats = SACFlowCollectionStats()
     for offset, result in enumerate(step_results):
+        rollouts = getattr(result, "rollouts", ()) or (result.rollout,)
+        collection_stats.update(tuple(rollouts))
         global_step = start_step + offset
         metrics = _format_collection_metrics(
             result,
             global_step=global_step,
             replay_size=len(replay_buffer),
         )
+        metrics.update(collection_stats.metrics(prefix="env"))
         if include_update_metrics:
             for update_metric in result.update_metrics:
                 metrics.update(format_sac_update_metrics(update_metric))
@@ -162,6 +199,99 @@ def select_single_libero_vector_env(envs: Any, *, expected_num_envs: int = 1) ->
     if num_envs != expected_num_envs:
         raise ValueError(f"SAC-Flow runner requires num_envs={expected_num_envs}, got {num_envs}.")
     return vector_env
+
+
+def select_libero_vector_env(envs: Any, *, expected_num_envs_per_task: int = 1) -> Any:
+    """Select one vector env or combine multiple LIBERO task envs.
+
+    ``make_env`` returns one vector env per task id.  The previous training
+    path called ``select_single_libero_vector_env`` and therefore either ran a
+    genuinely single-task experiment or failed before collection when several
+    task ids were requested.  This adapter makes a multi-task replay experiment
+    explicit: every child has ``expected_num_envs_per_task`` slots and the
+    returned object exposes their concatenation as one vector environment.
+    """
+    leaves = _collect_vector_env_leaves(envs)
+    if not leaves:
+        raise ValueError("SAC-Flow training requires at least one vector env.")
+    for vector_env in leaves:
+        num_envs = int(getattr(vector_env, "num_envs", 1))
+        if num_envs != expected_num_envs_per_task:
+            raise ValueError(
+                "SAC-Flow training requires "
+                f"num_envs={expected_num_envs_per_task} per task, got {num_envs}."
+            )
+    if len(leaves) == 1:
+        return leaves[0]
+    return MultiTaskVectorEnv(leaves)
+
+
+class MultiTaskVectorEnv:
+    """Minimal synchronous adapter over one LIBERO vector env per task."""
+
+    def __init__(self, vector_envs: list[Any]) -> None:
+        if not vector_envs:
+            raise ValueError("vector_envs must contain at least one child.")
+        self.vector_envs = list(vector_envs)
+        self._child_num_envs = [
+            int(getattr(vector_env, "num_envs", 1))
+            for vector_env in self.vector_envs
+        ]
+        self.num_envs = sum(self._child_num_envs)
+        self.envs = [
+            child_env
+            for vector_env in self.vector_envs
+            for child_env in getattr(vector_env, "envs", [vector_env])
+        ]
+
+    def reset(self, seed: int | None = None, **kwargs: Any) -> tuple[Any, dict[str, Any]]:
+        observations: list[Any] = []
+        infos: list[Any] = []
+        for child_index, vector_env in enumerate(self.vector_envs):
+            child_seed = None if seed is None else int(seed) + child_index
+            reset_result = vector_env.reset(seed=child_seed, **kwargs)
+            if isinstance(reset_result, tuple):
+                if len(reset_result) != 2:
+                    raise ValueError("child vector env reset must return observation or (observation, info)")
+                observation, info = reset_result
+            else:
+                observation, info = reset_result, {}
+            observations.append(observation)
+            infos.append(info)
+        return _concatenate_batched_values(observations), _concatenate_batched_values(infos)
+
+    def step(self, actions: Any) -> tuple[Any, Any, Any, Any, Any]:
+        action_batches = _split_batched_value(actions, self._child_num_envs)
+        results = [
+            vector_env.step(child_actions)
+            for vector_env, child_actions in zip(self.vector_envs, action_batches, strict=True)
+        ]
+        if any(len(result) != 5 for result in results):
+            raise ValueError("child vector env step must return (obs, reward, done, truncated, info)")
+        observations, rewards, dones, truncateds, infos = zip(*results, strict=True)
+        return (
+            _concatenate_batched_values(list(observations)),
+            _concatenate_batched_values(list(rewards)),
+            _concatenate_batched_values(list(dones)),
+            _concatenate_batched_values(list(truncateds)),
+            _merge_multitask_infos(list(infos), self._child_num_envs),
+        )
+
+    def call(self, method_name: str, *args: Any, **kwargs: Any) -> list[Any]:
+        values: list[Any] = []
+        for vector_env in self.vector_envs:
+            child_values = vector_env.call(method_name, *args, **kwargs)
+            if isinstance(child_values, (list, tuple)):
+                values.extend(child_values)
+            else:
+                values.append(child_values)
+        return values
+
+    def close(self) -> None:
+        for vector_env in self.vector_envs:
+            close = getattr(vector_env, "close", None)
+            if callable(close):
+                close()
 
 
 def run_sac_flow_gpu_smoke(
@@ -255,6 +385,13 @@ def run_sac_flow_gpu_smoke(
             )
 
         checkpoint_dir = None
+        critic_metrics = _evaluate_current_critic_gate(
+            components=components,
+            config=effective_config,
+            device=effective_config.device,
+        )
+        if logger is not None and critic_metrics:
+            logger.log(critic_metrics, step=None)
         if smoke_cfg.save_checkpoint:
             checkpoint_dir = save_checkpoint_fn(
                 output_dir=_output_dir(runtime.train_cfg, train_cfg),
@@ -268,13 +405,18 @@ def run_sac_flow_gpu_smoke(
                 config=effective_config,
                 trainer=components["trainer"],
                 replay_buffer=components["replay_buffer"],
-                extra_state={"smoke_steps": smoke_cfg.max_train_steps},
+                extra_state={
+                    "smoke_steps": smoke_cfg.max_train_steps,
+                    "critic_metrics": dict(critic_metrics),
+                },
             )
         metrics = [metric for result in step_results for metric in result.update_metrics]
         return SACFlowSmokeResult(
             steps=smoke_cfg.max_train_steps,
             checkpoint_dir=checkpoint_dir,
             update_metrics=metrics,
+            collection_stats=summarize_rollouts(step_results).metrics(prefix="env"),
+            critic_metrics=critic_metrics,
         )
     finally:
         close_envs_fn(envs)
@@ -322,7 +464,11 @@ def run_sac_flow_training_run(
 
     envs = make_env_fn(env_cfg, n_envs=run_cfg.num_envs, use_async_envs=False)
     try:
-        env = select_single_libero_vector_env(envs, expected_num_envs=run_cfg.num_envs)
+        vector_env_leaves = _collect_vector_env_leaves(envs)
+        env = select_libero_vector_env(
+            envs,
+            expected_num_envs_per_task=run_cfg.num_envs,
+        )
         env_preprocessor, action_postprocessor = make_env_processors_fn(env_cfg, policy_cfg)
 
         raw_obs = _reset_vector_env(env, seed=run_cfg.seed)
@@ -344,6 +490,17 @@ def run_sac_flow_training_run(
                 initial_obs=initial_obs,
             )
         )
+        intervention_collector = None
+        if effective_config.critic_intervention_fraction > 0.0:
+            intervention_collector = FixedSlotInterventionCollector(
+                num_tasks=len(vector_env_leaves),
+                slots_per_task=run_cfg.num_envs,
+                intervention_fraction=effective_config.critic_intervention_fraction,
+                noise_std=effective_config.critic_intervention_noise_std,
+                seed=run_cfg.seed,
+                task_indices=_vector_env_task_indices(vector_env_leaves),
+                pair_actions=effective_config.critic_intervention_pairing,
+            )
         start_step = 0
         if resume_checkpoint is not None:
             payload = load_checkpoint_fn(
@@ -361,16 +518,23 @@ def run_sac_flow_training_run(
                 _override_optimizer_lr(components["trainer"].actor_optimizer, effective_config.actor_lr)
 
         logged_collection_steps: set[int] = set()
+        logged_collection_stats = SACFlowCollectionStats()
 
         def log_collection_step(result: Any, collection_step: int) -> None:
             if logger is None:
                 return
+            rollouts = getattr(result, "rollouts", ()) or (result.rollout,)
+            logged_collection_stats.update(tuple(rollouts))
+            collection_metrics = logged_collection_stats.metrics(prefix="env")
             logger.log(
-                _format_collection_metrics(
-                    result,
-                    global_step=start_step + collection_step,
-                    replay_size=len(components["replay_buffer"]),
-                ),
+                {
+                    **_format_collection_metrics(
+                        result,
+                        global_step=start_step + collection_step,
+                        replay_size=len(components["replay_buffer"]),
+                    ),
+                    **collection_metrics,
+                },
                 step=None,
             )
             logged_collection_steps.add(collection_step)
@@ -407,6 +571,8 @@ def run_sac_flow_training_run(
                 logger=logger,
             ),
             step_callback=log_collection_step if logger is not None else None,
+            intervention_collector=intervention_collector,
+            collection_seed=run_cfg.seed,
         )
         step_results = loop.run(initial_obs, num_steps=run_cfg.max_train_steps)
         if logger is not None and len(logged_collection_steps) != len(step_results):
@@ -414,15 +580,55 @@ def run_sac_flow_training_run(
                 if offset in logged_collection_steps:
                     continue
                 logger.log(
-                    _format_collection_metrics(
-                        result,
-                        global_step=start_step + offset,
-                        replay_size=len(components["replay_buffer"]),
-                    ),
+                    {
+                        **_format_collection_metrics(
+                            result,
+                            global_step=start_step + offset,
+                            replay_size=len(components["replay_buffer"]),
+                        ),
+                        **summarize_rollouts(step_results[: offset + 1]).metrics(prefix="env"),
+                    },
                     step=None,
                 )
 
         completed_step = start_step + run_cfg.max_train_steps
+        collection_stats = summarize_rollouts(step_results)
+        heldout_metrics: dict[str, float] = {}
+        if run_cfg.heldout_num_steps > 0:
+            heldout_rng_state = capture_rng_state()
+            try:
+                heldout_metrics = _run_independent_heldout_check(
+                    loop=loop,
+                    env=env,
+                    seed=run_cfg.heldout_seed,
+                    num_steps=run_cfg.heldout_num_steps,
+                    prepare_initial_obs=lambda raw_obs: prepare_policy_observation(
+                        raw_obs=raw_obs,
+                        env=env,
+                        env_preprocessor=env_preprocessor,
+                        policy_preprocessor=runtime.preprocessor,
+                        preprocess_observation_fn=preprocess_observation_fn,
+                        add_envs_task_fn=add_envs_task_fn,
+                    ),
+                    trainer=components["trainer"],
+                    device=effective_config.device,
+                )
+            finally:
+                restore_rng_state(heldout_rng_state)
+            if logger is not None:
+                logger.log(heldout_metrics, step=None)
+
+        critic_metrics = _evaluate_current_critic_gate(
+            components=components,
+            config=effective_config,
+            device=effective_config.device,
+            include_root_cause_diagnostics=run_cfg.root_cause_diagnostics,
+            root_cause_max_transitions_per_task=run_cfg.root_cause_max_transitions_per_task,
+            root_cause_gradient_repeats=run_cfg.root_cause_gradient_repeats,
+        )
+        if logger is not None and critic_metrics:
+            logger.log(critic_metrics, step=None)
+
         checkpoint_dir = None
         if run_cfg.save_checkpoint:
             checkpoint_dir = save_checkpoint_fn(
@@ -441,6 +647,9 @@ def run_sac_flow_training_run(
                     "train_steps": run_cfg.max_train_steps,
                     "global_step": completed_step,
                     "resumed_from": str(resume_checkpoint) if resume_checkpoint is not None else None,
+                    "collection_stats": collection_stats.state_dict(),
+                    "heldout_metrics": dict(heldout_metrics),
+                    "critic_metrics": dict(critic_metrics),
                 },
             )
         metrics = [metric for result in step_results for metric in result.update_metrics]
@@ -448,6 +657,9 @@ def run_sac_flow_training_run(
             steps=completed_step,
             checkpoint_dir=checkpoint_dir,
             update_metrics=metrics,
+            collection_stats=collection_stats.metrics(prefix="env"),
+            heldout_metrics=heldout_metrics,
+            critic_metrics=critic_metrics,
         )
     finally:
         close_envs_fn(envs)
@@ -608,6 +820,189 @@ def _build_training_update_callback(
     return callback
 
 
+def _run_independent_heldout_check(
+    *,
+    loop: SACFlowOnlineLoop,
+    env: Any,
+    seed: int,
+    num_steps: int,
+    prepare_initial_obs: Callable[[Any], dict[str, Any]],
+    trainer: Any,
+    device: Any,
+    evaluation_batch_size: int = 16,
+) -> dict[str, float]:
+    """Collect fresh episodes and evaluate the frozen critic on them.
+
+    The loop is deliberately switched to ``update=False`` and
+    ``store_in_replay=False``.  This makes the split independent in both data
+    membership and optimizer updates, unlike taking 20% of an already-trained
+    replay buffer.
+    """
+    if num_steps <= 0:
+        raise ValueError(f"num_steps must be positive, got {num_steps}.")
+    if evaluation_batch_size <= 0:
+        raise ValueError(f"evaluation_batch_size must be positive, got {evaluation_batch_size}.")
+
+    # The environment seed alone does not control stochastic SmolVLA action
+    # sampling. The caller preserves and restores the training RNG state around
+    # this function, so the held-out split can use a fully independent seed.
+    _seed_sac_flow_rng(seed)
+    raw_obs = _reset_vector_env(env, seed=seed)
+    initial_obs = prepare_initial_obs(raw_obs)
+    loop.reset_episode_tracking()
+    reset_intervention_rng = getattr(loop, "reset_intervention_rng", None)
+    if callable(reset_intervention_rng):
+        reset_intervention_rng(seed)
+    original_step_callback = loop.step_callback
+    original_update_callback = loop.update_callback
+    loop.step_callback = None
+    loop.update_callback = None
+    try:
+        step_results = loop.run(
+            initial_obs,
+            num_steps=num_steps,
+            store_in_replay=False,
+            update=False,
+        )
+    finally:
+        loop.step_callback = original_step_callback
+        loop.update_callback = original_update_callback
+
+    stats = summarize_rollouts(step_results)
+    metrics = stats.metrics(prefix="heldout")
+    rollouts = [
+        rollout
+        for result in step_results
+        for rollout in (getattr(result, "rollouts", ()) or (result.rollout,))
+    ]
+    transitions = [rollout.transition for rollout in rollouts]
+    if not transitions:
+        raise RuntimeError("independent held-out collection produced no transitions")
+
+    bellman_batches: list[dict[str, float]] = []
+    for start in range(0, len(transitions), evaluation_batch_size):
+        batch = collate_transitions(
+            transitions[start : start + evaluation_batch_size],
+            device=device,
+        )
+        bellman_batches.append(trainer.evaluate_bellman_error(batch, train=True))
+
+    total_samples = sum(item["sample_count"] for item in bellman_batches)
+    for key in ("bellman_mse", "bellman_abs_error", "q_mean", "target_q_mean", "q_head_span"):
+        metrics[f"heldout/{key}"] = float(
+            sum(item[key] * item["sample_count"] for item in bellman_batches) / total_samples
+        )
+    metrics["heldout/q_head_span_max"] = float(
+        max(item["q_head_span_max"] for item in bellman_batches)
+    )
+    metrics["heldout/bellman_batches"] = float(len(bellman_batches))
+    return metrics
+
+
+def _evaluate_current_critic_gate(
+    *,
+    components: Mapping[str, Any],
+    config: SACFlowConfig,
+    device: Any,
+    evaluation_batch_size: int = 16,
+    include_root_cause_diagnostics: bool = False,
+    root_cause_max_transitions_per_task: int = 32,
+    root_cause_gradient_repeats: int = 3,
+) -> dict[str, float]:
+    """Run the replay-action gate when the concrete replay exposes a snapshot."""
+    replay_buffer = components.get("replay_buffer")
+    items_fn = getattr(replay_buffer, "items", None)
+    if not callable(items_fn):
+        return {}
+    transitions = list(items_fn())
+    if not transitions:
+        return {}
+
+    from .critic_diagnostics import (
+        evaluate_actor_gradient_compatibility,
+        evaluate_critic_action_gate,
+        evaluate_critic_root_causes,
+        evaluate_intervention_coverage,
+        evaluate_pairwise_action_ranking,
+    )
+
+    metrics = evaluate_critic_action_gate(
+        actor=components["actor"],
+        q_network=components["q_network"],
+        transitions=transitions,
+        device=device,
+        agg=config.agg_q,
+        batch_size=evaluation_batch_size,
+        seed=0,
+        max_transitions_per_task=root_cause_max_transitions_per_task,
+    )
+    output = {f"train/critic_gate/{key}": value for key, value in metrics.items()}
+    output.update(
+        {
+            f"train/intervention/{key}": value
+            for key, value in evaluate_intervention_coverage(transitions).items()
+        }
+    )
+    output.update(
+        {
+            f"train/critic_gate/{key}": value
+            for key, value in evaluate_pairwise_action_ranking(
+                actor=components["actor"],
+                q_network=components["q_network"],
+                transitions=transitions,
+                device=device,
+                agg=config.agg_q,
+                margin=config.critic_pairwise_margin,
+                min_length_gap=config.critic_pairwise_min_length_gap,
+                batch_size=evaluation_batch_size,
+            ).items()
+        }
+    )
+    if not include_root_cause_diagnostics:
+        return output
+
+    root_cause_metrics = evaluate_critic_root_causes(
+        actor=components["actor"],
+        q_network=components["q_network"],
+        transitions=transitions,
+        device=device,
+        agg=config.agg_q,
+        batch_size=evaluation_batch_size,
+        seed=0,
+        max_transitions_per_task=root_cause_max_transitions_per_task,
+    )
+    output.update(
+        {
+            f"train/critic_root_cause/{key}": value
+            for key, value in root_cause_metrics.items()
+            if isinstance(value, (int, float))
+        }
+    )
+
+    actor_gradient_metrics = evaluate_actor_gradient_compatibility(
+        actor=components["actor"],
+        q_network=components["q_network"],
+        transitions=transitions,
+        device=device,
+        agg=config.actor_agg_q,
+        kl_penalty_coef=config.kl_penalty_coef,
+        include_kl=config.kl_penalty_coef > 0.0,
+        repeats=root_cause_gradient_repeats,
+        # Full SmolVLA actor gradients retain substantially more activation
+        # memory than critic input diagnostics. Keep this probe small enough to
+        # coexist with the frozen reference policy on a single 48 GB GPU.
+        max_transitions_per_task=min(root_cause_max_transitions_per_task, 4),
+        seed=0,
+    )
+    output.update(
+        {
+            f"train/actor_gradient/{key}": value
+            for key, value in actor_gradient_metrics.items()
+        }
+    )
+    return output
+
+
 def _seed_sac_flow_rng(seed: int) -> None:
     """Seed local stochastic components for a fresh SAC-Flow run only."""
     import random
@@ -705,6 +1100,99 @@ def _collect_vector_env_leaves(value: Any) -> list[Any]:
     if hasattr(value, "reset") and (hasattr(value, "step") or hasattr(value, "num_envs")):
         return [value]
     return []
+
+
+def _vector_env_task_indices(vector_envs: list[Any]) -> tuple[int, ...]:
+    task_indices: list[int] = []
+    for fallback, vector_env in enumerate(vector_envs):
+        children = list(getattr(vector_env, "envs", ()))
+        task_index = getattr(children[0], "task_id", fallback) if children else fallback
+        task_indices.append(int(task_index))
+    return tuple(task_indices)
+
+
+def _split_batched_value(value: Any, batch_sizes: list[int]) -> list[Any]:
+    if len(batch_sizes) == 1:
+        return [value]
+    total = sum(batch_sizes)
+    shape = getattr(value, "shape", None)
+    if shape is not None and len(shape) >= 1 and int(shape[0]) == total:
+        outputs = []
+        start = 0
+        for batch_size in batch_sizes:
+            outputs.append(value[start : start + batch_size])
+            start += batch_size
+        return outputs
+    if isinstance(value, (list, tuple)) and len(value) == total:
+        outputs = []
+        start = 0
+        for batch_size in batch_sizes:
+            outputs.append(value[start : start + batch_size])
+            start += batch_size
+        return outputs
+    raise ValueError(f"batched value must have leading batch size {total}")
+
+
+def _concatenate_batched_values(values: list[Any]) -> Any:
+    if not values:
+        return values
+    first = values[0]
+    if isinstance(first, dict):
+        keys = set(first)
+        if any(set(value) != keys for value in values[1:] if isinstance(value, dict)):
+            raise ValueError("child vector env dictionaries must have matching keys")
+        return {
+            key: _concatenate_batched_values([value[key] for value in values])
+            for key in keys
+        }
+    if isinstance(first, tuple):
+        return tuple(
+            _concatenate_batched_values([value[index] for value in values])
+            for index in range(len(first))
+        )
+    if isinstance(first, list):
+        if all(isinstance(value, list) and len(value) == len(first) for value in values):
+            return [
+                _concatenate_batched_values([value[index] for value in values])
+                for index in range(len(first))
+            ]
+        output: list[Any] = []
+        for value in values:
+            output.extend(value if isinstance(value, list) else [value])
+        return output
+    shape = getattr(first, "shape", None)
+    if shape is not None and hasattr(first, "dtype"):
+        try:
+            import numpy as np
+
+            return np.concatenate(values, axis=0)
+        except (ImportError, TypeError, ValueError):
+            pass
+    try:
+        import numpy as np
+
+        return np.concatenate([np.asarray(value) for value in values], axis=0)
+    except (ImportError, TypeError, ValueError):
+        return values
+
+
+def _merge_multitask_infos(infos: list[Any], batch_sizes: list[int]) -> dict[str, Any]:
+    """Expose only the per-slot success signal across heterogeneous task infos."""
+    if len(infos) != len(batch_sizes):
+        raise ValueError("info values and batch sizes must have matching lengths")
+    success_values: list[bool] = []
+    for info, batch_size in zip(infos, batch_sizes, strict=True):
+        success_values.extend(
+            _info_success_at(info, index, batch_size)
+            for index in range(batch_size)
+        )
+    try:
+        import numpy as np
+
+        success_array: Any = np.asarray(success_values, dtype=np.bool_)
+    except ImportError:
+        success_array = success_values
+    return {"is_success": success_array}
 
 
 def _reset_vector_env(env: Any, *, seed: int) -> Any:

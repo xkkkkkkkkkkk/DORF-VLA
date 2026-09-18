@@ -10,6 +10,7 @@ from __future__ import annotations
 
 import argparse
 from contextlib import contextmanager
+import json
 import os
 import sys
 from pathlib import Path
@@ -360,6 +361,7 @@ def run_train_run(
     device = _extract_override_value(effective_cli_overrides, "sac-flow.device") or "cpu"
     run_cfg = SACFlowRunConfig(
         device=device,
+        seed=_extract_int_override(effective_cli_overrides, "sac-flow.seed", 0),
         max_train_steps=_extract_int_override(effective_cli_overrides, "sac-flow.max-train-steps", 100),
         max_chunk_steps=_extract_int_override(effective_cli_overrides, "sac-flow.max-chunk-steps", 1),
         num_updates_per_step=_extract_int_override(effective_cli_overrides, "sac-flow.num-updates-per-step", 4),
@@ -369,6 +371,31 @@ def run_train_run(
         num_envs=_extract_int_override(effective_cli_overrides, "sac-flow.num-envs", 1),
         actor_snapshot_updates=_extract_int_tuple_override(effective_cli_overrides, "sac-flow.actor-snapshot-updates"),
         save_checkpoint=_extract_bool_override(effective_cli_overrides, "sac-flow.save-checkpoint", False),
+        heldout_num_steps=_extract_int_override(
+            effective_cli_overrides,
+            "sac-flow.heldout-num-steps",
+            0,
+        ),
+        heldout_seed=_extract_int_override(
+            effective_cli_overrides,
+            "sac-flow.heldout-seed",
+            2000,
+        ),
+        root_cause_diagnostics=_extract_bool_override(
+            effective_cli_overrides,
+            "sac-flow.root-cause-diagnostics",
+            False,
+        ),
+        root_cause_max_transitions_per_task=_extract_int_override(
+            effective_cli_overrides,
+            "sac-flow.root-cause-max-transitions-per-task",
+            32,
+        ),
+        root_cause_gradient_repeats=_extract_int_override(
+            effective_cli_overrides,
+            "sac-flow.root-cause-gradient-repeats",
+            3,
+        ),
     )
     sac_config = SACFlowConfig(
         device=device,
@@ -378,6 +405,86 @@ def run_train_run(
         critic_lr=_extract_float_override(effective_cli_overrides, "sac-flow.critic-lr", 3e-4),
         alpha_lr=_extract_float_override(effective_cli_overrides, "sac-flow.alpha-lr", 3e-4),
         actor_warmup_updates=_extract_int_override(effective_cli_overrides, "sac-flow.actor-warmup-updates", 2000),
+        critic_positive_sample_fraction=_extract_float_override(
+            effective_cli_overrides,
+            "sac-flow.critic-positive-sample-fraction",
+            0.5,
+        ),
+        critic_task_balanced_sampling=_extract_bool_override(
+            effective_cli_overrides,
+            "sac-flow.critic-task-balanced-sampling",
+            True,
+        ),
+        critic_intervention_fraction=_extract_float_override(
+            effective_cli_overrides,
+            "sac-flow.critic-intervention-fraction",
+            0.0,
+        ),
+        critic_intervention_noise_std=_extract_float_override(
+            effective_cli_overrides,
+            "sac-flow.critic-intervention-noise-std",
+            0.3,
+        ),
+        critic_intervention_balanced_sampling=_extract_bool_override(
+            effective_cli_overrides,
+            "sac-flow.critic-intervention-balanced-sampling",
+            True,
+        ),
+        critic_intervention_pairing=_extract_bool_override(
+            effective_cli_overrides,
+            "sac-flow.critic-intervention-pairing",
+            False,
+        ),
+        critic_pairwise_coef=_extract_float_override(
+            effective_cli_overrides,
+            "sac-flow.critic-pairwise-coef",
+            0.0,
+        ),
+        critic_pairwise_margin=_extract_float_override(
+            effective_cli_overrides,
+            "sac-flow.critic-pairwise-margin",
+            0.05,
+        ),
+        critic_pairwise_min_length_gap=_extract_int_override(
+            effective_cli_overrides,
+            "sac-flow.critic-pairwise-min-length-gap",
+            5,
+        ),
+        critic_step_penalty=_extract_float_override(
+            effective_cli_overrides,
+            "sac-flow.critic-step-penalty",
+            0.0,
+        ),
+        critic_conservative_coef=_extract_float_override(
+            effective_cli_overrides,
+            "sac-flow.critic-conservative-coef",
+            0.0,
+        ),
+        critic_monte_carlo_coef=_extract_float_override(
+            effective_cli_overrides,
+            "sac-flow.critic-monte-carlo-coef",
+            0.1,
+        ),
+        critic_random_action_samples=_extract_int_override(
+            effective_cli_overrides,
+            "sac-flow.critic-random-action-samples",
+            4,
+        ),
+        critic_action_margin=_extract_float_override(
+            effective_cli_overrides,
+            "sac-flow.critic-action-margin",
+            0.1,
+        ),
+        critic_random_action_strategy=_extract_str_override(
+            effective_cli_overrides,
+            "sac-flow.critic-random-action-strategy",
+            "replay_local_gaussian",
+        ),
+        critic_random_action_std=_extract_float_override(
+            effective_cli_overrides,
+            "sac-flow.critic-random-action-std",
+            0.05,
+        ),
         actor_updates_enabled=_extract_bool_override(
             effective_cli_overrides, "sac-flow.actor-updates-enabled", True
         ),
@@ -424,10 +531,21 @@ def run_train_run(
                 "num_updates_per_step": run_cfg.num_updates_per_step,
                 "batch_size": run_cfg.batch_size,
                 "num_envs": run_cfg.num_envs,
+                "seed": run_cfg.seed,
                 "actor_warmup_updates": sac_config.actor_warmup_updates,
                 "actor_updates_enabled": sac_config.actor_updates_enabled,
                 "kl_penalty_coef": sac_config.kl_penalty_coef,
                 "resume_checkpoint": resume_checkpoint,
+                "heldout_num_steps": run_cfg.heldout_num_steps,
+                "heldout_seed": run_cfg.heldout_seed,
+                "root_cause_diagnostics": run_cfg.root_cause_diagnostics,
+                "root_cause_max_transitions_per_task": run_cfg.root_cause_max_transitions_per_task,
+                "root_cause_gradient_repeats": run_cfg.root_cause_gradient_repeats,
+                "critic_intervention_fraction": sac_config.critic_intervention_fraction,
+                "critic_intervention_noise_std": sac_config.critic_intervention_noise_std,
+                "critic_intervention_balanced_sampling": (
+                    sac_config.critic_intervention_balanced_sampling
+                ),
             }
         )
         try:
@@ -443,6 +561,14 @@ def run_train_run(
             logger.finish()
     checkpoint_text = result.checkpoint_dir if result.checkpoint_dir is not None else "not-saved"
     print(f"SAC-Flow training run finished: steps={result.steps} checkpoint={checkpoint_text}")
+    if not sac_config.wandb_enable:
+        final_metrics = {
+            "collection_stats": getattr(result, "collection_stats", {}),
+            "heldout_metrics": getattr(result, "heldout_metrics", {}),
+            "critic_metrics": getattr(result, "critic_metrics", {}),
+        }
+        if any(final_metrics.values()):
+            print(f"SAC-Flow final metrics: {json.dumps(final_metrics, sort_keys=True)}")
 
 
 def main(argv: list[str] | None = None) -> int:

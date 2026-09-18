@@ -171,6 +171,11 @@ class LiberoEnvConfigGymKwargsTest(unittest.TestCase):
         self.assertEqual(kwargs["observation_height"], 360)
         self.assertEqual(kwargs["observation_width"], 360)
 
+    def test_paired_init_states_is_explicitly_configurable(self):
+        cfg = LiberoEnv(paired_init_states=True)
+
+        self.assertTrue(cfg.paired_init_states)
+
 
 if __name__ == "__main__":
     unittest.main()
