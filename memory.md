@@ -385,3 +385,7 @@ Cleanup rules:
   `/autodl-fs/data/data` path, removed three confirmed non-milestone diagnostic
   checkpoints totaling about 19 GB plus stale notebook checkpoints/logs, and
   rechecked usage at `/root/autodl-tmp` 62% and `/autodl-fs/data` 51%.
+- 2026-09-18: Edge AutoDL shutdown was authorized but not verifiable because
+  the local Mac was locked and CUA could not access Edge. The AutoDL server
+  had no training process after cleanup; UI shutdown remains pending until the
+  Mac is unlocked.
